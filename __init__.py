@@ -25,7 +25,6 @@ class RemoteObject(object):
             if isinstance(value, list) or isinstance(value, tuple):
                 obj = []
                 for item in value:
-                    str_item = dict([(k.encode('ascii', 'ignore'), v) for k, v in item.iteritems()])
                     o = obj_class(**kwargs_dict(item))
                     o.parent = self
                     obj.append(o)
