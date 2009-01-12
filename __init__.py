@@ -7,6 +7,9 @@ import types
 # TODO configurable?
 BASE_URL = 'http://127.0.0.1:8080/'
 
+def kwargs_dict(data):
+    return dict([(k.encode('ascii', 'ignore'), v) for k, v in data.iteritems()])
+
 class RemoteObject(object):
     fields = ()
     objects = {}
@@ -19,15 +22,18 @@ class RemoteObject(object):
         # create children objects from a property name : RemoteObject pair
         for obj_name, obj_class in self.objects.iteritems():
             value = kwargs.get(obj_name)
-            if type(value) is types.ListType or type(value) is types.TupleType:
+            if isinstance(value, list) or isinstance(value, tuple):
                 obj = []
                 for item in value:
-                    o = obj_class(**item)
+                    str_item = dict([(k.encode('ascii', 'ignore'), v) for k, v in item.iteritems()])
+                    o = obj_class(**kwargs_dict(item))
                     o.parent = self
                     obj.append(o)
-            else:
-                obj = obj_class(**value)
+            elif isinstance(value, dict):
+                obj = obj_class(**kwargs_dict(value))
                 obj.parent = self # e.g. reference to blog from entry
+            else:
+                obj = None
             setattr(self, obj_name, obj)    
 
     @classmethod
@@ -45,8 +51,7 @@ class RemoteObject(object):
         # TODO make sure astropad is returning the proper content type
         #if data and resp.get('content-type') == 'application/json':
         data = simplejson.loads(content)
-        str_data = dict([(k.encode('ascii', 'ignore'), v) for k, v in data.iteritems()])
-        return cls(**str_data)
+        return cls(**kwargs_dict(data))
 
 
 class User(RemoteObject):
