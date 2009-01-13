@@ -1,4 +1,5 @@
 import httplib2
+# TODO: require 2.0+ version of simplejson that doesn't provide unicode keys
 import simplejson
 import logging
 from urlparse import urljoin
@@ -6,9 +7,6 @@ import types
 
 # TODO configurable?
 BASE_URL = 'http://127.0.0.1:8080/'
-
-def kwargs_dict(data):
-    return dict([(k.encode('ascii', 'ignore'), v) for k, v in data.iteritems()])
 
 class RemoteObject(object):
     fields = {}
@@ -19,11 +17,11 @@ class RemoteObject(object):
             if isinstance(value, list) or isinstance(value, tuple):
                 value = []
                 for item in value:
-                    o = field_class(**kwargs_dict(item))
+                    o = field_class(**item)
                     o.parent = self
                     obj.append(o)
             elif isinstance(value, dict):
-                value = field_class(**kwargs_dict(value))
+                value = field_class(**value)
                 value.parent = self # e.g. reference to blog from entry
             setattr(self, field_name, value)
 
@@ -42,7 +40,7 @@ class RemoteObject(object):
         # TODO make sure astropad is returning the proper content type
         #if data and resp.get('content-type') == 'application/json':
         data = simplejson.loads(content)
-        return cls(**kwargs_dict(data))
+        return cls(**data)
 
 
 class User(RemoteObject):
