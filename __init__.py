@@ -12,7 +12,8 @@ def omit_nulls(data):
     if not isinstance(data, dict):
         data = dict(data.__dict__)
     for key in data.keys():
-        if data[key] is None:
+        # TODO: don't have etag in obj data in the first place?
+        if data[key] is None or key == 'etag':
             del data[key]
     return data
 
@@ -23,7 +24,8 @@ class RemoteObject(object):
         self.update(**kwargs)
 
     def update(self, **kwargs):
-        self.id = kwargs.get('id')
+        for key in ('id', 'etag'):
+            setattr(self, key, kwargs.get(key))
         for field_name, field_class in self.fields.iteritems():
             value = kwargs.get(field_name)
             # TODO: reuse child objects as appropriate
@@ -55,6 +57,8 @@ class RemoteObject(object):
         # TODO make sure astropad is returning the proper content type
         #if data and resp.get('content-type') == 'application/json':
         data = simplejson.loads(content)
+        if 'etag' in response:
+            data['etag'] = response['etag']
         return cls(**data)
 
     def save(self, http=None):
@@ -63,19 +67,23 @@ class RemoteObject(object):
 
         body = simplejson.dumps(self, default=omit_nulls)
 
+        httpextra = {}
         if self.id is None:
             url = self.set_url % self.__dict__
             method = 'POST'
         else:
             url = self.url % self.__dict__
             method = 'PUT'
+            httpextra['headers'] = {'if-match': self.etag}
 
         url = urljoin(BASE_URL, url)
-        (response, content) = http.request(url, method=method, body=body)
+        (response, content) = http.request(url, method=method, body=body, **httpextra)
 
         # TODO: follow redirects first?
         new_body = simplejson.loads(content)
         logging.debug('Yay saved my obj, now turning %s into new content' % (content,))
+        if 'etag' in response:
+            new_body['etag'] = response['etag']
         self.update(**new_body)
 
 
