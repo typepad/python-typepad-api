@@ -28,9 +28,10 @@ class RemoteObject(object):
             setattr(self, field_name, value)
 
     @classmethod
-    def get(cls, id, http=None):
+    def get(cls, id, http=None, **kwargs):
         # TODO accept atom or whatever other response format
-        url = cls.url % {'id': id}
+        kwargs['id'] = id
+        url = cls.url % kwargs
         url = urljoin(BASE_URL, url)
         logging.debug('Fetching %s' % (url,))
 
@@ -52,10 +53,10 @@ class RemoteObject(object):
 
         http_extra = {'body': body}
         if self.id is None:
-            url = self.set_url
+            url = self.set_url % self.__dict__
             http_extra['method'] = 'POST'
         else:
-            url = self.url % {'id': self.id}
+            url = self.url % self.__dict__
             http_extra['method'] = 'PUT'
 
         url = urljoin(BASE_URL, url)
@@ -79,7 +80,8 @@ class User(RemoteObject):
         'email': basestring,
         'uri':   basestring,
     }
-    url    = r'/users/%(id)s.json'
+    set_url = r'/users.json'
+    url     = r'/users/%(id)s.json'
 
 
 class Entry(RemoteObject):
@@ -92,7 +94,8 @@ class Entry(RemoteObject):
         'mod_date': basestring,
         'authors':  User,
     }
-    url = r'/blogs/%(blog_id)s/entries/%(id)s'
+    set_url = r'/blogs/%(blog_id)s.json'
+    url     = r'/blogs/%(blog_id)s/entries/%(id)s.json'
 
 
 class Blog(RemoteObject):
@@ -108,7 +111,8 @@ class Blog(RemoteObject):
         'subtitle': basestring,
         'entries':  Entry,
     }
-    url    = r'/blogs/%(id)s.json'
+    set_url = r'/blogs.json'
+    url     = r'/blogs/%(id)s.json'
 
     def get_entries(self):
         pass
