@@ -12,6 +12,8 @@ class RemoteObject(object):
     fields = {}
 
     def __init__(self, **kwargs):
+        self.id = kwargs.get('id')
+
         for field_name, field_class in self.fields.iteritems():
             value = kwargs.get(field_name)
             if isinstance(value, list) or isinstance(value, tuple):
@@ -42,6 +44,25 @@ class RemoteObject(object):
         data = simplejson.loads(content)
         return cls(**data)
 
+    def save(self, http=None):
+        if http is None:
+            http = httplib2.Http()
+
+        body = simplejson.dumps(self.__dict__)
+
+        http_extra = {'body': body}
+        if self.id is None:
+            url = self.set_url
+            http_extra['method'] = 'POST'
+        else:
+            url = self.url % {'id': self.id}
+            http_extra['method'] = 'PUT'
+
+        url = urljoin(BASE_URL, url)
+        (response, content) = http.request(url, **http_extra)
+
+        # yay?
+
 
 class User(RemoteObject):
     """User from TypePad API.
@@ -63,6 +84,7 @@ class User(RemoteObject):
 
 class Entry(RemoteObject):
     fields = {
+        'blog_id':  basestring,
         'slug':     basestring,
         'title':    basestring,
         'content':  basestring,
@@ -70,6 +92,7 @@ class Entry(RemoteObject):
         'mod_date': basestring,
         'authors':  User,
     }
+    url = r'/blogs/%(blog_id)s/entries/%(id)s'
 
 
 class Blog(RemoteObject):
