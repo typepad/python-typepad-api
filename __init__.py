@@ -28,11 +28,12 @@ class RemoteObject(object):
             value = kwargs.get(field_name)
             # TODO: reuse child objects as appropriate
             if isinstance(value, list) or isinstance(value, tuple):
-                value = []
+                new_value = []
                 for item in value:
                     o = field_class(**item)
                     o.parent = self
-                    value.append(o)
+                    new_value.append(o)
+                value = new_value
             elif isinstance(value, dict):
                 value = field_class(**value)
                 value.parent = self # e.g. reference to blog from entry
