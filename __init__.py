@@ -127,6 +127,3 @@ class Blog(RemoteObject):
     }
     set_url = r'/blogs.json'
     url     = r'/blogs/%(id)s.json'
-
-    def get_entries(self):
-        pass
