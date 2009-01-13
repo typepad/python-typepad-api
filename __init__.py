@@ -8,14 +8,25 @@ import types
 # TODO configurable?
 BASE_URL = 'http://127.0.0.1:8080/'
 
+def omit_nulls(data):
+    if not isinstance(data, dict):
+        data = dict(data.__dict__)
+    for key in data.keys():
+        if data[key] is None:
+            del data[key]
+    return data
+
 class RemoteObject(object):
     fields = {}
 
     def __init__(self, **kwargs):
-        self.id = kwargs.get('id')
+        self.update(**kwargs)
 
+    def update(self, **kwargs):
+        self.id = kwargs.get('id')
         for field_name, field_class in self.fields.iteritems():
             value = kwargs.get(field_name)
+            # TODO: reuse child objects as appropriate
             if isinstance(value, list) or isinstance(value, tuple):
                 value = []
                 for item in value:
@@ -49,20 +60,22 @@ class RemoteObject(object):
         if http is None:
             http = httplib2.Http()
 
-        body = simplejson.dumps(self.__dict__)
+        body = simplejson.dumps(self, default=omit_nulls)
 
-        http_extra = {'body': body}
         if self.id is None:
             url = self.set_url % self.__dict__
-            http_extra['method'] = 'POST'
+            method = 'POST'
         else:
             url = self.url % self.__dict__
-            http_extra['method'] = 'PUT'
+            method = 'PUT'
 
         url = urljoin(BASE_URL, url)
-        (response, content) = http.request(url, **http_extra)
+        (response, content) = http.request(url, method=method, body=body)
 
-        # yay?
+        # TODO: follow redirects first?
+        new_body = simplejson.loads(content)
+        logging.debug('Yay saved my obj, now turning %s into new content' % (content,))
+        self.update(**new_body)
 
 
 class User(RemoteObject):
