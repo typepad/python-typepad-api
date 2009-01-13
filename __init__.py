@@ -21,7 +21,7 @@ class RemoteObject(object):
                 for item in value:
                     o = field_class(**item)
                     o.parent = self
-                    obj.append(o)
+                    value.append(o)
             elif isinstance(value, dict):
                 value = field_class(**value)
                 value.parent = self # e.g. reference to blog from entry
