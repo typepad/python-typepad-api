@@ -11,29 +11,21 @@ def kwargs_dict(data):
     return dict([(k.encode('ascii', 'ignore'), v) for k, v in data.iteritems()])
 
 class RemoteObject(object):
-    fields = ()
-    objects = {}
+    fields = {}
 
     def __init__(self, **kwargs):
-        # create object properties for all desired fields
-        for field_name in self.__class__.fields:
+        for field_name, field_class in self.fields.iteritems():
             value = kwargs.get(field_name)
-            setattr(self, field_name, value)
-        # create children objects from a property name : RemoteObject pair
-        for obj_name, obj_class in self.objects.iteritems():
-            value = kwargs.get(obj_name)
             if isinstance(value, list) or isinstance(value, tuple):
-                obj = []
+                value = []
                 for item in value:
-                    o = obj_class(**kwargs_dict(item))
+                    o = field_class(**kwargs_dict(item))
                     o.parent = self
                     obj.append(o)
             elif isinstance(value, dict):
-                obj = obj_class(**kwargs_dict(value))
-                obj.parent = self # e.g. reference to blog from entry
-            else:
-                obj = None
-            setattr(self, obj_name, obj)    
+                value = field_class(**kwargs_dict(value))
+                value.parent = self # e.g. reference to blog from entry
+            setattr(self, field_name, value)
 
     @classmethod
     def get(cls, id, http=None):
@@ -63,13 +55,23 @@ class User(RemoteObject):
     u'mjmalone@gmail.com'
     """
 
-    fields = ('name', 'email', 'uri')
+    fields = {
+        'name':  basestring,
+        'email': basestring,
+        'uri':   basestring,
+    }
     url    = r'/users/%(id)s.json'
 
 
 class Entry(RemoteObject):
-    fields = ('slug', 'title', 'content', 'pub_date', 'mod_date')
-    objects = {'authors': User}
+    fields = {
+        'slug':     basestring,
+        'title':    basestring,
+        'content':  basestring,
+        'pub_date': basestring,
+        'mod_date': basestring,
+        'authors':  User,
+    }
 
 
 class Blog(RemoteObject):
@@ -80,8 +82,11 @@ class Blog(RemoteObject):
     u'Fred'
     """
 
-    fields = ('title', 'subtitle')
-    objects = {'entries': Entry}
+    fields = {
+        'title':    basestring,
+        'subtitle': basestring,
+        'entries':  Entry,
+    }
     url    = r'/blogs/%(id)s.json'
 
     def get_entries(self):
