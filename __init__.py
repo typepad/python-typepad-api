@@ -21,11 +21,10 @@ class RemoteObject(object):
     fields = {}
 
     def __init__(self, **kwargs):
+        self._id = None
         self.update(**kwargs)
 
     def update(self, **kwargs):
-        for key in ('id', 'etag'):
-            setattr(self, key, kwargs.get(key))
         for field_name, field_class in self.fields.iteritems():
             value = kwargs.get(field_name)
             # TODO: reuse child objects as appropriate
@@ -44,9 +43,7 @@ class RemoteObject(object):
     @classmethod
     def get(cls, id, http=None, **kwargs):
         # TODO accept atom or whatever other response format
-        kwargs['id'] = id
-        url = cls.url % kwargs
-        url = urljoin(BASE_URL, url)
+        url = id
         logging.debug('Fetching %s' % (url,))
 
         if http is None:
@@ -57,9 +54,11 @@ class RemoteObject(object):
         # TODO make sure astropad is returning the proper content type
         #if data and resp.get('content-type') == 'application/json':
         data = simplejson.loads(content)
+        x = cls(**data)
+        x._id = response['content-location']  # follow redirects
         if 'etag' in response:
-            data['etag'] = response['etag']
-        return cls(**data)
+            x._etag = response['etag']
+        return x
 
     def save(self, http=None):
         if http is None:
@@ -68,15 +67,17 @@ class RemoteObject(object):
         body = simplejson.dumps(self, default=omit_nulls)
 
         httpextra = {}
-        if self.id is None:
-            url = self.set_url % self.__dict__
+        if self._id is not None:
+            url = self._id
+            method = 'PUT'
+            if hasattr(self, _etag) and self._etag is not None:
+                httpextra['headers'] = {'if-match': self._etag}
+        elif self.parent is not None and self.parent._id is not None:
+            url = self.parent._id
             method = 'POST'
         else:
-            url = self.url % self.__dict__
-            method = 'PUT'
-            httpextra['headers'] = {'if-match': self.etag}
+            raise ValueError('nowhere to save this object to?')
 
-        url = urljoin(BASE_URL, url)
         (response, content) = http.request(url, method=method, body=body, **httpextra)
 
         # TODO: follow redirects first?
@@ -108,7 +109,6 @@ class User(RemoteObject):
 
 class Entry(RemoteObject):
     fields = {
-        'blog_id':  basestring,
         'slug':     basestring,
         'title':    basestring,
         'content':  basestring,
