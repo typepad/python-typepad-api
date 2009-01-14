@@ -7,6 +7,8 @@ import types
 
 # TODO configurable?
 BASE_URL = 'http://127.0.0.1:8080/'
+USERNAME = 'markpasc'
+PASSWORD = 'password'
 
 def omit_nulls(data):
     if not isinstance(data, dict):
@@ -63,6 +65,7 @@ class RemoteObject(object):
     def save(self, http=None):
         if http is None:
             http = httplib2.Http()
+        http.add_credentials(USERNAME, PASSWORD)
 
         body = simplejson.dumps(self, default=omit_nulls)
 
