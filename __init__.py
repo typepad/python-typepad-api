@@ -43,9 +43,7 @@ class RemoteObject(object):
             setattr(self, field_name, value)
 
     @classmethod
-    def get(cls, id, http=None, **kwargs):
-        # TODO accept atom or whatever other response format
-        url = id
+    def get(cls, url, http=None, **kwargs):
         logging.debug('Fetching %s' % (url,))
 
         if http is None:
@@ -90,25 +88,12 @@ class RemoteObject(object):
             new_body['etag'] = response['etag']
         self.update(**new_body)
 
-
 class User(RemoteObject):
-    """User from TypePad API.
-
-    >>> user = User.get(1)
-    >>> user.name
-    u'Mike Malone'
-    >>> user.email
-    u'mjmalone@gmail.com'
-    """
-
     fields = {
         'name':  basestring,
         'email': basestring,
         'uri':   basestring,
     }
-    set_url = r'/users.json'
-    url     = r'/users/%(id)s.json'
-
 
 class Entry(RemoteObject):
     fields = {
@@ -119,22 +104,10 @@ class Entry(RemoteObject):
         'mod_date': basestring,
         'authors':  User,
     }
-    set_url = r'/blogs/%(blog_id)s.json'
-    url     = r'/blogs/%(blog_id)s/entries/%(id)s.json'
-
 
 class Blog(RemoteObject):
-    """Blog from TypePad API.
-    
-    >>> blog = Blog.get(1)
-    >>> blog.title
-    u'Fred'
-    """
-
     fields = {
         'title':    basestring,
         'subtitle': basestring,
         'entries':  Entry,
     }
-    set_url = r'/blogs.json'
-    url     = r'/blogs/%(id)s.json'
