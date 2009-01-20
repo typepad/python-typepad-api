@@ -135,3 +135,14 @@ class Blog(RemoteObject):
         'subtitle': basestring,
         'entries':  Entry,
     }
+
+class Client(object):
+    def __init__(self, *args, **kwargs):
+        self.__dict__.update(kwargs)
+
+    def get_user(self, http=None):
+        if http is None:
+            http = httplib2.Http()
+        http.add_credentials(self.email, self.password)
+
+        return User.get(urljoin(BASE_URL, '/accounts/@self.json'), http=http)
