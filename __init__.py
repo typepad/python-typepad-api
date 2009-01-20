@@ -8,7 +8,7 @@ import types
 
 # TODO configurable?
 BASE_URL = 'http://127.0.0.1:8080/'
-USERNAME = 'markpasc'
+EMAIL    = 'mark@sixapart.com'
 PASSWORD = 'password'
 
 class NotFound(httplib.HTTPException):
@@ -86,7 +86,7 @@ class RemoteObject(object):
     def save(self, http=None):
         if http is None:
             http = httplib2.Http()
-        http.add_credentials(USERNAME, PASSWORD)
+        http.add_credentials(EMAIL, PASSWORD)
 
         body = simplejson.dumps(self, default=omit_nulls)
 
