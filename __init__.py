@@ -1,4 +1,5 @@
 import httplib2
+import httplib
 # TODO: require 2.0+ version of simplejson that doesn't provide unicode keys
 import simplejson
 import logging
@@ -9,6 +10,15 @@ import types
 BASE_URL = 'http://127.0.0.1:8080/'
 USERNAME = 'markpasc'
 PASSWORD = 'password'
+
+class NotFound(httplib.HTTPException):
+    pass
+
+class Unauthorized(httplib.HTTPException):
+    pass
+
+class BadResponse(httplib.HTTPException):
+    pass
 
 def omit_nulls(data):
     if not isinstance(data, dict):
@@ -42,6 +52,18 @@ class RemoteObject(object):
                 value.parent = self # e.g. reference to blog from entry
             setattr(self, field_name, value)
 
+    @staticmethod
+    def _raise_response(response, classname, url):
+        if response.status == httplib.NOT_FOUND: 
+            raise NotFound('No such %s %s' % (classname, url))
+        if response.status == httplib.UNAUTHORIZED:
+            raise Unauthorized('Not authorized to fetch %s %s' % (classname, url))
+        # catch other unhandled
+        if response.status != httplib.OK:
+            raise BadResponse('Bad response fetching %s %s: %d %s' % (classname, url, response.status, response.reason))
+        if response.get('content-type') != 'application/json':
+            raise BadResponse('Bad response fetching %s %s: content-type is %s, not JSON' % (classname, url, response.get('application/json')))
+
     @classmethod
     def get(cls, url, http=None, **kwargs):
         logging.debug('Fetching %s' % (url,))
@@ -49,6 +71,7 @@ class RemoteObject(object):
         if http is None:
             http = httplib2.Http()
         (response, content) = http.request(url)
+        cls._raise_response(response, classname=cls.__name__, url=url)
         logging.debug('Got content %s' % (content,))
 
         # TODO make sure astropad is returning the proper content type
@@ -80,6 +103,7 @@ class RemoteObject(object):
             raise ValueError('nowhere to save this object to?')
 
         (response, content) = http.request(url, method=method, body=body, **httpextra)
+        self._raise_response(response, classname=type(self).__name__, url=url)
 
         # TODO: follow redirects first?
         new_body = simplejson.loads(content)
