@@ -5,6 +5,8 @@ import simplejson
 import logging
 from urlparse import urljoin
 import types
+from datetime import datetime
+import time
 
 # TODO configurable?
 BASE_URL = 'http://127.0.0.1:8080/'
@@ -50,6 +52,8 @@ class RemoteObject(object):
             elif isinstance(value, dict):
                 value = field_class(**value)
                 value.parent = self # e.g. reference to blog from entry
+            elif field_class is datetime:
+                value = datetime(*(time.strptime(value, '%Y-%m-%dT%H:%M:%SZ'))[0:6])
             setattr(self, field_name, value)
 
     @staticmethod
@@ -121,18 +125,26 @@ class User(RemoteObject):
 
 class Entry(RemoteObject):
     fields = {
-        'slug':     basestring,
-        'title':    basestring,
-        'content':  basestring,
-        'pub_date': basestring,
-        'mod_date': basestring,
-        'authors':  User,
+        'slug':      basestring,
+        'title':     basestring,
+        'content':   basestring,
+        'published': datetime,
+        'updated':   datetime,
+        'authors':   User,
     }
+
+    @property
+    def author(self):
+        try:
+            return self.authors[0]
+        except IndexError:
+            return None
 
 class Blog(RemoteObject):
     fields = {
         'title':    basestring,
         'subtitle': basestring,
+        'authors':  User,
         'entries':  Entry,
     }
 
