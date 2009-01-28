@@ -7,10 +7,11 @@ from urlparse import urljoin
 import types
 from datetime import datetime
 import time
+import re
 
 # TODO configurable?
-BASE_URL = 'http://127.0.0.1:8080/'
-EMAIL    = 'mark@sixapart.com'
+BASE_URL = 'http://127.0.0.1:8000/'
+EMAIL    = 'mjmalone@gmail.com'
 PASSWORD = 'password'
 
 class NotFound(httplib.HTTPException):
@@ -24,6 +25,8 @@ class BadResponse(httplib.HTTPException):
 
 def omit_nulls(data):
     if not isinstance(data, dict):
+        if not hasattr(data, '__dict__'):
+            return str(data)
         data = dict(data.__dict__)
     for key in data.keys():
         # TODO: don't have etag in obj data in the first place?
@@ -36,6 +39,7 @@ class RemoteObject(object):
 
     def __init__(self, **kwargs):
         self._id = None
+        self.parent = None
         self.update(**kwargs)
 
     def update(self, **kwargs):
@@ -53,7 +57,8 @@ class RemoteObject(object):
                 value = field_class(**value)
                 value.parent = self # e.g. reference to blog from entry
             elif field_class is datetime:
-                value = datetime(*(time.strptime(value, '%Y-%m-%dT%H:%M:%SZ'))[0:6])
+                if value is not None:
+                    value = datetime(*(time.strptime(value, '%Y-%m-%dT%H:%M:%SZ'))[0:6])
             setattr(self, field_name, value)
 
     @staticmethod
@@ -87,12 +92,36 @@ class RemoteObject(object):
             x._etag = response['etag']
         return x
 
+    def serialize_value(self, value):
+        if isinstance(value, RemoteObject):
+            value = value.to_dict()
+        elif isinstance(value, datetime):
+            value = value.isoformat()
+        elif isinstance(value, dict):
+            pass
+        elif isinstance(value, list):
+            newlist = []
+            for x in value:
+                newlist.append(self.serialize_value(x))
+            value = newlist
+        elif not isinstance(value, basestring):
+            value = str(value)
+        return value
+
+    def to_dict(self):
+        data = {}
+        for field_name, field_class in self.fields.iteritems():
+            value = getattr(self, field_name)
+            if value is not None:
+                data[field_name] = self.serialize_value(value)
+        return data
+
     def save(self, http=None):
         if http is None:
             http = httplib2.Http()
         http.add_credentials(EMAIL, PASSWORD)
 
-        body = simplejson.dumps(self, default=omit_nulls)
+        body = simplejson.dumps(self.to_dict(), default=omit_nulls)
 
         httpextra = {}
         if self._id is not None:
@@ -104,10 +133,15 @@ class RemoteObject(object):
             url = self.parent._id
             method = 'POST'
         else:
-            raise ValueError('nowhere to save this object to?')
+            # FIXME: !
+            url = urljoin(BASE_URL, '/blogs/1/posts.json')
+            method = 'POST'
+            # raise ValueError('nowhere to save this object to?')
 
         (response, content) = http.request(url, method=method, body=body, **httpextra)
-        self._raise_response(response, classname=type(self).__name__, url=url)
+
+        # TBD: check for errors
+        # self._raise_response(response, classname=type(self).__name__, url=url)
 
         # TODO: follow redirects first?
         new_body = simplejson.loads(content)
@@ -128,6 +162,7 @@ class Entry(RemoteObject):
         'slug':      basestring,
         'title':     basestring,
         'content':   basestring,
+        'link':      basestring,
         'published': datetime,
         'updated':   datetime,
         'authors':   User,
@@ -138,6 +173,13 @@ class Entry(RemoteObject):
         try:
             return self.authors[0]
         except IndexError:
+            return None
+
+    @property
+    def id(self):
+        try:
+            return re.search('/posts/(\d+)\.\w+$', self.link).group(1)
+        except:
             return None
 
 class Blog(RemoteObject):
