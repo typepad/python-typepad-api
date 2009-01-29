@@ -165,6 +165,12 @@ class User(RemoteObject):
     def permalink(self):
         return self.uri
 
+class Group(RemoteObject):
+    fields = {
+        'name':  basestring,
+        'members': User,
+    }
+
 class Entry(RemoteObject):
     fields = {
         'slug':      basestring,
