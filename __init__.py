@@ -157,6 +157,14 @@ class User(RemoteObject):
         'uri':   basestring,
     }
 
+    @property
+    def userpic(self):
+        return 'http://s3.amazonaws.com/twitter_production/profile_images/20744492/photo_avatar_bigger.jpg'
+
+    @property
+    def permalink(self):
+        return self.uri
+
 class Entry(RemoteObject):
     fields = {
         'slug':      basestring,
