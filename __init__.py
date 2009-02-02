@@ -152,7 +152,7 @@ class RemoteObject(object):
 
 class User(RemoteObject):
     fields = {
-        'name':  basestring,
+        'displayName':  basestring,
         'email': basestring,
         'uri':   basestring,
     }
@@ -165,10 +165,16 @@ class User(RemoteObject):
     def permalink(self):
         return self.uri
 
+# crappy temp Group stuff - Leah
 class Group(RemoteObject):
     fields = {
-        'name':  basestring,
-        'members': User,
+        'displayName':  basestring,
+    }
+
+class GroupUsers(RemoteObject):
+    fields = {
+        'title':  basestring, # wtf? displayName, then title? weirdo atom
+        'entries': User,
     }
 
 class Entry(RemoteObject):
