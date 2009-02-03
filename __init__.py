@@ -116,6 +116,10 @@ class RemoteObject(object):
                 data[field_name] = self.serialize_value(value)
         return data
 
+    @classmethod
+    def from_dict(cls, data):
+        return cls(**data)
+
     def save(self, http=None):
         if http is None:
             http = httplib2.Http()
