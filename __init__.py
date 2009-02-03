@@ -158,12 +158,9 @@ class User(RemoteObject):
     fields = {
         'displayName':  basestring,
         'email': basestring,
+        'userpic': basestring,
         'uri':   basestring,
     }
-
-    @property
-    def userpic(self):
-        return 'http://s3.amazonaws.com/twitter_production/profile_images/20744492/photo_avatar_bigger.jpg'
 
     @property
     def permalink(self):
@@ -201,6 +198,9 @@ class Entry(RemoteObject):
 
     @property
     def id(self):
+        """
+        Extracts the unique ID of the post from the 'link' property.
+        """
         try:
             return re.search('/posts/(\d+)\.\w+$', self.link).group(1)
         except:
