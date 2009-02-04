@@ -30,37 +30,46 @@ class ObjectField(Field):
 
     def decode(self, value):
         if not isinstance(value, dict):
-            raise ValueError('HMM THIS VALUE IS A %s (%r)' % (type(value), value))
+            raise TypeError('Value to decode %r is not a dict' % (value,))
         return self.cls.from_dict(value)
 
     def encode(self, value):
-        assert isinstance(value, self.cls)
+        if not isinstance(value, self.cls):
+            raise TypeError('Value to encode %r is not a %s' % (value, self.cls.__name__))
         return value.to_dict()
 
 class StringField(Field):
     def decode(self, value):
-        assert isinstance(value, basestring)
+        if not isinstance(value, basestring):
+            raise TypeError('Value to decode %r is not a string' % (value,))
         return value
 
     def encode(self, value):
-        assert isinstance(value, basestring)
+        if not isinstance(value, basestring):
+            raise TypeError('Value to encode %r is not a string' % (value,))
         return value
 
 class IntField(Field):
     def decode(self, value):
-        assert isinstance(value, int)
+        if not isinstance(value, int):
+            raise TypeError('Value to decode %r is not an int' % (value,))
         return value
 
     def encode(self, value):
-        assert isinstance(value, int)
+        if not isinstance(value, int):
+            raise TypeError('Value to encode %r is not an int' % (value,))
         return value
 
 class DatetimeField(Field):
     def decode(self, value):
-        return datetime(*(time.strptime(value, '%Y-%m-%dT%H:%M:%SZ'))[0:6])
+        try:
+            return datetime(*(time.strptime(value, '%Y-%m-%dT%H:%M:%SZ'))[0:6])
+        except ValueError:
+            raise TypeError('Value to decode %r is not a valid date time stamp' % (value,))
 
     def encode(self, value):
-        assert isinstance(value, datetime)
+        if not isinstance(value, datetime):
+            raise TypeError('Value to encode %r is not a datetime' % (value,))
         return value.isoformat()
 
 
