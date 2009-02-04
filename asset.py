@@ -17,6 +17,12 @@ class User(RemoteObject):
         'object-type':  fields.Something(),
         'aboutMe':      fields.Something(),
     }
+    
+    @property
+    def userid(self):
+        # yes, this is stupid, but damn it, I need this for urls
+        # tag:typepad.com,2003:user-50
+        return self.id.split('-', 1)[1]
 
     @property
     def permalink(self):
