@@ -190,6 +190,13 @@ class Object(RemoteObject):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:asset-1794
         return self.id.split('-', 1)[1]
+    
+    @property
+    def author(self):
+        try:
+            return self.authors[0]
+        except IndexError:
+            return None
 
 class Entry(RemoteObject):
     fields = {
