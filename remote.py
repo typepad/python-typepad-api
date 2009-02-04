@@ -62,7 +62,7 @@ class RemoteObject(DataObject):
         # TODO make sure astropad is returning the proper content type
         #if data and resp.get('content-type') == 'application/json':
         data = simplejson.loads(content)
-        x = cls(**data)
+        x = cls.from_dict(data)
         x._id = response['content-location']  # follow redirects
         if 'etag' in response:
             x._etag = response['etag']
@@ -96,8 +96,10 @@ class RemoteObject(DataObject):
         # self._raise_response(response, classname=type(self).__name__, url=url)
 
         # TODO: follow redirects first?
-        new_body = simplejson.loads(content)
         logging.debug('Yay saved my obj, now turning %s into new content' % (content,))
+        new_body = simplejson.loads(content)
+        new_inst = type(self).from_dict(new_body)
+        self.__dict__.update(new_inst.__dict__)
+        self._id = response['content-location']
         if 'etag' in response:
-            new_body['etag'] = response['etag']
-        self.update(**new_body)
+            self._etag = response['etag']
