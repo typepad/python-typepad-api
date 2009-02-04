@@ -41,14 +41,16 @@ class ObjectField(Field):
 class DatetimeField(Field):
     def decode(self, value):
         try:
-            return datetime(*(time.strptime(value, '%Y-%m-%dT%H:%M:%SZ'))[0:6])
+            return datetime.strptime(value, '%Y-%m-%dT%H:%M:%SZ')
         except ValueError:
             raise TypeError('Value to decode %r is not a valid date time stamp' % (value,))
 
     def encode(self, value):
         if not isinstance(value, datetime):
             raise TypeError('Value to encode %r is not a datetime' % (value,))
-        return value.isoformat()
+        if value.tzinfo is not None:
+            raise TypeError("Value to encode %r is a datetime, but it has timezone information and we don't want to deal with timezone information" % (value,))
+        return '%sZ' % (value.isoformat(),)
 
 
 class DataObject(object):
