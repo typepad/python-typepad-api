@@ -4,15 +4,15 @@ import logging
 from datetime import datetime
 import time
 
-__all__ = ('Field', 'SetField', 'ObjectField', 'StringField', 'IntField', 'DatetimeField', 'DataObject')
+__all__ = ('Field', 'SetField', 'ObjectField', 'DatetimeField', 'DataObject')
 
 
 class Field(object):
     def decode(self, value):
-        raise NotImplementedError('Decoding is not generically implemented')
+        return value
 
     def encode(self, value):
-        raise NotImplementedError('Encoding is not generically implemented')
+        return value
 
 class SetField(Field):
     def __init__(self, fld):
@@ -37,28 +37,6 @@ class ObjectField(Field):
         if not isinstance(value, self.cls):
             raise TypeError('Value to encode %r is not a %s' % (value, self.cls.__name__))
         return value.to_dict()
-
-class StringField(Field):
-    def decode(self, value):
-        if not isinstance(value, basestring):
-            raise TypeError('Value to decode %r is not a string' % (value,))
-        return value
-
-    def encode(self, value):
-        if not isinstance(value, basestring):
-            raise TypeError('Value to encode %r is not a string' % (value,))
-        return value
-
-class IntField(Field):
-    def decode(self, value):
-        if not isinstance(value, int):
-            raise TypeError('Value to decode %r is not an int' % (value,))
-        return value
-
-    def encode(self, value):
-        if not isinstance(value, int):
-            raise TypeError('Value to encode %r is not an int' % (value,))
-        return value
 
 class DatetimeField(Field):
     def decode(self, value):
