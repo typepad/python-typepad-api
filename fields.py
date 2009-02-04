@@ -4,17 +4,17 @@ import logging
 from datetime import datetime
 import time
 
-__all__ = ('Field', 'SetField', 'ObjectField', 'DatetimeField')
+__all__ = ('Something', 'List', 'Object', 'Datetime')
 
 
-class Field(object):
+class Something(object):
     def decode(self, value):
         return value
 
     def encode(self, value):
         return value
 
-class SetField(Field):
+class List(Something):
     def __init__(self, fld):
         self.fld = fld
 
@@ -24,7 +24,7 @@ class SetField(Field):
     def encode(self, value):
         return [self.fld.encode(v) for v in value]
 
-class ObjectField(Field):
+class Object(Something):
     def __init__(self, cls):
         self.cls = cls
 
@@ -38,7 +38,7 @@ class ObjectField(Field):
             raise TypeError('Value to encode %r is not a %s' % (value, self.cls.__name__))
         return value.to_dict()
 
-class DatetimeField(Field):
+class Datetime(Something):
     def decode(self, value):
         try:
             return datetime.strptime(value, '%Y-%m-%dT%H:%M:%SZ')

@@ -4,17 +4,18 @@ from datetime import datetime
 import re
 
 from typepad.remote import RemoteObject, BASE_URL
+from typepad import fields
 
 class User(RemoteObject):
     fields = {
-        'id':           basestring,
-        'displayName':  basestring,
-        'email':        basestring,
-        'userpic':      basestring,
-        'uri':          basestring,
-        'interests':    basestring, 
-        'object-type':  basestring,
-        'aboutMe':      basestring, 
+        'id':           fields.Something(),
+        'displayName':  fields.Something(),
+        'email':        fields.Something(),
+        'userpic':      fields.Something(),
+        'uri':          fields.Something(),
+        'interests':    fields.Something(),
+        'object-type':  fields.Something(),
+        'aboutMe':      fields.Something(),
     }
 
     @property
@@ -26,14 +27,14 @@ class User(RemoteObject):
 
 class Object(RemoteObject):
     fields = {
-        'id':        basestring,
-        #'control': Control,
-        'title':     basestring,
-        'content':   basestring,
-        'link':      basestring,
-        'published': datetime,
-        'updated':   datetime,
-        'authors':   User,
+        'id':        fields.Something(),
+        #'control':   fields.Object(Control),
+        'title':     fields.Something(),
+        'content':   fields.Something(),
+        'link':      fields.Something(),
+        'published': fields.Datetime(),
+        'updated':   fields.Datetime(),
+        'authors':   fields.List(fields.Object(User)),
     }
 
     @property
@@ -41,52 +42,52 @@ class Object(RemoteObject):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:asset-1794
         return self.id.split('-', 1)[1]
-    
+
     @property
     def author(self):
         try:
             return self.authors[0]
         except IndexError:
             return None
- 
+
 class Entry(RemoteObject):
     fields = {
         #'verbs': Verb,
-        'id':     basestring,
-        'actor':  User,
-        'object': Object,
+        'id':     fields.Something(),
+        'actor':  fields.Object(User),
+        'object': fields.Object(Object),
     }
 
 class Group(RemoteObject):
     fields = {
-        'displayName':  basestring,
+        'displayName':  fields.Something(),
     }
 
 class GroupUsers(RemoteObject):
     fields = {
-        'title':  basestring, # wtf? displayName, then title? weirdo atom
-        'entries': User,
+        'title':  fields.Something(), # wtf? displayName, then title? weirdo atom
+        'entries': fields.List(fields.Object(User)),
     }
 
 class GroupEvents(RemoteObject):
     fields = {
-        'updated': datetime,
-        'title': basestring,
-        'authors': User,
-        'link': basestring, 
-        'entries': Entry,
+        'updated': fields.Datetime(),
+        'title': fields.Something(),
+        'authors': fields.List(fields.Object(User)),
+        'link': fields.Something(),
+        'entries': fields.List(fields.Object(Entry)),
     }
 # end crappy temp stuff
 '''
 class Entry(RemoteObject):
     fields = {
-        'slug':      basestring,
-        'title':     basestring,
-        'content':   basestring,
-        'link':      basestring,
-        'published': datetime,
-        'updated':   datetime,
-        'authors':   User,
+        'slug':      fields.Something(),
+        'title':     fields.Something(),
+        'content':   fields.Something(),
+        'link':      fields.Something(),
+        'published': fields.Datetime(),
+        'updated':   fields.Datetime(),
+        'authors':   fields.List(fields.Object(User)),
     }
 
     @property
@@ -108,10 +109,10 @@ class Entry(RemoteObject):
 
 class Blog(RemoteObject):
     fields = {
-        'title':    basestring,
-        'subtitle': basestring,
-        'authors':  User,
-        'entries':  Entry,
+        'title':    fields.Datetime(),
+        'subtitle': fields.Datetime(),
+        'authors':  fields.List(fields.Object(User)),
+        'entries':  fields.List(fields.Object(Entry)),
     }
 '''
 
