@@ -185,6 +185,12 @@ class Object(RemoteObject):
         'authors':   User,
     }
 
+    @property
+    def assetid(self):
+        # yes, this is stupid, but damn it, I need this for urls
+        # tag:typepad.com,2003:asset-1794
+        return self.id.split('-', 1)[1]
+
 class Entry(RemoteObject):
     fields = {
         #'verbs': Verb,
