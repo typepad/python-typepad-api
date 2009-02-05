@@ -57,6 +57,23 @@ class User(RemoteObject):
 
 # crappy temp stuff
 
+class UserRelationship(RemoteObject):
+    fields = {
+        #'status': fields.Something(),
+        'source': fields.Object(User),
+        'target': fields.Object(User),
+    }
+
+
+class UserRelationships(RemoteObject):
+    fields = {
+        'start-index': fields.Something(),
+        'total-results':     fields.Something(),
+        #'links':      fields.List(),
+        'entries':   fields.List(fields.Object(UserRelationship)),
+    }
+
+
 class Object(RemoteObject):
     fields = {
         'id':        fields.Something(),
