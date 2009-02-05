@@ -17,7 +17,7 @@ class User(RemoteObject):
         'object-type':  fields.Something(),
         'aboutMe':      fields.Something(),
     }
-    
+
     @property
     def userid(self):
         # yes, this is stupid, but damn it, I need this for urls
