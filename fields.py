@@ -41,7 +41,7 @@ class Object(Something):
 class Datetime(Something):
     def decode(self, value):
         try:
-            return datetime.strptime(value, '%Y-%m-%dT%H:%M:%SZ')
+            return datetime(*(time.strptime(value, '%Y-%m-%dT%H:%M:%SZ'))[0:6])
         except ValueError:
             raise TypeError('Value to decode %r is not a valid date time stamp' % (value,))
 
