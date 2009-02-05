@@ -8,14 +8,20 @@ from typepad import fields
 
 class User(RemoteObject):
     fields = {
+        # documented fields
         'id':           fields.Something(),
         'displayName':  fields.Something(),
+        'aboutMe':      fields.Something(),
+        'interests':    fields.List(fields.Something()),
+        'urls':         fields.List(fields.Something()),
+        'accounts':     fields.List(fields.Something()),
+        'links':        fields.List(fields.Something()),
+        'object-type':  fields.Something(),
+
+        # astropad extras
         'email':        fields.Something(),
         'userpic':      fields.Something(),
         'uri':          fields.Something(),
-        'interests':    fields.Something(),
-        'object-type':  fields.Something(),
-        'aboutMe':      fields.Something(),
     }
 
     @property
