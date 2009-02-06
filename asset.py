@@ -99,7 +99,7 @@ class Object(RemoteObject):
         except IndexError:
             return None
 
-class Entry(RemoteObject):
+class Event(RemoteObject):
     fields = {
         #'verbs': Verb,
         'id':     fields.Something(),
@@ -113,23 +113,13 @@ class Group(RemoteObject):
     }
 
     @property
-    def members(self):
+    def users(self):
         assert self._id
-        memburl = re.sub(r'\.json$', '/users.json', self._id)
-        return List(entryClass=User).get(memburl)
-
-class GroupUsers(RemoteObject):
-    fields = {
-        'title':  fields.Something(), # wtf? displayName, then title? weirdo atom
-        'entries': fields.List(fields.Object(User)),
-    }
-
-class GroupEvents(RemoteObject):
-    fields = {
-        'updated': fields.Datetime(),
-        'title': fields.Something(),
-        'authors': fields.List(fields.Object(User)),
-        'link': fields.Something(),
-        'entries': fields.List(fields.Object(Entry)),
-    }
-# end crappy temp stuff
+        userurl = re.sub(r'\.json$', '/users.json', self._id)
+        return List(entryClass=User).get(userurl)
+    
+    @property
+    def events(self):
+        assert self._id
+        eventurl = re.sub(r'\.json$', '/events.json', self._id)
+        return List(entryClass=Event).get(eventurl)
