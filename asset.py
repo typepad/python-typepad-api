@@ -44,6 +44,10 @@ class User(RemoteObject):
         'uri':          fields.Something(),
     }
 
+    def relationships(self, rel='followers'):
+        url = '%susers/%s/relationships/@%s.json' % (BASE_URL, self.userid, rel)
+        return List(entryClass=UserRelationship).get(url)
+
     @property
     def userid(self):
         # yes, this is stupid, but damn it, I need this for urls
@@ -54,25 +58,13 @@ class User(RemoteObject):
     def permalink(self):
         ## TODO link to typepad profile?
         return self.uri
-
-# crappy temp stuff
-
+        
 class UserRelationship(RemoteObject):
     fields = {
         #'status': fields.Something(),
         'source': fields.Object(User),
         'target': fields.Object(User),
     }
-
-
-class UserRelationships(RemoteObject):
-    fields = {
-        'start-index': fields.Something(),
-        'total-results':     fields.Something(),
-        #'links':      fields.List(),
-        'entries':   fields.List(fields.Object(UserRelationship)),
-    }
-
 
 class Object(RemoteObject):
     fields = {
