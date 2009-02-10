@@ -129,7 +129,17 @@ class Group(RemoteObject):
         userurl = re.sub(r'\.json$', '/users.json', self._id)
         return List(entryClass=User).get(userurl, **kwargs)
 
+    def assets(self, **kwargs):
+        assert self._id
+        asseturl = re.sub(r'\.json$', '/assets.json', self._id)
+        return List(entryClass=User).get(asseturl, **kwargs)
+
     def events(self, **kwargs):
         assert self._id
         eventurl = re.sub(r'\.json$', '/events.json', self._id)
         return List(entryClass=Event).get(eventurl, **kwargs)
+
+    def comments(self, **kwargs):
+        assert self._id
+        commenturl = re.sub(r'\.json$', '/comments.json', self._id)
+        return List(entryClass=Event).get(commenturl, **kwargs)
