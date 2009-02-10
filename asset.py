@@ -105,6 +105,12 @@ class Object(RemoteObject):
             return self.authors[0]
         except IndexError:
             return None
+    
+    @property
+    def comments(self):
+        assert self._id
+        url = re.sub(r'\.json$', '/comments.json', self._id)
+        return List(entryClass=Object).get(url)
 
 class Event(RemoteObject):
     fields = {
