@@ -121,7 +121,11 @@ class Event(RemoteObject):
 
 class Group(RemoteObject):
     fields = {
-        'displayName':  fields.Something(),
+        'id':          fields.Something(),
+        'displayName': fields.Something(),
+        'urls':        fields.List(fields.Something()),
+        'links':       fields.List(fields.Link()),
+        'object-type': fields.List(fields.Something()),
     }
 
     def users(self, **kwargs):
