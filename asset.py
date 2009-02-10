@@ -59,9 +59,9 @@ class User(RemoteObject):
         'uri':          fields.Something(),
     }
 
-    def relationships(self, rel='followers'):
+    def relationships(self, rel='followers', **kwargs):
         url = '%susers/%s/relationships/@%s.json' % (BASE_URL, self.userid, rel)
-        return List(entryClass=UserRelationship).get(url)
+        return List(entryClass=UserRelationship).get(url, **kwargs)
 
     @property
     def userid(self):
@@ -106,11 +106,10 @@ class Object(RemoteObject):
         except IndexError:
             return None
     
-    @property
-    def comments(self):
+    def comments(self, **kwargs):
         assert self._id
         url = re.sub(r'\.json$', '/comments.json', self._id)
-        return List(entryClass=Object).get(url)
+        return List(entryClass=Object).get(url, **kwargs)
 
 class Event(RemoteObject):
     fields = {
@@ -125,14 +124,12 @@ class Group(RemoteObject):
         'displayName':  fields.Something(),
     }
 
-    @property
-    def users(self):
+    def users(self, **kwargs):
         assert self._id
         userurl = re.sub(r'\.json$', '/users.json', self._id)
-        return List(entryClass=User).get(userurl)
-    
-    @property
-    def events(self):
+        return List(entryClass=User).get(userurl, **kwargs)
+
+    def events(self, **kwargs):
         assert self._id
         eventurl = re.sub(r'\.json$', '/events.json', self._id)
-        return List(entryClass=Event).get(eventurl)
+        return List(entryClass=Event).get(eventurl, **kwargs)
