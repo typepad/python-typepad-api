@@ -1,5 +1,5 @@
 import httplib2
-from urlparse import urljoin
+from urlparse import urljoin, urlparse, urlunparse
 from datetime import datetime
 import re
 
@@ -16,15 +16,30 @@ class Link(RemoteObject):
         'duration': fields.Something(),
     }
 
+class TypedList(RemoteObject):
+    @classmethod
+    def get(cls, url, http=None, startIndex=None, maxResults=None, **kwargs):
+        queryopts = {'start-index': startIndex, 'max-results': maxResults}
+        query = '&'.join(['%s=%d' % (k, v) for k, v in queryopts.iteritems() if v is not None])
+        if query:
+            parts = list(urlparse(url))
+            if parts[4]:
+                parts[4] += '&' + query
+            else:
+                parts[4] = query
+            url = urlunparse(parts)
+        return super(TypedList, cls).get(url, http=http, **kwargs)
+
 def List(entryClass):
-    class TypedList(RemoteObject):
+    class SpecificTypedList(TypedList):
         fields = {
             'total-results': fields.Something(),
             'start-index':   fields.Something(),
             'links':         fields.List(fields.Object(Link)),
             'entries':       fields.List(fields.Object(entryClass)),
         }
-    return TypedList
+
+    return SpecificTypedList
 
 class User(RemoteObject):
     fields = {
