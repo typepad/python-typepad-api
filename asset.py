@@ -124,7 +124,7 @@ class Group(RemoteObject):
         'id':          fields.Something(),
         'displayName': fields.Something(),
         'urls':        fields.List(fields.Something()),
-        'links':       fields.List(fields.Object(Link)),
+        'links':       fields.List(fields.Something()),
         'object-type': fields.List(fields.Something()),
     }
 
