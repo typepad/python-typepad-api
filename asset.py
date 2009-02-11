@@ -108,7 +108,7 @@ class Object(RemoteObject):
         'categories':   fields.List(fields.Something()),
         'object-types': field.List(fields.Something()),
         'status':       fields.Object(PublicationStatus),
-        'links'         fields.List(fields.Something()),
+        'links':        fields.List(fields.Something()),
         'in-reply-to':  fields.Object(AssetRef),
 
         # astropad extras
