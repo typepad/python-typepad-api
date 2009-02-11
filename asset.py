@@ -114,8 +114,9 @@ class Object(RemoteObject):
 
 class Event(RemoteObject):
     fields = {
-        #'verbs': Verb,
         'id':     fields.Something(),
+        'verbs':  fields.List(fields.Something()),
+        # TODO: vary these based on verb content? oh boy
         'actor':  fields.Object(User),
         'object': fields.Object(Object),
     }
