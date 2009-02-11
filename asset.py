@@ -82,16 +82,37 @@ class UserRelationship(RemoteObject):
         'target': fields.Object(User),
     }
 
+class PublicationStatus(RemoteObject):
+    fields = {
+        'published': fields.Something(),
+        'spam':      fields.Something(),
+    }
+
+class ObjectRef(RemoteObject):
+    fields = {
+        'ref':  fields.Something(),
+        'href': fields.Something(),
+        'type': fields.Something(),
+    }
+
 class Object(RemoteObject):
     fields = {
-        'id':        fields.Something(),
-        #'control':   fields.Object(Control),
-        'title':     fields.Something(),
-        'content':   fields.Something(),
-        'link':      fields.Something(),
-        'published': fields.Datetime(),
-        'updated':   fields.Datetime(),
-        'authors':   fields.List(fields.Object(User)),
+        # documented fields
+        'id':           fields.Something(),
+        'title':        fields.Something(),
+        'published':    fields.Datetime(),
+        'updated':      fields.Datetime(),
+        'summary':      fields.Something(),
+        'content':      fields.Something(),
+        # TODO: categories should be Tags?
+        'categories':   fields.List(fields.Something()),
+        'object-types': field.List(fields.Something()),
+        'status':       fields.Object(PublicationStatus),
+        'links'         fields.List(fields.Something()),
+        'in-reply-to':  fields.Object(AssetRef),
+
+        # astropad extras
+        'authors':      fields.List(fields.Object(User)),
     }
 
     @property
