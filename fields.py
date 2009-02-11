@@ -30,7 +30,7 @@ class Object(Something):
 
     def decode(self, value):
         if not isinstance(value, dict):
-            raise TypeError('Value to decode %r is not a dict' % (value,))
+            raise TypeError('Value to decode into a %s %r is not a dict' % (self.cls.__name__, value))
         return self.cls.from_dict(value)
 
     def encode(self, value):
