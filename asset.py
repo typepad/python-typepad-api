@@ -74,7 +74,7 @@ class User(RemoteObject):
     def permalink(self):
         ## TODO link to typepad profile?
         return self.uri
-        
+
 class UserRelationship(RemoteObject):
     fields = {
         #'status': fields.Something(),
@@ -127,7 +127,7 @@ class Object(RemoteObject):
             return self.authors[0]
         except IndexError:
             return None
-    
+
     def comments(self, **kwargs):
         assert self._id
         url = re.sub(r'\.json$', '/comments.json', self._id)
