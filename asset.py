@@ -75,6 +75,10 @@ class User(RemoteObject):
         ## TODO link to typepad profile?
         return self.uri
 
+    @classmethod
+    def getSelf(cls, **kwargs):
+        return cls.get(urljoin(BASE_URL, '/users/@self.json'), **kwargs)
+
 class UserRelationship(RemoteObject):
     fields = {
         #'status': fields.Something(),
