@@ -46,6 +46,7 @@ class User(RemoteObject):
         # documented fields
         'id':           fields.Something(),
         'displayName':  fields.Something(),
+        'profileAlias': fields.Something(),
         'aboutMe':      fields.Something(),
         'interests':    fields.List(fields.Something()),
         'urls':         fields.List(fields.Something()),
