@@ -16,6 +16,8 @@ BASE_URL = 'http://127.0.0.1:8000/'
 EMAIL    = 'mjmalone@gmail.com'
 PASSWORD = 'password'
 
+userAgent = httplib2.Http()
+
 class NotFound(httplib.HTTPException):
     pass
 
@@ -54,7 +56,7 @@ class RemoteObject(DataObject):
         logging.debug('Fetching %s' % (url,))
 
         if http is None:
-            http = httplib2.Http()
+            http = userAgent
         (response, content) = http.request(url)
         cls._raise_response(response, classname=cls.__name__, url=url)
         logging.debug('Got content %s' % (content,))
@@ -70,7 +72,7 @@ class RemoteObject(DataObject):
 
     def save(self, http=None):
         if http is None:
-            http = httplib2.Http()
+            http = userAgent
         http.add_credentials(EMAIL, PASSWORD)
 
         body = simplejson.dumps(self.to_dict(), default=omit_nulls)
