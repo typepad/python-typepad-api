@@ -133,8 +133,10 @@ class Object(RemoteObject):
             return None
 
     def comments(self, **kwargs):
-        assert self._id
-        url = re.sub(r'\.json$', '/comments.json', self._id)
+        ## TODO make this clever again -- right now self._id is None
+        #assert self._id
+        #url = re.sub(r'\.json$', '/comments.json', self._id)
+        url = '%sassets/%s/comments.json' % (BASE_URL, self.assetid)
         return List(entryClass=Object).get(url, **kwargs)
 
 class Event(RemoteObject):
