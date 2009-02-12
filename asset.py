@@ -116,7 +116,8 @@ class Object(RemoteObject):
         'in-reply-to':  fields.Object(ObjectRef),
 
         # astropad extras
-        'authors':      fields.List(fields.Object(User)),
+        #'authors':      fields.List(fields.Object(User)),
+        'author':       fields.Object(User),
     }
 
     @property
@@ -124,13 +125,15 @@ class Object(RemoteObject):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:asset-1794
         return self.id.split('-', 1)[1]
-
+    
+    '''
     @property
     def author(self):
         try:
             return self.authors[0]
         except IndexError:
             return None
+    '''
 
     def comments(self, **kwargs):
         ## TODO make this clever again -- right now self._id is None
