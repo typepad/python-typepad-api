@@ -151,6 +151,12 @@ class Event(RemoteObject):
         'actor':  fields.Object(User),
         'object': fields.Object(Object),
     }
+    
+    @property
+    def eventid(self):
+        # yes, this is stupid, but damn it, I need this for urls
+        # tag:typepad.com,2003:event-1680
+        return self.id.split('-', 1)[1]
 
 class Group(RemoteObject):
     fields = {
