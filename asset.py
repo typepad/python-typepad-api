@@ -162,6 +162,8 @@ class Group(RemoteObject):
     fields = {
         'id':          fields.Something(),
         'displayName': fields.Something(),
+        'tagline':     fields.Something(),
+        'avatar':      fields.Something(),
         'urls':        fields.List(fields.Something()),
         'links':       fields.List(fields.Something()),
         'object-type': fields.List(fields.Something()),
