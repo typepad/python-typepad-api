@@ -108,6 +108,7 @@ class Object(RemoteObject):
         'updated':      fields.Datetime(),
         'summary':      fields.Something(),
         'content':      fields.Something(),
+        'total':        fields.Something(),
         # TODO: categories should be Tags?
         'categories':   fields.List(fields.Something()),
         'object-types': fields.List(fields.Something()),
