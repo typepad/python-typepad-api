@@ -60,8 +60,11 @@ class User(RemoteObject):
         'uri':          fields.Something(),
     }
 
-    def relationships(self, rel='followers', **kwargs):
-        url = '%susers/%s/relationships/@%s.json' % (BASE_URL, self.userid, rel)
+    def relationships(self, rel='followers', by_group=None, **kwargs):
+        url = "%susers/%s/relationships/@%s" % (BASE_URL, self.userid, rel)
+        if by_group:
+            url += "/@by-group/%s" % by_group
+        url += ".json"
         return List(entryClass=UserRelationship).get(url, **kwargs)
 
     @property
@@ -188,3 +191,7 @@ class Group(RemoteObject):
         assert self._id
         commenturl = re.sub(r'\.json$', '/comments.json', self._id)
         return List(entryClass=Event).get(commenturl, **kwargs)
+
+    @property
+    def groupid(self):
+        return self.id.split('-', 1)[1]
