@@ -3,7 +3,6 @@ import simplejson
 import logging
 from datetime import datetime
 import time
-import collections
 
 __all__ = ('Something', 'List', 'Object', 'Datetime')
 
