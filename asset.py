@@ -4,7 +4,7 @@ from datetime import datetime
 import re
 
 from typepad.remote import RemoteObject, BASE_URL
-from typepad import fields
+from typepad import fields, remote
 
 class Link(RemoteObject):
     rel      = fields.Something()
@@ -154,25 +154,10 @@ class Group(RemoteObject):
     links        = fields.List(fields.Something())
     object_type  = fields.List(fields.Something(), api_name='object-type')
 
-    def users(self, **kwargs):
-        assert self._id
-        userurl = re.sub(r'\.json$', '/users.json', self._id)
-        return List(entryClass=User).get(userurl, **kwargs)
-
-    def assets(self, **kwargs):
-        assert self._id
-        asseturl = re.sub(r'\.json$', '/assets.json', self._id)
-        return List(entryClass=User).get(asseturl, **kwargs)
-
-    def events(self, **kwargs):
-        assert self._id
-        eventurl = re.sub(r'\.json$', '/events.json', self._id)
-        return List(entryClass=Event).get(eventurl, **kwargs)
-
-    def comments(self, **kwargs):
-        assert self._id
-        commenturl = re.sub(r'\.json$', '/comments.json', self._id)
-        return List(entryClass=Event).get(commenturl, **kwargs)
+    users    = remote.Link(lambda o: re.sub(r'\.json$', '/users.json',  o._id), List(entryClass=User))
+    assets   = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), List(entryClass=Object))
+    events   = remote.Link(lambda o: re.sub(r'\.json$', '/events.json', o._id), List(entryClass=Event))
+    comments = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), List(entryClass=Object))
 
     @property
     def groupid(self):
