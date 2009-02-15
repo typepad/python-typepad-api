@@ -11,10 +11,10 @@ class DataObjectMetaclass(type):
                 fields.update(base.fields)
 
         # Move all the class's attributes that are Fields to the fields set.
-        for name, field in attrs.items():
+        for attrname, field in attrs.items():
             if isinstance(field, typepad.fields.Something):
-                fields[name] = field
-                del attrs[name]
+                fields[attrname] = field
+                del attrs[attrname]
 
         attrs['fields'] = fields
         return super(DataObjectMetaclass, cls).__new__(cls, name, bases, attrs)
