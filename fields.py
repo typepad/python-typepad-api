@@ -8,14 +8,32 @@ __all__ = ('Something', 'List', 'Object', 'Datetime')
 
 
 class Something(object):
+    def __init__(self, api_name=None):
+        self.api_name = api_name
+
     def decode(self, value):
         return value
 
     def encode(self, value):
         return value
 
+    def encode_into(self, obj, data, field_name=None):
+        value = getattr(obj, field_name)
+        if value is not None:
+            value = self.encode(value)
+            # only put in data if defined
+            data[self.api_name or field_name] = value
+
+    def decode_into(self, data, obj, field_name=None):
+        value = data.get(self.api_name or field_name)
+        if value is not None:
+            value = self.decode(value)
+        # always set the attribute, even if it's None
+        setattr(obj, field_name, value)
+
 class List(Something):
-    def __init__(self, fld):
+    def __init__(self, fld, **kwargs):
+        super(List, self).__init__(**kwargs)
         self.fld = fld
 
     def decode(self, value):
@@ -25,7 +43,8 @@ class List(Something):
         return [self.fld.encode(v) for v in value]
 
 class Object(Something):
-    def __init__(self, cls):
+    def __init__(self, cls, **kwargs):
+        super(Object, self).__init__(**kwargs)
         self.cls = cls
 
     def decode(self, value):
