@@ -14,7 +14,12 @@ class Link(RemoteObject):
     height   = fields.Something()
     duration = fields.Something()
 
-class TypedList(RemoteObject):
+class List(RemoteObject):
+    total_results = fields.Something(api_name='total-results')
+    start_index   = fields.Something(api_name='start-index')
+    links         = fields.List(fields.Object(Link))
+    entries       = fields.List(fields.Something())
+
     @classmethod
     def get(cls, url, http=None, startIndex=None, maxResults=None, **kwargs):
         queryopts = {'start-index': startIndex, 'max-results': maxResults}
@@ -28,14 +33,17 @@ class TypedList(RemoteObject):
             url = urlunparse(parts)
         return super(TypedList, cls).get(url, http=http, **kwargs)
 
-def List(entryClass):
-    class SpecificTypedList(TypedList):
-        total_results = fields.Something(api_name='total-results')
-        start_index   = fields.Something(api_name='start-index')
-        links         = fields.List(fields.Object(Link))
-        entries       = fields.List(fields.Object(entryClass))
+class ObjectList(List):
+    entries = fields.List(fields.Object('Object'))
 
-    return SpecificTypedList
+class UserRelationshipList(List):
+    entries = fields.List(fields.Object('UserRelationship'))
+
+class UserList(List):
+    entries = fields.List(fields.Object('User'))
+
+class EventList(List):
+    entries = fields.List(fields.Object('Event'))
 
 class User(RemoteObject):
     # documented fields
@@ -59,7 +67,7 @@ class User(RemoteObject):
         if by_group:
             url += "/@by-group/%s" % by_group
         url += ".json"
-        return List(entryClass=UserRelationship).get(url, **kwargs)
+        return UserRelationshipList.get(url, **kwargs)
 
     @property
     def userid(self):
@@ -110,6 +118,10 @@ class Object(RemoteObject):
     #authors      = fields.List(fields.Object(User))
     author       = fields.Object(User)
 
+    # TODO make this clever again -- self._id is None for objects out of Lists
+    #comments = remote.Link(lambda o: re.sub(r'\.json$', '/comments.json', o._id), ObjectList)
+    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (BASE_URL, o.assetid), ObjectList)
+
     @property
     def assetid(self):
         # yes, this is stupid, but damn it, I need this for urls
@@ -124,13 +136,6 @@ class Object(RemoteObject):
         except IndexError:
             return None
     '''
-
-    def comments(self, **kwargs):
-        # TODO make this clever again -- self._id is None for objects out of Lists
-        #assert self._id
-        #url = re.sub(r'\.json$', '/comments.json', self._id)
-        url = '%sassets/%s/comments.json' % (BASE_URL, self.assetid)
-        return List(entryClass=Object).get(url, **kwargs)
 
 class Event(RemoteObject):
     id     = fields.Something()
@@ -154,10 +159,10 @@ class Group(RemoteObject):
     links        = fields.List(fields.Something())
     object_type  = fields.List(fields.Something(), api_name='object-type')
 
-    users    = remote.Link(lambda o: re.sub(r'\.json$', '/users.json',  o._id), List(entryClass=User))
-    assets   = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), List(entryClass=Object))
-    events   = remote.Link(lambda o: re.sub(r'\.json$', '/events.json', o._id), List(entryClass=Event))
-    comments = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), List(entryClass=Object))
+    users    = remote.Link(lambda o: re.sub(r'\.json$', '/users.json',  o._id), UserList)
+    assets   = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), ObjectList)
+    events   = remote.Link(lambda o: re.sub(r'\.json$', '/events.json', o._id), EventList)
+    comments = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), ObjectList)
 
     @property
     def groupid(self):
