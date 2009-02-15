@@ -4,6 +4,8 @@ import logging
 from datetime import datetime
 import time
 
+from typepad.dataobject import all_classes
+
 __all__ = ('Something', 'List', 'Object', 'Datetime')
 
 
@@ -42,6 +44,16 @@ class List(Something):
         super(List, self).__init__(**kwargs)
         self.fld = fld
 
+    def get_of_cls(self):
+        return self.__dict__['of_cls']
+
+    def set_of_cls(self, of_cls):
+        self.__dict__['of_cls'] = of_cls
+        # Make sure our content field knows its owner too.
+        self.fld.of_cls = of_cls
+
+    of_cls = property(get_of_cls, set_of_cls)
+
     def decode(self, value):
         return [self.fld.decode(v) for v in value]
 
@@ -52,6 +64,19 @@ class Object(Something):
     def __init__(self, cls, **kwargs):
         super(Object, self).__init__(**kwargs)
         self.cls = cls
+
+    def get_cls(self):
+        cls = self.__dict__['cls']
+        if not callable(cls):
+            # Assume the name is sibling to our owner class.
+            clsname = '.'.join((self.of_cls.__module__, cls))
+            cls = all_classes[clsname]
+        return cls
+
+    def set_cls(self, cls):
+        self.__dict__['cls'] = cls
+
+    cls = property(get_cls, set_cls)
 
     def decode(self, value):
         if not isinstance(value, dict):

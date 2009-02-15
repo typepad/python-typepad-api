@@ -1,4 +1,7 @@
 import logging
+
+all_classes = {}
+
 import typepad.fields
 
 class DataObjectMetaclass(type):
@@ -17,7 +20,15 @@ class DataObjectMetaclass(type):
                 del attrs[attrname]
 
         attrs['fields'] = fields
-        return super(DataObjectMetaclass, cls).__new__(cls, name, bases, attrs)
+        obj_cls = super(DataObjectMetaclass, cls).__new__(cls, name, bases, attrs)
+
+        # Register the class so Object fields can have forward-referenced it.
+        all_classes['.'.join((obj_cls.__module__, name))] = obj_cls
+        # Tell the fields this class so they can find their forward references.
+        for field in fields.values():
+            field.of_cls = obj_cls
+
+        return obj_cls
 
 class DataObject(object):
     __metaclass__ = DataObjectMetaclass
