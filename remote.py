@@ -45,7 +45,12 @@ class Link(object):
 
     def __call__(self, obj, **kwargs):
         if callable(self.url):
-            url = self.url(obj)
+            # Only give the url function the arguments it expects.
+            import inspect
+            if inspect.getargspec(self.url)[2] is not None:
+                url = self.url(obj, **kwargs)
+            else:
+                url = self.url(obj)
         else:
             if getattr(obj, '_id') is None:
                 raise ValueError, "The object must have an identity URL before you can follow its link"

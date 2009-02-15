@@ -62,12 +62,14 @@ class User(RemoteObject):
     userpic       = fields.Something()
     uri           = fields.Something()
 
-    def relationships(self, rel='followers', by_group=None, **kwargs):
+    def relationship_url(self, rel='followers', by_group=None, **kwargs):
         url = "%susers/%s/relationships/@%s" % (BASE_URL, self.userid, rel)
         if by_group:
             url += "/@by-group/%s" % by_group
         url += ".json"
-        return UserRelationshipList.get(url, **kwargs)
+        return url
+
+    relationships = remote.Link(relationship_url, UserRelationshipList)
 
     @property
     def userid(self):
