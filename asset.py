@@ -31,7 +31,7 @@ class List(RemoteObject):
             else:
                 parts[4] = query
             url = urlunparse(parts)
-        return super(TypedList, cls).get(url, http=http, **kwargs)
+        return super(List, cls).get(url, http=http, **kwargs)
 
 class ObjectList(List):
     entries = fields.List(fields.Object('Object'))
