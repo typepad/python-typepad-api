@@ -3,6 +3,7 @@ import simplejson
 import logging
 from datetime import datetime
 import time
+import collections
 
 __all__ = ('Something', 'List', 'Object', 'Datetime')
 
@@ -30,7 +31,10 @@ class Something(object):
         if value is not None:
             value = self.decode(value)
         if value is None and self.default is not None:
-            value = self.default
+            if callable(self.default):
+                value = self.default(obj, data)
+            else:
+                value = self.default
         # always set the attribute, even if it's still None
         setattr(obj, field_name, value)
 
