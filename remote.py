@@ -9,7 +9,7 @@ from datetime import datetime
 import time
 import re
 
-from typepad.dataobject import DataObject
+from typepad.dataobject import DataObject, DataObjectMetaclass
 
 # TODO configurable?
 BASE_URL = 'http://127.0.0.1:8000/'
@@ -38,7 +38,42 @@ def omit_nulls(data):
             del data[key]
     return data
 
+class Link(object):
+    def __init__(self, url, expect):
+        self.url    = url
+        self.expect = expect
+
+    def __call__(self, obj, **kwargs):
+        if getattr(obj, '_id') is None:
+            raise ValueError, "The object must have an identity URL before you can follow its link"
+        url = urljoin(obj._id, self.url)
+        return self.expect.get(url, **kwargs)
+
+class RemoteObjectMetaclass(DataObjectMetaclass):
+    def __new__(cls, name, bases, attrs):
+        # TODO: refactor with DataObjectMetaclass? urgh
+        links = {}
+
+        for base in bases:
+            if isinstance(base, RemoteObjectMetaclass):
+                links.update(base.links)
+
+        for attrname, link in attrs.items():
+            if isinstance(link, Link):
+                links[attrname] = link
+                # Replace the Link with a new method instead of deleting it.
+                def make_method(linkobj):
+                    def method(self, **kwargs):
+                        return linkobj(self, **kwargs)
+                    return method
+                attrs[attrname] = make_method(link)
+
+        attrs['links'] = links
+        return super(RemoteObjectMetaclass, cls).__new__(cls, name, bases, attrs)
+
 class RemoteObject(DataObject):
+    __metaclass__ = RemoteObjectMetaclass
+
     @staticmethod
     def _raise_response(response, classname, url):
         if response.status == httplib.NOT_FOUND: 
