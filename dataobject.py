@@ -4,11 +4,18 @@ import typepad.fields
 class DataObjectMetaclass(type):
     def __new__(cls, name, bases, attrs):
         fields = {}
-        for name, field in attrs.iteritems():
+
+        # Inherit all the parent DataObject classes' fields.
+        for base in bases:
+            if isinstance(base, DataObjectMetaclass):
+                fields.update(base.fields)
+
+        # Move all the class's attributes that are Fields to the fields set.
+        for name, field in attrs.items():
             if isinstance(field, typepad.fields.Something):
                 fields[name] = field
-        for name in fields:
-            del attrs[name]
+                del attrs[name]
+
         attrs['fields'] = fields
         return super(DataObjectMetaclass, cls).__new__(cls, name, bases, attrs)
 
