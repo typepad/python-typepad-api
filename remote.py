@@ -44,9 +44,12 @@ class Link(object):
         self.expect = expect
 
     def __call__(self, obj, **kwargs):
-        if getattr(obj, '_id') is None:
-            raise ValueError, "The object must have an identity URL before you can follow its link"
-        url = urljoin(obj._id, self.url)
+        if callable(self.url):
+            url = self.url(obj)
+        else:
+            if getattr(obj, '_id') is None:
+                raise ValueError, "The object must have an identity URL before you can follow its link"
+            url = urljoin(obj._id, self.url)
         return self.expect.get(url, **kwargs)
 
 class RemoteObjectMetaclass(DataObjectMetaclass):
