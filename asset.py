@@ -126,7 +126,7 @@ class Object(RemoteObject):
     '''
 
     def comments(self, **kwargs):
-        ## TODO make this clever again -- right now self._id is None
+        # TODO make this clever again -- self._id is None for objects out of Lists
         #assert self._id
         #url = re.sub(r'\.json$', '/comments.json', self._id)
         url = '%sassets/%s/comments.json' % (BASE_URL, self.assetid)
