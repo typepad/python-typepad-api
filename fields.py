@@ -8,8 +8,9 @@ __all__ = ('Something', 'List', 'Object', 'Datetime')
 
 
 class Something(object):
-    def __init__(self, api_name=None):
+    def __init__(self, api_name=None, default=None):
         self.api_name = api_name
+        self.default  = default
 
     def decode(self, value):
         return value
@@ -28,7 +29,9 @@ class Something(object):
         value = data.get(self.api_name or field_name)
         if value is not None:
             value = self.decode(value)
-        # always set the attribute, even if it's None
+        if value is None and self.default is not None:
+            value = self.default
+        # always set the attribute, even if it's still None
         setattr(obj, field_name, value)
 
 class List(Something):
