@@ -1,8 +1,9 @@
 import logging
+import typepad.fields
 
 all_classes = {}
-
-import typepad.fields
+def find_by_name(name):
+    return all_classes[name]
 
 class DataObjectMetaclass(type):
     def __new__(cls, name, bases, attrs):

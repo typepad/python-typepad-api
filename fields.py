@@ -4,7 +4,7 @@ import logging
 from datetime import datetime
 import time
 
-from typepad.dataobject import all_classes
+import typepad.dataobject
 
 __all__ = ('Something', 'List', 'Object', 'Datetime')
 
@@ -70,7 +70,7 @@ class Object(Something):
         if not callable(cls):
             # Assume the name is sibling to our owner class.
             clsname = '.'.join((self.of_cls.__module__, cls))
-            cls = all_classes[clsname]
+            cls = typepad.dataobject.find_by_name(clsname)
         return cls
 
     def set_cls(self, cls):
