@@ -7,14 +7,12 @@ from typepad.remote import RemoteObject, BASE_URL
 from typepad import fields
 
 class Link(RemoteObject):
-    fields = {
-        'rel':      fields.Something(),
-        'href':     fields.Something(),
-        'type':     fields.Something(),
-        'width':    fields.Something(),
-        'height':   fields.Something(),
-        'duration': fields.Something(),
-    }
+    rel      = fields.Something()
+    href     = fields.Something()
+    type     = fields.Something()
+    width    = fields.Something()
+    height   = fields.Something()
+    duration = fields.Something()
 
 class TypedList(RemoteObject):
     @classmethod
@@ -32,33 +30,29 @@ class TypedList(RemoteObject):
 
 def List(entryClass):
     class SpecificTypedList(TypedList):
-        fields = {
-            'total-results': fields.Something(),
-            'start-index':   fields.Something(),
-            'links':         fields.List(fields.Object(Link)),
-            'entries':       fields.List(fields.Object(entryClass)),
-        }
+        total_results = fields.Something(api_name='total-results')
+        start_index   = fields.Something(api_name='start-index')
+        links         = fields.List(fields.Object(Link))
+        entries       = fields.List(fields.Object(entryClass))
 
     return SpecificTypedList
 
 class User(RemoteObject):
-    fields = {
-        # documented fields
-        'id':           fields.Something(),
-        'displayName':  fields.Something(),
-        'profileAlias': fields.Something(),
-        'aboutMe':      fields.Something(),
-        'interests':    fields.List(fields.Something()),
-        'urls':         fields.List(fields.Something()),
-        'accounts':     fields.List(fields.Something()),
-        'links':        fields.List(fields.Something()),
-        'object-type':  fields.Something(),
+    # documented fields
+    id            = fields.Something()
+    display_name  = fields.Something(api_name='displayName')
+    profile_alias = fields.Something(api_name='profileAlias')
+    about_me      = fields.Something(api_name='aboutMe')
+    interests     = fields.List(fields.Something())
+    urls          = fields.List(fields.Something())
+    accounts      = fields.List(fields.Something())
+    links         = fields.List(fields.Something())
+    object_type   = fields.Something(api_name='object-type')
 
-        # astropad extras
-        'email':        fields.Something(),
-        'userpic':      fields.Something(),
-        'uri':          fields.Something(),
-    }
+    # astropad extras
+    email         = fields.Something()
+    userpic       = fields.Something()
+    uri           = fields.Something()
 
     def relationships(self, rel='followers', by_group=None, **kwargs):
         url = "%susers/%s/relationships/@%s" % (BASE_URL, self.userid, rel)
@@ -83,46 +77,38 @@ class User(RemoteObject):
         return cls.get(urljoin(BASE_URL, '/users/@self.json'), **kwargs)
 
 class UserRelationship(RemoteObject):
-    fields = {
-        #'status': fields.Something(),
-        'source': fields.Object(User),
-        'target': fields.Object(User),
-    }
+    #status = fields.Something()
+    source = fields.Object(User)
+    target = fields.Object(User)
 
 class PublicationStatus(RemoteObject):
-    fields = {
-        'published': fields.Something(),
-        'spam':      fields.Something(),
-    }
+    published = fields.Something()
+    spam      = fields.Something()
 
 class ObjectRef(RemoteObject):
-    fields = {
-        'ref':  fields.Something(),
-        'href': fields.Something(),
-        'type': fields.Something(),
-    }
+    ref  = fields.Something()
+    href = fields.Something()
+    type = fields.Something()
 
 class Object(RemoteObject):
-    fields = {
-        # documented fields
-        'id':           fields.Something(),
-        'title':        fields.Something(),
-        'published':    fields.Datetime(),
-        'updated':      fields.Datetime(),
-        'summary':      fields.Something(),
-        'content':      fields.Something(),
-        'total':        fields.Something(),
-        # TODO: categories should be Tags?
-        'categories':   fields.List(fields.Something()),
-        'object-types': fields.List(fields.Something()),
-        'status':       fields.Object(PublicationStatus),
-        'links':        fields.List(fields.Something()),
-        'in-reply-to':  fields.Object(ObjectRef),
+    # documented fields
+    id           = fields.Something()
+    title        = fields.Something()
+    published    = fields.Datetime()
+    updated      = fields.Datetime()
+    summary      = fields.Something()
+    content      = fields.Something()
+    total        = fields.Something()
+    # TODO  categories should be Tags?
+    categories   = fields.List(fields.Something())
+    object_types = fields.List(fields.Something(), api_name='object-types')
+    status       = fields.Object(PublicationStatus)
+    links        = fields.List(fields.Something())
+    in_reply_to  = fields.Object(ObjectRef, api_name='in-reply-to')
 
-        # astropad extras
-        #'authors':      fields.List(fields.Object(User)),
-        'author':       fields.Object(User),
-    }
+    # astropad extras
+    #authors      = fields.List(fields.Object(User))
+    author       = fields.Object(User)
 
     @property
     def assetid(self):
@@ -147,13 +133,11 @@ class Object(RemoteObject):
         return List(entryClass=Object).get(url, **kwargs)
 
 class Event(RemoteObject):
-    fields = {
-        'id':     fields.Something(),
-        'verbs':  fields.List(fields.Something()),
-        # TODO: vary these based on verb content? oh boy
-        'actor':  fields.Object(User),
-        'object': fields.Object(Object),
-    }
+    id     = fields.Something()
+    verbs  = fields.List(fields.Something())
+    # TODO: vary these based on verb content? oh boy
+    actor  = fields.Object(User)
+    object = fields.Object(Object)
     
     @property
     def eventid(self):
@@ -162,15 +146,13 @@ class Event(RemoteObject):
         return self.id.split('-', 1)[1]
 
 class Group(RemoteObject):
-    fields = {
-        'id':          fields.Something(),
-        'displayName': fields.Something(),
-        'tagline':     fields.Something(),
-        'avatar':      fields.Something(),
-        'urls':        fields.List(fields.Something()),
-        'links':       fields.List(fields.Something()),
-        'object-type': fields.List(fields.Something()),
-    }
+    id           = fields.Something()
+    display_name = fields.Something(api_name='displayName')
+    tagline      = fields.Something()
+    avatar       = fields.Something()
+    urls         = fields.List(fields.Something())
+    links        = fields.List(fields.Something())
+    object_type  = fields.List(fields.Something(), api_name='object-type')
 
     def users(self, **kwargs):
         assert self._id
