@@ -10,17 +10,60 @@ __all__ = ('Something', 'List', 'Object', 'Datetime')
 
 
 class Something(object):
+
+    """A generic field for encoding object attributes as JSON values and
+    decoding JSON values into object attributes.
+
+    Each attribute of a DataObject has a field that dictates how a dictionary
+    deserialized from a JSON resource is turned into an instance of that
+    DataObject.
+
+    Use this generic field for DataObject parameters that should be equivalent
+    to their JSON deserializations: strings, numbers, and boolean values.
+
+    """
+
     def __init__(self, api_name=None, default=None):
+        """Sets the field's matching deserialization field and default value.
+
+        Optional parameter `api_name` is the name of the matching field in the
+        JSON resource to decode into this object attribute. If not given, the
+        name given to the field when its class was defined is used.
+
+        Optional parameter `default` is the default value to use for this
+        attribute when the dictionary to decode does not contain a value.
+
+        `default` can be a callable function that is passed the object to
+        decode into and the dictionary to decode from, and should return the
+        default value of the attribute. As fields are processed in no
+        particular order, a `default` function should not set the value
+        itself, nor should it depend on values already decoded into the
+        DataObject instance.
+
+        Default values are *not* special when encoding an object, so those
+        values will stick on DataObjects that are saved and retrieved (such as
+        RemoteObjects).
+
+        """
         self.api_name = api_name
         self.default  = default
 
     def decode(self, value):
+        """Decodes a dictionary value into a DataObject attribute value."""
         return value
 
     def encode(self, value):
+        """Encodes a DataObject attribute value into a dictionary value."""
         return value
 
     def encode_into(self, obj, data, field_name=None):
+        """Encodes the attribute the field represents out of DataObject
+        instance `obj` into a dictionary `data`.
+
+        Parameter `field_name` specifies the name of the DataObject attribute
+        to encode from.
+
+        """
         value = getattr(obj, field_name)
         if value is not None:
             value = self.encode(value)
@@ -28,6 +71,13 @@ class Something(object):
             data[self.api_name or field_name] = value
 
     def decode_into(self, data, obj, field_name=None):
+        """Decodes the attribute the field represents out of dictionary `data`
+        into a DataObject instance `obj`.
+
+        Parameter `field_name` specifies the name of the DataObject attribute
+        to encode into.
+
+        """
         value = data.get(self.api_name or field_name)
         if value is not None:
             value = self.decode(value)
@@ -40,7 +90,19 @@ class Something(object):
         setattr(obj, field_name, value)
 
 class List(Something):
+
+    """A field representing a homogeneous list of data."""
+
     def __init__(self, fld, **kwargs):
+        """Sets the field's deserialization field and default value (as in
+        `Something.__init__()`) and the type of field representing the content
+        of the list.
+
+        Parameter `fld` is another field instance representing the list's
+        content. For instance, if the field were to represent a list of
+        timestamps, `fld` would be a `Datetime` instance.
+
+        """
         super(List, self).__init__(**kwargs)
         self.fld = fld
 
@@ -55,13 +117,30 @@ class List(Something):
     of_cls = property(get_of_cls, set_of_cls)
 
     def decode(self, value):
+        """Decodes the dictionary value (a list of dictionary values) into a
+        DataObject attribute (a list of DataObject attribute values)."""
         return [self.fld.decode(v) for v in value]
 
     def encode(self, value):
+        """Encodes a DataObject attribute (a list of DataObject attribute
+        values) into a dictionary value (a list of dictionary values)."""
         return [self.fld.encode(v) for v in value]
 
 class Object(Something):
+
+    """A field representing another DataObject."""
+
     def __init__(self, cls, **kwargs):
+        """Sets the field's deserialization field and default value (as in
+        `Something.__init__()`) and the DataObject class the field
+        represents.
+
+        Parameter `cls` is the DataObject class to decode dictionary values
+        into. If the class has not yet been defined, `cls` may be the name of
+        a DataObject class defined in the same module as the class that owns
+        the `Object` field.
+
+        """
         super(Object, self).__init__(**kwargs)
         self.cls = cls
 
@@ -79,26 +158,44 @@ class Object(Something):
     cls = property(get_cls, set_cls)
 
     def decode(self, value):
+        """Decodes the dictionary value into an instance of the field's
+        DataObject class."""
         if not isinstance(value, dict):
             raise TypeError('Value to decode into a %s %r is not a dict' % (self.cls.__name__, value))
         return self.cls.from_dict(value)
 
     def encode(self, value):
+        """Encodes an instance of the field's DataObject class into its
+        representative dictionary value."""
         if not isinstance(value, self.cls):
             raise TypeError('Value to encode %r is not a %s' % (value, self.cls.__name__))
         return value.to_dict()
 
 class Datetime(Something):
+
+    """A field representing a timestamp."""
+
     def decode(self, value):
+        """Decodes a dictionary timestamp string into a DataObject attribute
+        (a `datetime`).
+
+        Dictionary timestamps should be of the format `YYYY-MM-DDTHH:MM:SSZ`.
+
+        """
         try:
             return datetime(*(time.strptime(value, '%Y-%m-%dT%H:%M:%SZ'))[0:6])
         except ValueError:
             raise TypeError('Value to decode %r is not a valid date time stamp' % (value,))
 
     def encode(self, value):
+        """Encodes a DataObject attribute (a `datetime`) into a dictionary
+        timestamp string.
+
+        Dictionary timestamps will be of the format `YYYY-MM-DDTHH:MM:SSZ`.
+
+        """
         if not isinstance(value, datetime):
             raise TypeError('Value to encode %r is not a datetime' % (value,))
         if value.tzinfo is not None:
             raise TypeError("Value to encode %r is a datetime, but it has timezone information and we don't want to deal with timezone information" % (value,))
         return '%sZ' % (value.isoformat(),)
-

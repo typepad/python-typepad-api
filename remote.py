@@ -39,11 +39,47 @@ def omit_nulls(data):
     return data
 
 class Link(object):
+
+    """A RemoteObject attribute that links from a source object to a related
+    target object.
+
+    For example, for an asset with comments, the comments list resource can be
+    a `Link` from the asset with a type of `List(Comment)`. The asset is the
+    source object and the comments list is the target object.
+
+    Links are declared on the source class as attributes, but become callable
+    methods. For example, if the Link is installed on `Asset` as `comments`,
+    then `Asset.comments` will be the callable method that fetches that
+    asset's comments list.
+
+    """
+
     def __init__(self, url, expect):
+        """Sets the Link's url and the type of resource at that URL.
+
+        Parameter `url` is the URL from which the related resource can be
+        fetched. If `url` is relative, it is interpreted as relative to the
+        source object's URL.
+
+        `url` can also be a callable function that returns the URL of the
+        target resource, given either the source object or, if the function
+        accepts variable keyword argument sets (`**kwargs`), the source object
+        and the extra keyword arguments passed to the link method.
+
+        """
         self.url    = url
         self.expect = expect
 
     def __call__(self, obj, **kwargs):
+        """Fetches the remote resource the Link links to.
+
+        Parameter `obj` is the existing related object (the asset object in
+        the asset-comments example). Any other keyword arguments are passed to
+        `RemoteObject.get()`, or if the Link's `url` is a callable function
+        that accepts variable keyword argument sets, to the Link's `url`
+        function too.
+
+        """
         if callable(self.url):
             # Only give the url function the arguments it expects.
             import inspect
@@ -80,10 +116,15 @@ class RemoteObjectMetaclass(DataObjectMetaclass):
         return super(RemoteObjectMetaclass, cls).__new__(cls, name, bases, attrs)
 
 class RemoteObject(DataObject):
+
+    """A DataObject that can be fetched and put over HTTP through a REST
+    API."""
+
     __metaclass__ = RemoteObjectMetaclass
 
     @staticmethod
     def _raise_response(response, classname, url):
+        # Turn exceptional httplib2 responses into exceptions.
         if response.status == httplib.NOT_FOUND: 
             raise NotFound('No such %s %s' % (classname, url))
         if response.status == httplib.UNAUTHORIZED:
@@ -96,6 +137,13 @@ class RemoteObject(DataObject):
 
     @classmethod
     def get(cls, url, http=None, **kwargs):
+        """Fetches a RemoteObject from a URL.
+
+        Parameter `url` is the URL from which the object should be gotten.
+        Optional parameter `http` is the user agent object to use for
+        fetching. `http` should be compatible with `httplib2.Http` objects.
+
+        """
         logging.debug('Fetching %s' % (url,))
 
         if http is None:
@@ -114,6 +162,16 @@ class RemoteObject(DataObject):
         return x
 
     def save(self, http=None):
+        """Save a RemoteObject to a remote resource.
+
+        If the RemoteObject was fetched with a `get()` call, it is saved by
+        HTTP `PUT` to the resource's URL. If the RemoteObject is new, it is
+        saved through a `POST` to its parent collection.
+
+        Optional `http` parameter is the user agent object to use. `http`
+        objects should be compatible with `httplib2.Http` objects.
+
+        """
         if http is None:
             http = userAgent
         http.add_credentials(EMAIL, PASSWORD)
