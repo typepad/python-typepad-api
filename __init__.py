@@ -12,7 +12,27 @@ class OAuthConsumer(oauth.OAuthConsumer):
         return ""
 
 class OAuthAuthentication(httplib2.Authentication):
+
+    """An httplib2 Authentication module that provides OAuth authentication.
+
+    The OAuth authentication will be tried automatically, but to use OAuth
+    authentication with a particular user agent (`Http` instance), it must
+    have the OAuth consumer and access token set as one of its sets of
+    credentials. For instance:
+
+    >>> csr = typepad.OAuthConsumer(key='blah', secret='moo')
+    >>> token = get_access_token_for(user)
+    >>> http.add_credentials(csr, token)
+
+    """
+
     def request(self, method, request_uri, headers, content):
+        """Add the HTTP Authorization header to the headers for this request.
+
+        In this implementation, the Authorization header contains the OAuth
+        signing information and signature.
+
+        """
         # TODO: wtf, have to rebuild uri from partial uri and host?
         import urlparse
         partial_uri = urlparse.urlsplit(request_uri)
