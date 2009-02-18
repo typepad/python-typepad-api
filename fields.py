@@ -6,20 +6,17 @@ import time
 
 import typepad.dataobject
 
-__all__ = ('Something', 'List', 'Object', 'Datetime')
+__all__ = ('Field', 'Something', 'List', 'Object', 'Datetime')
 
 
-class Something(object):
+class Field(object):
 
-    """A generic field for encoding object attributes as JSON values and
-    decoding JSON values into object attributes.
+    """A field for encoding object attributes as JSON values and decoding JSON
+    values into object attributes.
 
     Each attribute of a DataObject has a field that dictates how a dictionary
     deserialized from a JSON resource is turned into an instance of that
     DataObject.
-
-    Use this generic field for DataObject parameters that should be equivalent
-    to their JSON deserializations: strings, numbers, and boolean values.
 
     """
 
@@ -50,11 +47,11 @@ class Something(object):
 
     def decode(self, value):
         """Decodes a dictionary value into a DataObject attribute value."""
-        return value
+        raise NotImplementedError, 'Decoding for this field is not implemented'
 
     def encode(self, value):
         """Encodes a DataObject attribute value into a dictionary value."""
-        return value
+        raise NotImplementedError, 'Encoding for this field is not implemented'
 
     def encode_into(self, obj, data, field_name=None):
         """Encodes the attribute the field represents out of DataObject
@@ -89,13 +86,31 @@ class Something(object):
         # always set the attribute, even if it's still None
         setattr(obj, field_name, value)
 
-class List(Something):
+class Something(Field):
+
+    """A generic field for data that doesn't need converted between dictionary
+    content and DataObject values.
+
+    Use this generic field for DataObject parameters that should be equivalent
+    to their JSON deserializations: strings, numbers, and boolean values.
+
+    """
+
+    def decode(self, value):
+        """Decodes a dictionary value into a DataObject attribute value."""
+        return value
+
+    def encode(self, value):
+        """Encodes a DataObject attribute value into a dictionary value."""
+        return value
+
+class List(Field):
 
     """A field representing a homogeneous list of data."""
 
     def __init__(self, fld, **kwargs):
         """Sets the field's deserialization field and default value (as in
-        `Something.__init__()`) and the type of field representing the content
+        `Field.__init__()`) and the type of field representing the content
         of the list.
 
         Parameter `fld` is another field instance representing the list's
@@ -126,13 +141,13 @@ class List(Something):
         values) into a dictionary value (a list of dictionary values)."""
         return [self.fld.encode(v) for v in value]
 
-class Object(Something):
+class Object(Field):
 
     """A field representing another DataObject."""
 
     def __init__(self, cls, **kwargs):
         """Sets the field's deserialization field and default value (as in
-        `Something.__init__()`) and the DataObject class the field
+        `Field.__init__()`) and the DataObject class the field
         represents.
 
         Parameter `cls` is the DataObject class to decode dictionary values
@@ -171,7 +186,7 @@ class Object(Something):
             raise TypeError('Value to encode %r is not a %s' % (value, self.cls.__name__))
         return value.to_dict()
 
-class Datetime(Something):
+class Datetime(Field):
 
     """A field representing a timestamp."""
 
