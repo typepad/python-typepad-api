@@ -21,6 +21,7 @@ class DataObjectMetaclass(type):
 
         # Move all the class's attributes that are Fields to the fields set.
         for attrname, field in attrs.items():
+            # TODO: what if a parent's field was replaced with something not a field in the subclass?
             if isinstance(field, typepad.fields.Field):
                 fields[attrname] = field
                 del attrs[attrname]
