@@ -3,8 +3,7 @@ from urlparse import urljoin, urlparse, urlunparse
 from datetime import datetime
 import re
 
-from typepad.remote import RemoteObject, BASE_URL
-from typepad import fields, remote
+from typepad import fields, remote, RemoteObject
 
 class Link(RemoteObject):
     rel      = fields.Something()
@@ -66,7 +65,7 @@ class User(RemoteObject):
     uri           = fields.Something()
 
     def relationship_url(self, rel='followers', by_group=None, **kwargs):
-        url = "%susers/%s/relationships/@%s" % (BASE_URL, self.userid, rel)
+        url = "%susers/%s/relationships/@%s" % (remote.BASE_URL, self.userid, rel)
         if by_group:
             url += "/@by-group/%s" % by_group
         url += ".json"
@@ -87,7 +86,7 @@ class User(RemoteObject):
 
     @classmethod
     def getSelf(cls, **kwargs):
-        return cls.get(urljoin(BASE_URL, '/users/@self.json'), **kwargs)
+        return cls.get(urljoin(remote.BASE_URL, '/users/@self.json'), **kwargs)
 
 class UserRelationship(RemoteObject):
     #status = fields.Something()
@@ -125,7 +124,7 @@ class Object(RemoteObject):
 
     # TODO make this clever again -- self._id is None for objects out of Lists
     #comments = remote.Link(lambda o: re.sub(r'\.json$', '/comments.json', o._id), ApiListField('Object'))
-    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (BASE_URL, o.assetid), ApiListField('Object'))
+    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (remote.BASE_URL, o.assetid), ApiListField('Object'))
 
     @property
     def assetid(self):
