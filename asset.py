@@ -33,17 +33,26 @@ class List(RemoteObject):
             url = urlunparse(parts)
         return super(List, cls).get(url, http=http, **kwargs)
 
-class ObjectList(List):
-    entries = fields.List(fields.Object('Object'))
+    list_classes = {}
 
-class UserRelationshipList(List):
-    entries = fields.List(fields.Object('UserRelationship'))
+    @classmethod
+    def of(cls, contentClass):
+        if isinstance(contentClass, type) and contentClass in cls.list_classes:
+            return cls.list_classes[contentClass]
 
-class UserList(List):
-    entries = fields.List(fields.Object('User'))
+        # Make up a subclass.
+        class SomethingList(cls):
+            entries = fields.List(fields.Object(contentClass))
 
-class EventList(List):
-    entries = fields.List(fields.Object('Event'))
+        if isinstance(contentClass, type):
+            SomethingList.__name__ = contentClass.__name__ + 'List'
+            # Memoize only if contentClass is a class, because the name
+            # without the package isn't unique.
+            cls.list_classes[contentClass] = SomethingList
+        else:
+            SomethingList.__name__ = contentClass + 'List'
+
+        return SomethingList
 
 class User(RemoteObject):
     # documented fields
@@ -69,7 +78,7 @@ class User(RemoteObject):
         url += ".json"
         return url
 
-    relationships = remote.Link(relationship_url, UserRelationshipList)
+    relationships = remote.Link(relationship_url, List.of('UserRelationship'))
 
     @property
     def userid(self):
@@ -121,8 +130,8 @@ class Object(RemoteObject):
     author       = fields.Object(User)
 
     # TODO make this clever again -- self._id is None for objects out of Lists
-    #comments = remote.Link(lambda o: re.sub(r'\.json$', '/comments.json', o._id), ObjectList)
-    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (BASE_URL, o.assetid), ObjectList)
+    #comments = remote.Link(lambda o: re.sub(r'\.json$', '/comments.json', o._id), List.of('Object'))
+    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (BASE_URL, o.assetid), List.of('Object'))
 
     @property
     def assetid(self):
@@ -161,10 +170,10 @@ class Group(RemoteObject):
     links        = fields.List(fields.Something())
     object_type  = fields.List(fields.Something(), api_name='object-type')
 
-    users    = remote.Link(lambda o: re.sub(r'\.json$', '/users.json',  o._id), UserList)
-    assets   = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), ObjectList)
-    events   = remote.Link(lambda o: re.sub(r'\.json$', '/events.json', o._id), EventList)
-    comments = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), ObjectList)
+    users    = remote.Link(lambda o: re.sub(r'\.json$', '/users.json',  o._id), List.of(User))
+    assets   = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), List.of(Object))
+    events   = remote.Link(lambda o: re.sub(r'\.json$', '/events.json', o._id), List.of(Event))
+    comments = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), List.of(Object))
 
     @property
     def groupid(self):
