@@ -13,6 +13,7 @@ def find_by_name(name):
 class DataObjectMetaclass(type):
     def __new__(cls, name, bases, attrs):
         fields = {}
+        new_fields = {}
 
         # Inherit all the parent DataObject classes' fields.
         for base in bases:
@@ -21,18 +22,23 @@ class DataObjectMetaclass(type):
 
         # Move all the class's attributes that are Fields to the fields set.
         for attrname, field in attrs.items():
-            # TODO: what if a parent's field was replaced with something not a field in the subclass?
             if isinstance(field, typepad.fields.Field):
-                fields[attrname] = field
+                new_fields[attrname] = field
                 del attrs[attrname]
+            elif attrname in fields:
+                # Throw out any parent fields that the subclass defined as
+                # something other than a Field.
+                del fields[attrname]
 
+        fields.update(new_fields)
         attrs['fields'] = fields
         obj_cls = super(DataObjectMetaclass, cls).__new__(cls, name, bases, attrs)
 
-        # Register the class so Object fields can have forward-referenced it.
+        # Register the new class so Object fields can have forward-referenced it.
         all_classes['.'.join((obj_cls.__module__, name))] = obj_cls
-        # Tell the fields this class so they can find their forward references.
-        for field in fields.values():
+        # Tell this class's fields what this class is, so they can find their
+        # forward references later.
+        for field in new_fields.values():
             field.of_cls = obj_cls
 
         return obj_cls

@@ -54,7 +54,7 @@ class Link(object):
 
     """
 
-    def __init__(self, url, expect):
+    def __init__(self, url, fld):
         """Sets the Link's url and the type of resource at that URL.
 
         Parameter `url` is the URL from which the related resource can be
@@ -66,9 +66,22 @@ class Link(object):
         accepts variable keyword argument sets (`**kwargs`), the source object
         and the extra keyword arguments passed to the link method.
 
+        Parameter `fld` is a Field that specifies how to decode the resource
+        at the URL. For example, if the resource were itself an `Asset`
+        object, `fld` would be a `fields.Object(Asset)`.
+
         """
-        self.url    = url
-        self.expect = expect
+        self.url = url
+        self.fld = fld
+
+    def _get_of_cls(self):
+        return self.__dict__['of_cls']
+
+    def _set_of_cls(self, of_cls):
+        self.__dict__['of_cls'] = of_cls
+        self.fld.of_cls = of_cls
+
+    of_cls = property(_get_of_cls, _set_of_cls)
 
     def __call__(self, obj, **kwargs):
         """Fetches the remote resource the Link links to.
@@ -91,12 +104,21 @@ class Link(object):
             if getattr(obj, '_id') is None:
                 raise ValueError, "The object must have an identity URL before you can follow its link"
             url = urljoin(obj._id, self.url)
-        return self.expect.get(url, **kwargs)
+
+        # Get the content.
+        resp, content = RemoteObject.get_response(url, http=kwargs.get('http'))
+        data = simplejson.loads(content)
+
+        # Have our field decode it.
+        j = self.fld.decode(data)
+
+        return j
 
 class RemoteObjectMetaclass(DataObjectMetaclass):
     def __new__(cls, name, bases, attrs):
         # TODO: refactor with DataObjectMetaclass? urgh
         links = {}
+        new_links = {}
 
         for base in bases:
             if isinstance(base, RemoteObjectMetaclass):
@@ -104,16 +126,25 @@ class RemoteObjectMetaclass(DataObjectMetaclass):
 
         for attrname, link in attrs.items():
             if isinstance(link, Link):
-                links[attrname] = link
+                new_links[attrname] = link
                 # Replace the Link with a new method instead of deleting it.
                 def make_method(linkobj):
                     def method(self, **kwargs):
                         return linkobj(self, **kwargs)
                     return method
                 attrs[attrname] = make_method(link)
+            elif attrname in links:
+                del links[attrname]
 
+        links.update(new_links)
         attrs['links'] = links
-        return super(RemoteObjectMetaclass, cls).__new__(cls, name, bases, attrs)
+        obj_cls = super(RemoteObjectMetaclass, cls).__new__(cls, name, bases, attrs)
+
+        # Tell the link that this class owns it.
+        for link in new_links.values():
+            link.of_cls = obj_cls
+
+        return obj_cls
 
 class RemoteObject(DataObject):
 
@@ -136,6 +167,18 @@ class RemoteObject(DataObject):
             raise BadResponse('Bad response fetching %s %s: content-type is %s, not JSON' % (classname, url, response.get('content-type')))
 
     @classmethod
+    def get_response(cls, url, http=None):
+        logging.debug('Fetching %s' % (url,))
+
+        if http is None:
+            http = userAgent
+        response, content = http.request(url)
+        cls._raise_response(response, classname=cls.__name__, url=url)
+        logging.debug('Got content %s' % (content,))
+
+        return response, content
+
+    @classmethod
     def get(cls, url, http=None, **kwargs):
         """Fetches a RemoteObject from a URL.
 
@@ -144,16 +187,7 @@ class RemoteObject(DataObject):
         fetching. `http` should be compatible with `httplib2.Http` objects.
 
         """
-        logging.debug('Fetching %s' % (url,))
-
-        if http is None:
-            http = userAgent
-        (response, content) = http.request(url)
-        cls._raise_response(response, classname=cls.__name__, url=url)
-        logging.debug('Got content %s' % (content,))
-
-        # TODO make sure astropad is returning the proper content type
-        #if data and resp.get('content-type') == 'application/json':
+        response, content = cls.get_response(url, http)
         data = simplejson.loads(content)
         x = cls.from_dict(data)
         x._id = response['content-location']  # follow redirects

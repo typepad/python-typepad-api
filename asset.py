@@ -14,12 +14,20 @@ class Link(RemoteObject):
     height   = fields.Something()
     duration = fields.Something()
 
-class List(RemoteObject):
+class ApiList(RemoteObject):
     total_results = fields.Something(api_name='total-results')
     start_index   = fields.Something(api_name='start-index')
     links         = fields.List(fields.Object(Link))
     entries       = fields.List(fields.Something())
 
+    @classmethod
+    def from_dict(cls, value, entry_class):
+        self = super(ApiList, cls).from_dict(value)
+        # Post-convert all the "entries" list items to our entry class.
+        self.entries = [entry_class.from_dict(d) for d in self.entries]
+        return self
+
+    # TODO: Oops, move this?
     @classmethod
     def get(cls, url, http=None, startIndex=None, maxResults=None, **kwargs):
         queryopts = {'start-index': startIndex, 'max-results': maxResults}
@@ -33,26 +41,12 @@ class List(RemoteObject):
             url = urlunparse(parts)
         return super(List, cls).get(url, http=http, **kwargs)
 
-    list_classes = {}
-
-    @classmethod
-    def of(cls, contentClass):
-        if isinstance(contentClass, type) and contentClass in cls.list_classes:
-            return cls.list_classes[contentClass]
-
-        # Make up a subclass.
-        class SomethingList(cls):
-            entries = fields.List(fields.Object(contentClass))
-
-        if isinstance(contentClass, type):
-            SomethingList.__name__ = contentClass.__name__ + 'List'
-            # Memoize only if contentClass is a class, because the name
-            # without the package isn't unique.
-            cls.list_classes[contentClass] = SomethingList
-        else:
-            SomethingList.__name__ = contentClass + 'List'
-
-        return SomethingList
+class ApiListField(fields.Object):
+    def decode(self, value):
+        if not isinstance(value, dict):
+            # Let Object.decode() throw the TypeError.
+            return super(ApiListField, self).decode(value)
+        return ApiList.from_dict(value, entry_class=self.cls)
 
 class User(RemoteObject):
     # documented fields
@@ -78,7 +72,7 @@ class User(RemoteObject):
         url += ".json"
         return url
 
-    relationships = remote.Link(relationship_url, List.of('UserRelationship'))
+    relationships = remote.Link(relationship_url, ApiListField('UserRelationship'))
 
     @property
     def userid(self):
@@ -130,8 +124,8 @@ class Object(RemoteObject):
     author       = fields.Object(User)
 
     # TODO make this clever again -- self._id is None for objects out of Lists
-    #comments = remote.Link(lambda o: re.sub(r'\.json$', '/comments.json', o._id), List.of('Object'))
-    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (BASE_URL, o.assetid), List.of('Object'))
+    #comments = remote.Link(lambda o: re.sub(r'\.json$', '/comments.json', o._id), ApiListField('Object'))
+    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (BASE_URL, o.assetid), ApiListField('Object'))
 
     @property
     def assetid(self):
@@ -170,10 +164,10 @@ class Group(RemoteObject):
     links        = fields.List(fields.Something())
     object_type  = fields.List(fields.Something(), api_name='object-type')
 
-    users    = remote.Link(lambda o: re.sub(r'\.json$', '/users.json',  o._id), List.of(User))
-    assets   = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), List.of(Object))
-    events   = remote.Link(lambda o: re.sub(r'\.json$', '/events.json', o._id), List.of(Event))
-    comments = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), List.of(Object))
+    users    = remote.Link(lambda o: re.sub(r'\.json$', '/users.json',  o._id), ApiListField(User))
+    assets   = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), ApiListField(Object))
+    events   = remote.Link(lambda o: re.sub(r'\.json$', '/events.json', o._id), ApiListField(Event))
+    comments = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), ApiListField(Object))
 
     @property
     def groupid(self):
