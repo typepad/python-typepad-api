@@ -1,5 +1,3 @@
-# TODO: require 2.0+ version of simplejson that doesn't provide unicode keys
-import simplejson
 import logging
 from datetime import datetime
 import time

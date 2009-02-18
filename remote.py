@@ -1,7 +1,11 @@
+try:
+    import json
+except ImportError:
+    # TODO: require 2.0+ version of simplejson that doesn't provide unicode keys
+    import simplejson as json
+
 import httplib2
 import httplib
-# TODO: require 2.0+ version of simplejson that doesn't provide unicode keys
-import simplejson
 import logging
 from urlparse import urljoin
 import types
@@ -172,7 +176,7 @@ class RemoteObject(DataObject):
 
         if http is None:
             http = userAgent
-        response, content = http.request(url)
+        response, content = http.request(url, headers={'accept': 'application/json'})
         cls._raise_response(response, classname=cls.__name__, url=url)
         logging.debug('Got content %s' % (content,))
 
@@ -188,7 +192,7 @@ class RemoteObject(DataObject):
 
         """
         response, content = cls.get_response(url, http)
-        data = simplejson.loads(content)
+        data = json.loads(content)
         x = cls.from_dict(data)
         x._id = response['content-location']  # follow redirects
         if 'etag' in response:
@@ -210,14 +214,14 @@ class RemoteObject(DataObject):
             http = userAgent
         http.add_credentials(EMAIL, PASSWORD)
 
-        body = simplejson.dumps(self.to_dict(), default=omit_nulls)
+        body = json.dumps(self.to_dict(), default=omit_nulls)
 
-        httpextra = {}
+        headers = {'accept': 'application/json'}
         if self._id is not None:
             url = self._id
             method = 'PUT'
             if hasattr(self, _etag) and self._etag is not None:
-                httpextra['headers'] = {'if-match': self._etag}
+                headers['if-match'] = self._etag
         elif self.parent is not None and self.parent._id is not None:
             url = self.parent._id
             method = 'POST'
@@ -227,14 +231,14 @@ class RemoteObject(DataObject):
             method = 'POST'
             # raise ValueError('nowhere to save this object to?')
 
-        (response, content) = http.request(url, method=method, body=body, **httpextra)
+        (response, content) = http.request(url, method=method, body=body, headers=headers)
 
         # TBD: check for errors
         # self._raise_response(response, classname=type(self).__name__, url=url)
 
         # TODO: follow redirects first?
         logging.debug('Yay saved my obj, now turning %s into new content' % (content,))
-        new_body = simplejson.loads(content)
+        new_body = json.loads(content)
         new_inst = type(self).from_dict(new_body)
         self.__dict__.update(new_inst.__dict__)
         self._id = response['content-location']
