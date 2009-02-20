@@ -35,7 +35,7 @@ class OAuthAuthentication(httplib2.Authentication):
         import urlparse
         partial_uri = urlparse.urlsplit(request_uri)
         uri = urlparse.urlunsplit(('http', self.host) + partial_uri[2:])
-        
+
         csr, token = self.credentials
         orly = oauth.OAuthRequest.from_consumer_and_token(csr, token,
             http_method=method, http_url=uri)
@@ -55,7 +55,7 @@ class OAuthClient(oauth.OAuthClient):
     access_token_url = None
     authorization_url = None
     callback_url = None
-    
+
     def set_consumer(self, key, secret):
         self.consumer = oauth.OAuthConsumer(
             key = key,

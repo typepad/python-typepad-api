@@ -122,7 +122,7 @@ class Object(RemoteObject):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:asset-1794
         return self.id.split('-', 1)[1]
-    
+
     '''
     @property
     def author(self):
@@ -138,7 +138,7 @@ class Event(RemoteObject):
     # TODO: vary these based on verb content? oh boy
     actor  = fields.Object(User)
     object = fields.Object(Object)
-    
+
     @property
     def eventid(self):
         # yes, this is stupid, but damn it, I need this for urls
