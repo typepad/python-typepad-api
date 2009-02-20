@@ -180,8 +180,8 @@ class Group(RemoteObject):
     posts    = ApiListLink('assets/@post',  Post)
 
     @property
-    def users(self):
-        members = self.memberships
+    def members(self):
+        members = self.memberships()
         return [m.source for m in members]
 
     @property
