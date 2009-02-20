@@ -26,20 +26,6 @@ class ApiList(RemoteObject):
         self.entries = [entry_class.from_dict(d) for d in self.entries]
         return self
 
-    # TODO: Oops, move this?
-    @classmethod
-    def get(cls, url, http=None, startIndex=None, maxResults=None, **kwargs):
-        queryopts = {'start-index': startIndex, 'max-results': maxResults}
-        query = '&'.join(['%s=%d' % (k, v) for k, v in queryopts.iteritems() if v is not None])
-        if query:
-            parts = list(urlparse(url))
-            if parts[4]:
-                parts[4] += '&' + query
-            else:
-                parts[4] = query
-            url = urlunparse(parts)
-        return super(List, cls).get(url, http=http, **kwargs)
-
 class ApiListField(fields.Object):
     def decode(self, value):
         if not isinstance(value, dict):
@@ -64,7 +50,7 @@ class User(RemoteObject):
     userpic       = fields.Something()
     uri           = fields.Something()
 
-    def relationship_url(self, rel='followers', by_group=None, **kwargs):
+    def relationship_url(self, rel='followers', by_group=None):
         url = "%susers/%s/relationships/@%s" % (remote.BASE_URL, self.userid, rel)
         if by_group:
             url += "/@by-group/%s" % by_group
