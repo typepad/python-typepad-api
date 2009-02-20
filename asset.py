@@ -56,7 +56,7 @@ class User(RemoteObject):
     uri           = fields.Something()
 
     def relationship_url(self, rel='followers', by_group=None):
-        url = "%susers/%s/relationships/@%s" % (remote.BASE_URL, self.userid, rel)
+        url = "%susers/%s/relationships/@%s" % (remote.BASE_URL, self.id, rel)
         if by_group:
             url += "/@by-group/%s" % by_group
         url += ".json"
