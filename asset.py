@@ -12,7 +12,23 @@ class Link(RemoteObject):
     height   = fields.Something()
     duration = fields.Something()
 
+class ApiListSequencenessMetaclass(remote.RemoteObjectMetaclass):
+    @staticmethod
+    def makeSequenceMethod(methodname):
+        def seqmethod(self, *args, **kwargs):
+            # Proxy these methods to self.entries.
+            return getattr(self.entries, methodname)(*args, **kwargs)
+        seqmethod.__name__ = methodname
+        return seqmethod
+
+    def __new__(cls, name, bases, attrs):
+        for methodname in ('__len__', '__getitem__', '__setitem__', '__delitem__', '__iter__', '__reversed__', '__contains__'):
+            attrs[methodname] = ApiListSequencenessMetaclass.makeSequenceMethod(methodname)
+        return super(ApiListSequencenessMetaclass, cls).__new__(cls, name, bases, attrs)
+
 class ApiList(RemoteObject):
+    __metaclass__ = ApiListSequencenessMetaclass
+
     total_results = fields.Something(api_name='totalResults')
     start_index   = fields.Something(api_name='startIndex')
     links         = fields.List(fields.Object(Link))
