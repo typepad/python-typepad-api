@@ -88,12 +88,12 @@ class PublicationStatus(RemoteObject):
     published = fields.Something()
     spam      = fields.Something()
 
-class ObjectRef(RemoteObject):
+class AssetRef(RemoteObject):
     ref  = fields.Something()
     href = fields.Something()
     type = fields.Something()
 
-class Object(RemoteObject):
+class Asset(RemoteObject):
     # documented fields
     id           = fields.Something()
     title        = fields.Something()
@@ -107,15 +107,15 @@ class Object(RemoteObject):
     object_types = fields.List(fields.Something(), api_name='objectTypes')
     status       = fields.Object(PublicationStatus)
     links        = fields.List(fields.Something())
-    in_reply_to  = fields.Object(ObjectRef, api_name='inReplyTo')
+    in_reply_to  = fields.Object(AssetRef, api_name='inReplyTo')
 
     # astropad extras
     #authors      = fields.List(fields.Object(User))
     author       = fields.Object(User)
 
     # TODO make this clever again -- self._id is None for objects out of Lists
-    #comments = ApiListLink('comments', 'Object')
-    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (remote.BASE_URL, o.assetid), ApiListField('Object'))
+    #comments = ApiListLink('comments', 'Asset')
+    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (remote.BASE_URL, o.assetid), ApiListField('Asset'))
 
     @property
     def assetid(self):
@@ -137,7 +137,7 @@ class Event(RemoteObject):
     verbs  = fields.List(fields.Something())
     # TODO: vary these based on verb content? oh boy
     actor  = fields.Object(User)
-    object = fields.Object(Object)
+    object = fields.Object(Asset)
 
     @property
     def eventid(self):
@@ -145,7 +145,7 @@ class Event(RemoteObject):
         # tag:typepad.com,2003:event-1680
         return self.id.split('-', 1)[1]
 
-class Post(Object):
+class Post(Asset):
     pass
 
 class Group(RemoteObject):
@@ -157,11 +157,11 @@ class Group(RemoteObject):
     links        = fields.List(fields.Something())
     object_type  = fields.List(fields.Something(), api_name='objectType')
 
-    users    = ApiListLink('users',  User)
-    assets   = ApiListLink('assets', Object)
-    events   = ApiListLink('events', Event)
-    comments = ApiListLink('assets', Object)
-    posts    = remote.Link(lambda o: re.sub(r'\.json$', '/assets/@posts.json', o._id), ApiListField(Post))
+    users    = ApiListLink('users',         User)
+    assets   = ApiListLink('assets',        Asset)
+    events   = ApiListLink('events',        Event)
+    comments = ApiListLink('comments',      Asset)
+    posts    = ApiListLink('assets/@posts', Post)
 
     @property
     def groupid(self):
