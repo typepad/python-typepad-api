@@ -13,8 +13,8 @@ class Link(RemoteObject):
     duration = fields.Something()
 
 class ApiList(RemoteObject):
-    total_results = fields.Something(api_name='total-results')
-    start_index   = fields.Something(api_name='start-index')
+    total_results = fields.Something(api_name='totalResults')
+    start_index   = fields.Something(api_name='startIndex')
     links         = fields.List(fields.Object(Link))
     entries       = fields.List(fields.Something())
 
@@ -48,7 +48,7 @@ class User(RemoteObject):
     urls          = fields.List(fields.Something())
     accounts      = fields.List(fields.Something())
     links         = fields.List(fields.Something())
-    object_type   = fields.Something(api_name='object-type')
+    object_type   = fields.Something(api_name='objectType')
 
     # astropad extras
     email         = fields.Something()
@@ -104,10 +104,10 @@ class Object(RemoteObject):
     total        = fields.Something()
     # TODO  categories should be Tags?
     categories   = fields.List(fields.Something())
-    object_types = fields.List(fields.Something(), api_name='object-types')
+    object_types = fields.List(fields.Something(), api_name='objectTypes')
     status       = fields.Object(PublicationStatus)
     links        = fields.List(fields.Something())
-    in_reply_to  = fields.Object(ObjectRef, api_name='in-reply-to')
+    in_reply_to  = fields.Object(ObjectRef, api_name='inReplyTo')
 
     # astropad extras
     #authors      = fields.List(fields.Object(User))
@@ -145,6 +145,9 @@ class Event(RemoteObject):
         # tag:typepad.com,2003:event-1680
         return self.id.split('-', 1)[1]
 
+class Post(Object):
+    pass
+
 class Group(RemoteObject):
     id           = fields.Something()
     display_name = fields.Something(api_name='displayName')
@@ -152,12 +155,13 @@ class Group(RemoteObject):
     avatar       = fields.Something()
     urls         = fields.List(fields.Something())
     links        = fields.List(fields.Something())
-    object_type  = fields.List(fields.Something(), api_name='object-type')
+    object_type  = fields.List(fields.Something(), api_name='objectType')
 
     users    = ApiListLink('users',  User)
     assets   = ApiListLink('assets', Object)
     events   = ApiListLink('events', Event)
     comments = ApiListLink('assets', Object)
+    posts    = remote.Link(lambda o: re.sub(r'\.json$', '/assets/@posts.json', o._id), ApiListField(Post))
 
     @property
     def groupid(self):
