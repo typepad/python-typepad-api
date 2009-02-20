@@ -1,4 +1,3 @@
-import httplib2
 from urlparse import urljoin, urlparse, urlunparse
 from datetime import datetime
 import re
@@ -35,7 +34,7 @@ class ApiListField(fields.Object):
 
 class User(RemoteObject):
     # documented fields
-    id            = fields.Something()
+    atom_id       = fields.Something(api_name='id')
     display_name  = fields.Something(api_name='displayName')
     profile_alias = fields.Something(api_name='profileAlias')
     about_me      = fields.Something(api_name='aboutMe')
@@ -60,10 +59,10 @@ class User(RemoteObject):
     relationships = remote.Link(relationship_url, ApiListField('UserRelationship'))
 
     @property
-    def userid(self):
+    def id(self):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:user-50
-        return self.id.split('-', 1)[1]
+        return self.atom_id.split('-', 1)[1]
 
     @property
     def permalink(self):
