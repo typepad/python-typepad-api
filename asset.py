@@ -111,7 +111,7 @@ class AssetRef(RemoteObject):
 
 class Asset(RemoteObject):
     # documented fields
-    id           = fields.Something()
+    atom_id      = fields.Something(api_name='id')
     title        = fields.Something()
     published    = fields.Datetime()
     updated      = fields.Datetime()
@@ -131,13 +131,13 @@ class Asset(RemoteObject):
 
     # TODO make this clever again -- self._id is None for objects out of Lists
     #comments = ApiListLink('comments', 'Asset')
-    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (remote.BASE_URL, o.assetid), ApiListField('Asset'))
+    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (remote.BASE_URL, o.id), ApiListField('Asset'))
 
     @property
-    def assetid(self):
+    def id(self):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:asset-1794
-        return self.id.split('-', 1)[1]
+        return self.atom_id.split('-', 1)[1]
 
     '''
     @property
@@ -149,23 +149,23 @@ class Asset(RemoteObject):
     '''
 
 class Event(RemoteObject):
-    id     = fields.Something()
-    verbs  = fields.List(fields.Something())
+    atom_id = fields.Something(api_name='id')
+    verbs   = fields.List(fields.Something())
     # TODO: vary these based on verb content? oh boy
-    actor  = fields.Object(User)
-    object = fields.Object(Asset)
+    actor   = fields.Object(User)
+    object  = fields.Object(Asset)
 
     @property
-    def eventid(self):
+    def id(self):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:event-1680
-        return self.id.split('-', 1)[1]
+        return self.atom_id.split('-', 1)[1]
 
 class Post(Asset):
     pass
 
 class Group(RemoteObject):
-    id           = fields.Something()
+    atom_id      = fields.Something(api_name='id')
     display_name = fields.Something(api_name='displayName')
     tagline      = fields.Something()
     avatar       = fields.Something()
@@ -173,12 +173,17 @@ class Group(RemoteObject):
     links        = fields.List(fields.Something())
     object_type  = fields.List(fields.Something(), api_name='objectType')
 
-    users    = ApiListLink('users',         User)
+    memberships = ApiListLink('memberships',   UserRelationship)
     assets   = ApiListLink('assets',        Asset)
     events   = ApiListLink('events',        Event)
     comments = ApiListLink('comments',      Asset)
     posts    = ApiListLink('assets/@post',  Post)
 
     @property
-    def groupid(self):
-        return self.id.split('-', 1)[1]
+    def users(self):
+        members = self.memberships
+        return [m.source for m in members]
+
+    @property
+    def id(self):
+        return self.atom_id.split('-', 1)[1]
