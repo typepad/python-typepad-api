@@ -32,6 +32,12 @@ class ApiListField(fields.Object):
             return super(ApiListField, self).decode(value)
         return ApiList.from_dict(value, entry_class=self.cls)
 
+class ApiListLink(remote.Link):
+    def __init__(self, kind, entry_class):
+        def rewriteJsonEnding(obj):
+            return re.sub(r'\.json$', '/%s.json' % kind, obj._id)
+        super(ApiListLink, self).__init__(rewriteJsonEnding, ApiListField(entry_class))
+
 class User(RemoteObject):
     # documented fields
     atom_id       = fields.Something(api_name='id')
@@ -108,7 +114,7 @@ class Object(RemoteObject):
     author       = fields.Object(User)
 
     # TODO make this clever again -- self._id is None for objects out of Lists
-    #comments = remote.Link(lambda o: re.sub(r'\.json$', '/comments.json', o._id), ApiListField('Object'))
+    #comments = ApiListLink('comments', 'Object')
     comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (remote.BASE_URL, o.assetid), ApiListField('Object'))
 
     @property
@@ -148,10 +154,10 @@ class Group(RemoteObject):
     links        = fields.List(fields.Something())
     object_type  = fields.List(fields.Something(), api_name='object-type')
 
-    users    = remote.Link(lambda o: re.sub(r'\.json$', '/users.json',  o._id), ApiListField(User))
-    assets   = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), ApiListField(Object))
-    events   = remote.Link(lambda o: re.sub(r'\.json$', '/events.json', o._id), ApiListField(Event))
-    comments = remote.Link(lambda o: re.sub(r'\.json$', '/assets.json', o._id), ApiListField(Object))
+    users    = ApiListLink('users',  User)
+    assets   = ApiListLink('assets', Object)
+    events   = ApiListLink('events', Event)
+    comments = ApiListLink('assets', Object)
 
     @property
     def groupid(self):
