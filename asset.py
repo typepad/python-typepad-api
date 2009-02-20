@@ -161,7 +161,7 @@ class Group(RemoteObject):
     assets   = ApiListLink('assets',        Asset)
     events   = ApiListLink('events',        Event)
     comments = ApiListLink('comments',      Asset)
-    posts    = ApiListLink('assets/@posts', Post)
+    posts    = ApiListLink('assets/@post',  Post)
 
     @property
     def groupid(self):
