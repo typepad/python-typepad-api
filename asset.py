@@ -113,11 +113,11 @@ class Asset(RemoteObject):
     # documented fields
     atom_id      = fields.Something(api_name='id')
     title        = fields.Something()
+    author       = fields.Object(User)
     published    = fields.Datetime()
     updated      = fields.Datetime()
     summary      = fields.Something()
     content      = fields.Something()
-    total        = fields.Something()
     # TODO  categories should be Tags?
     categories   = fields.List(fields.Something())
     object_types = fields.List(fields.Something(), api_name='objectTypes')
@@ -126,8 +126,7 @@ class Asset(RemoteObject):
     in_reply_to  = fields.Object(AssetRef, api_name='inReplyTo')
 
     # astropad extras
-    #authors      = fields.List(fields.Object(User))
-    author       = fields.Object(User)
+    comment_count = fields.Something(api_name='total')
 
     # TODO make this clever again -- self._id is None for objects out of Lists
     #comments = ApiListLink('comments', 'Asset')
