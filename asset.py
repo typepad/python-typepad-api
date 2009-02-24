@@ -69,7 +69,6 @@ class User(RemoteObject):
     # astropad extras
     email         = fields.Something()
     userpic       = fields.Something()
-    uri           = fields.Something()
 
     def relationship_url(self, rel='follower', by_group=None):
         url = "%susers/%s/relationships/@%s" % (remote.BASE_URL, self.id, rel)
@@ -85,11 +84,6 @@ class User(RemoteObject):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:user-50
         return self.atom_id.split('-', 1)[1]
-
-    @property
-    def permalink(self):
-        ## TODO link to typepad profile?
-        return self.uri
 
     @classmethod
     def getSelf(cls, **kwargs):
