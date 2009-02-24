@@ -4,11 +4,6 @@ from typepad.asset import *
 import httplib2
 from oauth import oauth
 
-class OAuthConsumer(oauth.OAuthConsumer):
-    # refuse to be used as a username for another auth scheme
-    def __str__(self):
-        return ""
-
 class OAuthAuthentication(httplib2.Authentication):
 
     """An httplib2 Authentication module that provides OAuth authentication.
@@ -18,7 +13,7 @@ class OAuthAuthentication(httplib2.Authentication):
     have the OAuth consumer and access token set as one of its sets of
     credentials. For instance:
 
-    >>> csr = typepad.OAuthConsumer(key='blah', secret='moo')
+    >>> csr = oauth.OAuthConsumer(key='blah', secret='moo')
     >>> token = get_access_token_for(user)
     >>> http.add_credentials(csr, token)
 
