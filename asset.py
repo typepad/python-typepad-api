@@ -172,10 +172,9 @@ class Group(RemoteObject):
     comments = ApiListLink('comments',      Asset)
     posts    = ApiListLink('assets/@post',  Post)
 
-    @property
-    def members(self):
-        members = self.memberships()
-        return [m.source for m in members]
+    def members(self, start_index=1, max_results=50):
+        members = self.memberships(start_index=start_index, max_results=max_results)
+        return [m.source for m in members.entries]
 
     @property
     def id(self):
