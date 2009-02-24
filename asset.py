@@ -78,6 +78,24 @@ class User(RemoteObject):
         return url
 
     relationships = remote.Link(relationship_url, ApiListField('UserRelationship'))
+    
+    def event_url(self, by_group=None):
+        url = "%susers/%s/events" % (remote.BASE_URL, self.id)
+        if by_group:
+            url += "/@by-group/%s" % by_group
+        url += ".json"
+        return url
+    
+    events = remote.Link(event_url, ApiListField('Event'))
+
+    def comment_url(self, filter=None):
+        url = "%susers/%s/comments-sent" % (remote.BASE_URL, self.id)
+        if filter:
+            url += "/@filter/%s" % filter
+        url += ".json"
+        return url
+    
+    comments = remote.Link(comment_url, ApiListField('Asset'))
 
     @property
     def id(self):
