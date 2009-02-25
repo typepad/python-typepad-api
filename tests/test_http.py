@@ -29,7 +29,7 @@ class TestAstropad(unittest.TestCase):
         self.assert_(issubclass(httplib2.AUTH_SCHEME_CLASSES['oauth'], typepad.OAuthAuthentication))
 
     def testWholeOAuthShebang(self):
-        key, secret = '7', 'asfdasf'
+        key, secret = 'key', 'secret'
 
         # get a request token
         h = httplib2.Http()
@@ -62,7 +62,7 @@ class TestAstropad(unittest.TestCase):
         # next url has to not be absolute or astropad will replace it
         next_url = urlunsplit((None, None) + urlsplit(req.to_url())[2:])
         loginform = {
-            'email':    'cosby@arebe.com',
+            'email':    'ljent@dri.com',
             'password': 'password',
             'next':     next_url,
         }
