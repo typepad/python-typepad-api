@@ -18,19 +18,19 @@ class TestRemoteObjects(unittest.TestCase):
         return tests.MockedHttp(*args, **kwargs)
 
     def testUser(self):
-        content = """{"displayName": "Shasta Patino", "email": "spatino@brilacsipon.info"}"""
+        content = """{"displayName": "Louis Jent", "email": "ljent@dri.com"}"""
         headers = { 'accept': 'application/json' }
         with self.mockHttp('http://127.0.0.1:8000/users/1.json', content, headers=headers) as h:
             user = typepad.User.get('http://127.0.0.1:8000/users/1.json', http=h)
-        self.assertEquals(user.display_name, 'Shasta Patino')
-        self.assertEquals(user.email, 'spatino@brilacsipon.info')
+        self.assertEquals(user.display_name, 'Louis Jent')
+        self.assertEquals(user.email, 'ljent@dri.com')
 
     def testGroup(self):
-        content = """{"displayName": "Mattis Ornare Velit"}"""
+        content = """{"displayName": "Lacus Habitasse Cras"}"""
         headers = { 'accept': 'application/json' }
         with self.mockHttp('http://127.0.0.1:8000/groups/1.json', content, headers=headers) as h:
             group = typepad.Group.get('http://127.0.0.1:8000/groups/1.json', http=h)
-        self.assertEquals(group.display_name, 'Mattis Ornare Velit')
+        self.assertEquals(group.display_name, 'Lacus Habitasse Cras')
 
     def testGroupMembers(self):
         g = typepad.Group()
@@ -39,13 +39,12 @@ class TestRemoteObjects(unittest.TestCase):
         adminstatus  = dict(types=["tag:api.typepad.com,2009:%s" % x for x in ('Admin', 'Member')])
         memberstatus = dict(types=["tag:api.typepad.com,2009:Member"])
         users = [
-            {"displayName": "Shasta Patino", "email": "spatino@brilacsipon.info"},
-            {"displayName": "Chastity Osby", "email": "cosby@arebe.com"},
-            {"displayName": "Cristobal Frandsen", "email": "cfrandsen@cenge.com"},
-            {"displayName": "Stacy Kemmerer", "email": "skemmerer@akekim.biz"},
-            {"displayName": "Selena Larry", "email": "slarry@insu.biz"},
-            {"displayName": "Don Haller", "email": "dhaller@ky.edu"},
-            {"displayName": "Kristy Woodburn", "email": "kwoodburn@pon.org"},
+            {"displayName": "Mike", "email": "spatino@brilacsipon.info"},
+            {"displayName": "Dillon Bugarin", "email": "cosby@arebe.com"},
+            {"displayName": "Kirby Buch", "email": "cfrandsen@cenge.com"},
+            {"displayName": "Valarie Griffiths", "email": "skemmerer@akekim.biz"},
+            {"displayName": "Georgina Baumann", "email": "slarry@insu.biz"},
+            {"displayName": "Bethany Vo", "email": "dhaller@ky.edu"},
         ]
         group = {
             "mumble": "butter",
@@ -61,17 +60,17 @@ class TestRemoteObjects(unittest.TestCase):
         with self.mockHttp('http://127.0.0.1:8000/groups/1/memberships.json', content, headers=headers) as h:
             m = g.memberships(http=h)
         self.assert_(isinstance(m, typepad.ApiList))
-        self.assertEquals(len(m.entries), 7)
+        self.assertEquals(len(m.entries), 6)
         self.assertEquals([u.source.display_name for u in m.entries],
-            ['Shasta Patino', 'Chastity Osby', 'Cristobal Frandsen', 'Stacy Kemmerer', 'Selena Larry', 'Don Haller', 'Kristy Woodburn'])
+            ['Mike', 'Dillon Bugarin', 'Kirby Buch', 'Valarie Griffiths', 'Georgina Baumann', 'Bethany Vo'])
 
         # Test sequence behavior of the ApiList.
-        self.assertEquals(m.entries.__len__(), 7)
-        self.assertEquals(m.__len__(), 7)
-        self.assertEquals(len(m), 7)
+        self.assertEquals(m.entries.__len__(), 6)
+        self.assertEquals(m.__len__(), 6)
+        self.assertEquals(len(m), 6)
         self.assert_(isinstance(m[0], typepad.RemoteObject))
-        self.assertEquals(m[0].source.display_name, 'Shasta Patino')
-        self.assertEquals([u.source.display_name for u in m[1:3]], ['Chastity Osby', 'Cristobal Frandsen'])
+        self.assertEquals(m[0].source.display_name, 'Mike')
+        self.assertEquals([u.source.display_name for u in m[1:3]], ['Dillon Bugarin', 'Kirby Buch'])
 
         # Test limit/offset parameters.
         with self.mockHttp('http://127.0.0.1:8000/groups/1/memberships.json?start-index=0', content, headers=headers) as h:
