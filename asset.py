@@ -149,6 +149,13 @@ class Asset(RemoteObject):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:asset-1794
         return self.atom_id.split('-', 1)[1]
+    
+    def __unicode__(self):
+        if self.title:
+            return self.title
+        if self.summary:
+            return self.summary
+        return self.content
 
     '''
     @property
@@ -171,6 +178,9 @@ class Event(RemoteObject):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:event-1680
         return self.atom_id.split('-', 1)[1]
+    
+    def __unicode__(self):
+        return unicode(self.object)
 
 class Post(Asset):
     pass
