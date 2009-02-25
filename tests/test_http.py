@@ -1,0 +1,138 @@
+import httplib2
+import logging
+import unittest
+from urllib import urlencode, unquote
+from urlparse import urlsplit, urlunsplit
+
+from remoteobjects import tests
+from typepad.tests import test_mockhttp
+
+import typepad
+from oauth import oauth
+
+class WithableHttp(object):
+    def __enter__(self):
+        # gimme reality
+        return httplib2.Http()
+
+    def __exit__(self, *exc_info):
+        pass
+
+class TestRemoteObjects(test_mockhttp.TestRemoteObjects):
+    def mockHttp(self, *args, **kwargs):
+        return WithableHttp()
+
+class TestAstropad(unittest.TestCase):
+    def testOAuthSetup(self):
+        self.assertEquals(httplib2.AUTH_SCHEME_ORDER[0], 'oauth')
+        self.assert_('oauth' in httplib2.AUTH_SCHEME_CLASSES)
+        self.assert_(issubclass(httplib2.AUTH_SCHEME_CLASSES['oauth'], typepad.OAuthAuthentication))
+
+    def testWholeOAuthShebang(self):
+        key, secret = '7', 'asfdasf'
+
+        # get a request token
+        h = httplib2.Http()
+        csr = oauth.OAuthConsumer(key, secret)
+        req = oauth.OAuthRequest.from_consumer_and_token(csr,
+            http_method='GET', http_url='http://127.0.0.1:8000/oauth/request_token/')
+        req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), csr, None)
+        resp, content = h.request(req.to_url(), method=req.get_normalized_http_method())
+        self.assertEquals(resp.status, 200)
+        token = oauth.OAuthToken.from_string(content)
+        logging.debug("Got request token")
+
+        # authorize the request token against somebody
+        h = httplib2.Http()
+        h.add_credentials('cosby@arebe.com', 'password')  # regular credentials
+        h.follow_redirects = False
+        req = oauth.OAuthRequest.from_token_and_callback(token,
+            callback='http://finefi.ne/', http_method='POST',
+            http_url='http://127.0.0.1:8000/oauth/authorize/')
+        # TODO: why does the oauth module double encode the callback url?
+        req.set_parameter('oauth_callback', unquote(req.get_parameter('oauth_callback')))
+        req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), csr, token)
+        resp, content = h.request(req.to_url(), method='GET')     # click through
+        self.assertEquals(resp.status, 302)
+        self.assert_(resp['location'].startswith('http://127.0.0.1:8000/oauth/login'))
+
+        resp, content = h.request(resp['location'])
+        cookie = resp['set-cookie']
+
+        # next url has to not be absolute or astropad will replace it
+        next_url = urlunsplit((None, None) + urlsplit(req.to_url())[2:])
+        loginform = {
+            'email':    'cosby@arebe.com',
+            'password': 'password',
+            'next':     next_url,
+        }
+        resp, content = h.request(resp['content-location'], method='POST',
+            body=urlencode(loginform), headers={'cookie': cookie})
+        self.assertEquals(resp.status, 302)
+        self.assertEquals(resp['location'], req.to_url())
+        cookie = resp['set-cookie']
+
+        resp, content = h.request(resp['location'], method='GET',  # get form
+            headers={'cookie': cookie})
+        self.assertEquals(resp.status, 200)
+        self.assert_('text/html' in resp['content-type'])
+        self.assert_('<form' in content)
+        cookie = resp['set-cookie']
+
+        req.set_parameter('authorize', 'Confirm')
+        resp, content = h.request(req.get_normalized_http_url(),  # submit form
+            headers={'content-type': 'application/x-www-form-urlencoded',
+                     'cookie':       cookie},
+            method=req.get_normalized_http_method(), body=req.to_postdata())
+        self.assertEquals(resp.status, 302)
+        self.assert_(resp['location'].startswith('http://finefi.ne/'))
+        logging.debug("Authorized request token!")
+
+        # get access token
+        h = httplib2.Http()
+        req = oauth.OAuthRequest.from_consumer_and_token(csr, token=token,
+            http_url='http://127.0.0.1:8000/oauth/access_token/')
+        req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), csr, token)
+        resp, content = h.request(req.to_url(), method=req.get_normalized_http_method())
+        self.assertEquals(resp.status, 200)
+        access_token = oauth.OAuthToken.from_string(content)
+        logging.debug("Got access token!!")
+
+        # finally, test that we can actually auth with the access token
+        h = httplib2.Http()  # all new client
+        h.follow_redirects = False
+        h.add_credentials(csr, access_token)
+
+        resp, content = h.request('http://127.0.0.1:8000/users/@self.json')
+        self.assertEquals(resp.status, 302)
+        self.assert_(resp['location'].startswith('http://127.0.0.1:8000/users/'))
+
+    def testConditionalHttp(self):
+        class Cache(object):
+            def get(self, key):
+                return self.__dict__.get(key, None)
+            def set(self, key, value):
+                self.__dict__[key] = value
+            def delete(self, key, value):
+                if key in self.__dict__:
+                    del self.__dict__[key]
+
+        c = Cache()
+        h = httplib2.Http(cache=c)
+
+        resp, cont = h.request('http://127.0.0.1:8000/groups/1.json')
+        self.assertEquals(resp.status, 200)
+        self.assert_('etag' in resp)
+        self.assert_('last-modified' in resp)
+        self.assertEquals(resp['content-type'], 'application/json')
+        self.failIf(resp.fromcache)
+        self.assert_(c.get('http://127.0.0.1:8000/groups/1.json') is not None)
+
+        resp, cont = h.request('http://127.0.0.1:8000/groups/1.json')
+        self.assertEquals(resp.status, 200)  # cached OK!
+        self.assertEquals(resp['content-type'], 'application/json')
+        self.assert_(resp.fromcache)
+
+if __name__ == '__main__':
+    tests.log()
+    unittest.main()
