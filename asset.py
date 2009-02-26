@@ -182,8 +182,17 @@ class Event(RemoteObject):
     def __unicode__(self):
         return unicode(self.object)
 
+class Comment(Asset):
+    def __init__(self):
+        self.object_types = ["tag:api.typepad.com,2009:Comment"]
+
 class Post(Asset):
-    pass
+    def __init__(self):
+        self.object_types = ["tag:api.typepad.com,2009:Post"]
+
+class LinkAsset(Asset):
+    def __init__(self):
+        self.object_types = ["tag:api.typepad.com,2009:Link"]
 
 class Group(RemoteObject):
     atom_id      = fields.Something(api_name='id')
@@ -194,11 +203,12 @@ class Group(RemoteObject):
     links        = fields.List(fields.Something())
     object_type  = fields.List(fields.Something(), api_name='objectType')
 
-    memberships = ApiListLink('memberships',   UserRelationship)
-    assets   = ApiListLink('assets',        Asset)
-    events   = ApiListLink('events',        Event)
-    comments = ApiListLink('comments',      Asset)
-    posts    = ApiListLink('assets/@post',  Post)
+    memberships  = ApiListLink('memberships',   UserRelationship)
+    assets       = ApiListLink('assets',        Asset)
+    events       = ApiListLink('events',        Event)
+    comments     = ApiListLink('comments',      Asset)
+    posts        = ApiListLink('assets/@post',  Post)
+    linkassets   = ApiListLink('assets/@link',  LinkAsset)
 
     def members(self, start_index=1, max_results=50):
         members = self.memberships(start_index=start_index, max_results=max_results)
