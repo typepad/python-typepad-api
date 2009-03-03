@@ -78,31 +78,23 @@ class TestRemoteObjects(unittest.TestCase):
         with self.mockHttp('http://127.0.0.1:8000/groups/1/memberships.json?start-index=0', content, headers=headers) as h:
             m = g.memberships(start_index=0, http=h)
 
-    @tests.todo
-    def testEntry(self):
-        content = """{"id": 1, "blog_id": 1, "title": "Hi post", "content": "blah blah blah"}"""
+    def testPost(self):
+        # Get post #1 directly from group #1?
+        g = typepad.Group()
+        g._id = 'http://127.0.0.1:8000/groups/1.json'
+
         headers = { 'accept': 'application/json' }
-        with self.mockHttp('http://127.0.0.1:8080/blogs/1/entries/1.json', content, headers) as h:
-            entry = typepad.Entry.get(id=1, blog_id=1, http=h)
-        self.assertEquals(entry.title,   u'Hi post')
-        self.assertEquals(entry.content, u'blah blah blah')
-        self.assertEquals(entry.etag, '7', 'entry got etag from http headers')
+        content = """{"title": "O hai", "content": "Yay this is my post",
+            "objectTypes": ["tag:api.typepad.com,2009:Post"]}"""
+        request = dict(url='http://127.0.0.1:8000/groups/1/posts/1.json', headers=headers)
+        with self.mockHttp(request, content) as h:
+            e = typepad.Post.get('http://127.0.0.1:8000/groups/1/posts/1.json', http=h)
+        self.assertEquals(e.title, 'O hai')
+        self.assertEquals(e.content, 'Yay this is my post')
 
-        body = """{"blog_id": 1, "title": "Hi post", "content": "blah blah blah"}"""
-        content = """{"id": 2, "blog_id": 1, "title": "Hi post", "content": "blah blah blah" }"""
-        entry = typepad.Entry(blog_id=1, title="Hi post", content="blah blah blah")
-        with self.mockHttp('http://127.0.0.1:8080/blogs/1.json', content, method='POST', body=body) as h:
-            entry.save(http=h)
-        self.assertEquals(entry.id, 2, 'entry was updated with new id')
-        self.assertEquals(entry.etag, '7', 'entry got etag from http headers')
+        # Modify and save the existing post.
 
-        entry.title = "Second post"
-        body = """{"blog_id": 1, "title": "Second post", "id": 2, "content": "blah blah blah"}"""
-        content = """{"id": 2, "blog_id": 1, "title": "Second post", "content": "blah blah blah" }"""
-        with self.mockHttp('http://127.0.0.1:8080/blogs/1/entries/2.json', content, method='PUT', headers={'if-match': '7'}, body=body) as h:
-            entry.save(http=h)
-        self.assertEquals(entry.id, 2, 'entry kept its id')
-        self.assertEquals(entry.title, 'Second post', 'entry kept its new title')
+        # Make a new post in group #1.
 
 if __name__ == '__main__':
     tests.log()
