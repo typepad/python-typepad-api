@@ -62,12 +62,14 @@ class TestAstropad(unittest.TestCase):
         # next url has to not be absolute or astropad will replace it
         next_url = urlunsplit((None, None) + urlsplit(req.to_url())[2:])
         loginform = {
-            'email':    'ljent@dri.com',
+            'email':    'dconti@beli.com',
             'password': 'password',
             'next':     next_url,
         }
         resp, content = h.request(resp['content-location'], method='POST',
             body=urlencode(loginform), headers={'cookie': cookie})
+        # Should redirect to oauth authorization form.
+        # A 200 here is probably an invalid login.
         self.assertEquals(resp.status, 302)
         self.assertEquals(resp['location'], req.to_url())
         cookie = resp['set-cookie']
