@@ -93,6 +93,19 @@ class TestRemoteObjects(unittest.TestCase):
         self.assertEquals(e.content, 'Yay this is my post')
 
         # Modify and save the existing post.
+        e.title = 'Omg hai'
+
+        headers = {
+            'accept': 'application/json',
+            'if-match': '7',  # default etag
+        }
+        content = """{"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"}"""
+        request = dict(url='http://127.0.0.1:8000/groups/1/posts/1.json', method='PUT', headers=headers, body=content)
+        response = dict(content=content, etag='xyz')
+        with self.mockHttp(request, response) as h:
+            e.put(http=h)
+        self.assertEquals(e.title, 'Omg hai')
+        self.assertEquals(e._etag, 'xyz')
 
         # Make a new post in group #1.
 
