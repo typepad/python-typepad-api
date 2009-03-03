@@ -15,6 +15,8 @@ import typepad
 class TestRemoteObjects(unittest.TestCase):
 
     def mockHttp(self, *args, **kwargs):
+        if 'credentials' in kwargs:
+            del kwargs['credentials']
         return tests.MockedHttp(*args, **kwargs)
 
     def testUser(self):
@@ -84,28 +86,33 @@ class TestRemoteObjects(unittest.TestCase):
         g._id = 'http://127.0.0.1:8000/groups/1.json'
 
         headers = { 'accept': 'application/json' }
-        content = """{"title": "O hai", "content": "Yay this is my post",
-            "objectTypes": ["tag:api.typepad.com,2009:Post"]}"""
-        request = dict(url='http://127.0.0.1:8000/groups/1/posts/1.json', headers=headers)
+        content = """{
+            "title": "Fames Vivamus Placerat at Condimentum at Primis Consectetuer Nonummy Inceptos Porta dis",
+            "content": "Posuere felis vestibulum nibh justo vitae elementum.",
+            "objectTypes": ["tag:api.typepad.com,2009:Post"]
+        }"""
+        request = dict(url='http://127.0.0.1:8000/assets/1.json', headers=headers)
         with self.mockHttp(request, content) as h:
-            e = typepad.Post.get('http://127.0.0.1:8000/groups/1/posts/1.json', http=h)
-        self.assertEquals(e.title, 'O hai')
-        self.assertEquals(e.content, 'Yay this is my post')
+            e = typepad.Post.get('http://127.0.0.1:8000/assets/1.json', http=h)
+        self.assertEquals(e.title, 'Fames Vivamus Placerat at Condimentum at Primis Consectetuer Nonummy Inceptos Porta dis')
+        self.assertEquals(e.content, 'Posuere felis vestibulum nibh justo vitae elementum.')
+        old_etag = e._etag
 
-        # Modify and save the existing post.
+        # Modify the existing post.
         e.title = 'Omg hai'
 
+        # Save the modified post.
         headers = {
             'accept': 'application/json',
-            'if-match': '7',  # default etag
+            'if-match': old_etag,  # default etag
         }
         content = """{"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"}"""
-        request = dict(url='http://127.0.0.1:8000/groups/1/posts/1.json', method='PUT', headers=headers, body=content)
+        request = dict(url='http://127.0.0.1:8000/assets/1.json', method='PUT', headers=headers, body=content)
         response = dict(content=content, etag='xyz')
-        with self.mockHttp(request, response) as h:
+        with self.mockHttp(request, response, credentials=('dconti@beli.com', 'password')) as h:
             e.put(http=h)
         self.assertEquals(e.title, 'Omg hai')
-        self.assertEquals(e._etag, 'xyz')
+        self.assertNotEqual(e._etag, old_etag)
 
         # Make a new post in group #1.
 

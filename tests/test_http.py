@@ -10,17 +10,101 @@ from typepad.tests import test_mockhttp
 import typepad
 from oauth import oauth
 
+def gimmeOAuthAccessToken(self, email, password):
+    key, secret = 'key', 'secret'
+
+    # get a request token
+    h = httplib2.Http()
+    csr = oauth.OAuthConsumer(key, secret)
+    req = oauth.OAuthRequest.from_consumer_and_token(csr,
+        http_method='GET', http_url='http://127.0.0.1:8000/oauth/request_token/')
+    req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), csr, None)
+    resp, content = h.request(req.to_url(), method=req.get_normalized_http_method())
+    self.assertEquals(resp.status, 200)
+    token = oauth.OAuthToken.from_string(content)
+    logging.debug("Got request token")
+
+    # authorize the request token against somebody
+    h = httplib2.Http()
+    h.add_credentials('cosby@arebe.com', 'password')  # regular credentials
+    h.follow_redirects = False
+    req = oauth.OAuthRequest.from_token_and_callback(token,
+        callback='http://finefi.ne/', http_method='POST',
+        http_url='http://127.0.0.1:8000/oauth/authorize/')
+    # TODO: why does the oauth module double encode the callback url?
+    req.set_parameter('oauth_callback', unquote(req.get_parameter('oauth_callback')))
+    req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), csr, token)
+    resp, content = h.request(req.to_url(), method='GET')     # click through
+    self.assertEquals(resp.status, 302)
+    self.assert_(resp['location'].startswith('http://127.0.0.1:8000/oauth/login'))
+
+    resp, content = h.request(resp['location'])
+    cookie = resp['set-cookie']
+
+    # next url has to not be absolute or astropad will replace it
+    next_url = urlunsplit((None, None) + urlsplit(req.to_url())[2:])
+    loginform = {
+        'email':    email,
+        'password': password,
+        'next':     next_url,
+    }
+    resp, content = h.request(resp['content-location'], method='POST',
+        body=urlencode(loginform), headers={'cookie': cookie})
+    # Should redirect to oauth authorization form.
+    # A 200 here is probably an invalid login.
+    self.assertEquals(resp.status, 302)
+    self.assertEquals(resp['location'], req.to_url())
+    cookie = resp['set-cookie']
+
+    resp, content = h.request(resp['location'], method='GET',  # get form
+        headers={'cookie': cookie})
+    self.assertEquals(resp.status, 200)
+    self.assert_('text/html' in resp['content-type'])
+    self.assert_('<form' in content)
+    cookie = resp['set-cookie']
+
+    req.set_parameter('authorize', 'Confirm')
+    resp, content = h.request(req.get_normalized_http_url(),  # submit form
+        headers={'content-type': 'application/x-www-form-urlencoded',
+                 'cookie':       cookie},
+        method=req.get_normalized_http_method(), body=req.to_postdata())
+    self.assertEquals(resp.status, 302)
+    self.assert_(resp['location'].startswith('http://finefi.ne/'))
+    logging.debug("Authorized request token!")
+
+    # get access token
+    h = httplib2.Http()
+    req = oauth.OAuthRequest.from_consumer_and_token(csr, token=token,
+        http_url='http://127.0.0.1:8000/oauth/access_token/')
+    req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), csr, token)
+    resp, content = h.request(req.to_url(), method=req.get_normalized_http_method())
+    self.assertEquals(resp.status, 200)
+    access_token = oauth.OAuthToken.from_string(content)
+    logging.debug("Got access token!!")
+
+    return csr, access_token
+
 class WithableHttp(object):
+    def __init__(self):
+        self.http = httplib2.Http()
+
     def __enter__(self):
         # gimme reality
-        return httplib2.Http()
+        return self.http
 
     def __exit__(self, *exc_info):
         pass
 
 class TestRemoteObjects(test_mockhttp.TestRemoteObjects):
     def mockHttp(self, *args, **kwargs):
-        return WithableHttp()
+        wh = WithableHttp()
+
+        if 'credentials' in kwargs:
+            csr, access_token = gimmeOAuthAccessToken(self, *kwargs['credentials'])
+            del kwargs['credentials']
+            wh.http.add_credentials(csr, access_token)
+
+        return wh
 
 class TestAstropad(unittest.TestCase):
     def testOAuthSetup(self):
@@ -29,76 +113,7 @@ class TestAstropad(unittest.TestCase):
         self.assert_(issubclass(httplib2.AUTH_SCHEME_CLASSES['oauth'], typepad.OAuthAuthentication))
 
     def testWholeOAuthShebang(self):
-        key, secret = 'key', 'secret'
-
-        # get a request token
-        h = httplib2.Http()
-        csr = oauth.OAuthConsumer(key, secret)
-        req = oauth.OAuthRequest.from_consumer_and_token(csr,
-            http_method='GET', http_url='http://127.0.0.1:8000/oauth/request_token/')
-        req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), csr, None)
-        resp, content = h.request(req.to_url(), method=req.get_normalized_http_method())
-        self.assertEquals(resp.status, 200)
-        token = oauth.OAuthToken.from_string(content)
-        logging.debug("Got request token")
-
-        # authorize the request token against somebody
-        h = httplib2.Http()
-        h.add_credentials('cosby@arebe.com', 'password')  # regular credentials
-        h.follow_redirects = False
-        req = oauth.OAuthRequest.from_token_and_callback(token,
-            callback='http://finefi.ne/', http_method='POST',
-            http_url='http://127.0.0.1:8000/oauth/authorize/')
-        # TODO: why does the oauth module double encode the callback url?
-        req.set_parameter('oauth_callback', unquote(req.get_parameter('oauth_callback')))
-        req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), csr, token)
-        resp, content = h.request(req.to_url(), method='GET')     # click through
-        self.assertEquals(resp.status, 302)
-        self.assert_(resp['location'].startswith('http://127.0.0.1:8000/oauth/login'))
-
-        resp, content = h.request(resp['location'])
-        cookie = resp['set-cookie']
-
-        # next url has to not be absolute or astropad will replace it
-        next_url = urlunsplit((None, None) + urlsplit(req.to_url())[2:])
-        loginform = {
-            'email':    'dconti@beli.com',
-            'password': 'password',
-            'next':     next_url,
-        }
-        resp, content = h.request(resp['content-location'], method='POST',
-            body=urlencode(loginform), headers={'cookie': cookie})
-        # Should redirect to oauth authorization form.
-        # A 200 here is probably an invalid login.
-        self.assertEquals(resp.status, 302)
-        self.assertEquals(resp['location'], req.to_url())
-        cookie = resp['set-cookie']
-
-        resp, content = h.request(resp['location'], method='GET',  # get form
-            headers={'cookie': cookie})
-        self.assertEquals(resp.status, 200)
-        self.assert_('text/html' in resp['content-type'])
-        self.assert_('<form' in content)
-        cookie = resp['set-cookie']
-
-        req.set_parameter('authorize', 'Confirm')
-        resp, content = h.request(req.get_normalized_http_url(),  # submit form
-            headers={'content-type': 'application/x-www-form-urlencoded',
-                     'cookie':       cookie},
-            method=req.get_normalized_http_method(), body=req.to_postdata())
-        self.assertEquals(resp.status, 302)
-        self.assert_(resp['location'].startswith('http://finefi.ne/'))
-        logging.debug("Authorized request token!")
-
-        # get access token
-        h = httplib2.Http()
-        req = oauth.OAuthRequest.from_consumer_and_token(csr, token=token,
-            http_url='http://127.0.0.1:8000/oauth/access_token/')
-        req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), csr, token)
-        resp, content = h.request(req.to_url(), method=req.get_normalized_http_method())
-        self.assertEquals(resp.status, 200)
-        access_token = oauth.OAuthToken.from_string(content)
-        logging.debug("Got access token!!")
+        csr, access_token = gimmeOAuthAccessToken(self, 'dconti@beli.com', 'password')
 
         # finally, test that we can actually auth with the access token
         h = httplib2.Http()  # all new client
