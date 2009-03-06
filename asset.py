@@ -70,6 +70,9 @@ class User(RemoteObject):
     email         = fields.Something()
     userpic       = fields.Something()
 
+    def __cmp__(self, user):
+        return self.id == user.id
+
     def relationship_url(self, rel='follower', by_group=None):
         url = "%susers/%s/relationships/@%s" % (remote.BASE_URL, self.id, rel)
         if by_group:
