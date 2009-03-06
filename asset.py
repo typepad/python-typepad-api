@@ -214,6 +214,15 @@ class Group(RemoteObject):
         members = self.memberships(start_index=start_index, max_results=max_results)
         return [m.source for m in members.entries]
 
+    def group_statuses_url(self, status='admin'):
+        return "%sgroups/%s/memberships/@admin.json" % (remote.BASE_URL, self.id)
+    group_statuses = remote.Link(group_statuses_url, ApiListField('GroupStatus'))
+
     @property
     def id(self):
         return self.atom_id.split('-', 1)[1]
+
+class GroupStatus(RemoteObject):
+    #status = fields.Something()
+    source = fields.Object(User)
+    target = fields.Object(Group)
