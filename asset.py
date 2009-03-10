@@ -97,6 +97,15 @@ class User(RemoteObject):
     
     comments = remote.Link(comment_url, ApiListField('Asset'))
 
+    def notification_url(self, by_group=None):
+        url = "%susers/%s/notifications" % (remote.BASE_URL, self.id)
+        if by_group:
+            url += "/@by-group/%s" % by_group
+        url += ".json"
+        return url
+    
+    notifications = remote.Link(notification_url, ApiListField('Event'))
+
     @property
     def id(self):
         # yes, this is stupid, but damn it, I need this for urls
