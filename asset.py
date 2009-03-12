@@ -159,6 +159,15 @@ class Asset(RemoteObject):
         # tag:typepad.com,2003:asset-1794
         return self.atom_id.split('-', 1)[1]
     
+    @property
+    def asset_ref(self):
+        # This is also stupid. Why not have in_reply_to just be another asset??
+        ref = AssetRef()
+        ref.type = 'application/json'
+        ref.href = '/assets/%s.json' % self.id
+        ref.ref = self.atom_id
+        return ref
+
     def __unicode__(self):
         if self.title:
             return self.title
