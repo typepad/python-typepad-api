@@ -151,13 +151,7 @@ class BatchRequest(object):
             self.handle_response(http, response, content)
         else:
             # They're all PromiseObjects, so let them figure it out.
-            for request in self.requests:
-                try:
-                    obj = request.object
-                except NoRequestObject:
-                    pass
-                else:
-                    obj.deliver()
+            pass
 
     def construct(self, http):
         msg = MultipartHTTPMessage()
