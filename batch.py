@@ -14,7 +14,7 @@ import typepad
 
 __all__ = ('BatchClient', 'client', 'BATCH_REQUESTS')
 
-BATCH_REQUESTS = True
+BATCH_REQUESTS = False
 
 # FIXME: shouldn't be necessary... endpoint URL should
 # be able to handle batch requests.
