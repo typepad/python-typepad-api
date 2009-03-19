@@ -1,10 +1,32 @@
 from urlparse import urljoin, urlparse, urlunparse
 from datetime import datetime
 import re
+import cgi
+import urllib
 
-from typepad import fields, remote, RemoteObject
+from remoteobjects import fields, PromiseObject, remote, View
+from remoteobjects.dataobject import DataObjectMetaclass, find_by_name
+from remoteobjects.promise import PromiseError
+import typepad
+from typepad.batch import BatchError
 
-class Link(RemoteObject):
+class TypePadObject(PromiseObject):
+    # TODO configurable?
+    BASE_URL = 'http://127.0.0.1:8000/'
+
+    @classmethod
+    def get(cls, url, *args, **kwargs):
+        if not urlparse(url)[1]:  # network location
+            url = urljoin(cls.BASE_URL, url)
+
+        ret = super(TypePadObject, cls).get(url, *args, **kwargs)
+        try:
+            typepad.client.add(ret)
+        except BatchError:
+            pass
+        return ret
+
+class Link(TypePadObject):
     rel      = fields.Something()
     href     = fields.Something()
     type     = fields.Something()
@@ -12,7 +34,7 @@ class Link(RemoteObject):
     height   = fields.Something()
     duration = fields.Something()
 
-class ApiListSequencenessMetaclass(remote.RemoteObjectMetaclass):
+class SequenceProxyMetaclass(DataObjectMetaclass):
     @staticmethod
     def makeSequenceMethod(methodname):
         def seqmethod(self, *args, **kwargs):
@@ -23,38 +45,121 @@ class ApiListSequencenessMetaclass(remote.RemoteObjectMetaclass):
 
     def __new__(cls, name, bases, attrs):
         for methodname in ('__len__', '__getitem__', '__setitem__', '__delitem__', '__iter__', '__reversed__', '__contains__'):
-            attrs[methodname] = ApiListSequencenessMetaclass.makeSequenceMethod(methodname)
-        return super(ApiListSequencenessMetaclass, cls).__new__(cls, name, bases, attrs)
+            if methodname not in attrs:
+                attrs[methodname] = cls.makeSequenceMethod(methodname)
+        return super(SequenceProxyMetaclass, cls).__new__(cls, name, bases, attrs)
 
-class ApiList(RemoteObject):
-    __metaclass__ = ApiListSequencenessMetaclass
+class TypePadView(View, TypePadObject):
+    __metaclass__ = SequenceProxyMetaclass
 
     total_results = fields.Something(api_name='totalResults')
     start_index   = fields.Something(api_name='startIndex')
     links         = fields.List(fields.Object(Link))
     entries       = fields.List(fields.Something())
 
-    @classmethod
-    def from_dict(cls, value, entry_class):
-        self = super(ApiList, cls).from_dict(value)
+    def __init__(self, cls=None, api_name=None):
+        self.cls = cls
+        self.api_name = api_name
+
+    def _get_cls(self):
+        cls = self.__dict__['cls']
+        if not callable(cls):
+            clsname = '.'.join((self.of_cls.__module__, cls))
+            cls = find_by_name(clsname)
+        return cls
+
+    def _set_cls(self, cls):
+        self.__dict__['cls'] = cls
+
+    cls = property(_get_cls, _set_cls)
+
+    def __get__(self, instance, owner):
+        if instance._id is None:
+            raise AttributeError('Cannot find URL of %s relative to URL-less %s' % (type(self).__name__, owner.__name__))
+
+        assert instance._id.endswith('.json')
+        newurl = instance._id[:-5]
+        newurl += '/' + self.api_name
+        newurl += '.json'
+        ret = type(self).get(newurl)
+        ret.cls = self.cls
+        return ret
+
+    filterorder = ['following', 'follower', 'friend', 'nonreciprocal',
+        'published', 'unpublished', 'spam', 'admin', 'member',
+        'by-group', 'by-user']
+
+    def filter(self, **kwargs):
+        # Split the view's URL into URL parts, filters, and queryargs.
+        parts = list(urlparse(self._id))
+        queryargs = cgi.parse_qs(parts[4], keep_blank_values=True)
+        queryargs = dict([(k, v[0]) for k, v in queryargs.iteritems()])
+
+        oldpath = parts[2]
+        assert oldpath.endswith('.json')
+        path = oldpath[:-5].split('/')
+
+        filters = dict()
+        newpath = list()
+        pathparts = iter(path)
+        for x in pathparts:
+            if x.startswith('@'):
+                x = x[1:]
+                if x in ('by-group', 'by-user'):
+                    filters[x] = pathparts.next()
+                else:
+                    filters[x] = True
+            else:
+                newpath.append(x)
+
+        # Add kwargs into the filters and queryargs as appropriate.
+        for k, v in kwargs.iteritems():
+            # Convert by_group to by-group.
+            k = k.replace('_', '-')
+            # Convert by_group=7 to by_group='7'.
+            v = str(v)
+
+            if k in self.filterorder:
+                filters[k] = v
+            else:
+                queryargs[k] = v
+
+        # Put the filters back on the URL path in API order.
+        keys = filters.keys()
+        keys.sort(key=self.filterorder.index)
+        for k in keys:
+            if filters[k]:
+                newpath.append('@' + k)
+                if k in ('by-group', 'by-user'):
+                    newpath.append(filters[k])
+
+        # Coalesce the URL back into a string and make a new View from it.
+        parts[2] = '/'.join(newpath) + '.json'
+        parts[4] = urllib.urlencode(queryargs)
+        newurl = urlunparse(parts)
+
+        ret = type(self).get(newurl)
+        ret.cls = self.cls
+        return ret
+
+    def __getitem__(self, key):
+        if self._delivered or not isinstance(key, slice):
+            return self.entries[key]
+        args = dict()
+        if key.start is not None:
+            args['start_index'] = key.start
+            if key.stop is not None:
+                args['max_results'] = key.stop - key.start
+        elif key.stop is not None:
+            args['max_results'] = key.stop
+        return self.filter(**args)
+
+    def update_from_dict(self, data):
+        super(TypePadView, self).update_from_dict(data)
         # Post-convert all the "entries" list items to our entry class.
-        self.entries = [entry_class.from_dict(d) for d in self.entries]
-        return self
+        self.entries = [self.cls.from_dict(d) for d in self.entries]
 
-class ApiListField(fields.Object):
-    def decode(self, value):
-        if not isinstance(value, dict):
-            # Let Object.decode() throw the TypeError.
-            return super(ApiListField, self).decode(value)
-        return ApiList.from_dict(value, entry_class=self.cls)
-
-class ApiListLink(remote.Link):
-    def __init__(self, kind, entry_class):
-        def rewriteJsonEnding(obj):
-            return re.sub(r'\.json$', '/%s.json' % kind, obj._id)
-        super(ApiListLink, self).__init__(rewriteJsonEnding, ApiListField(entry_class))
-
-class User(RemoteObject):
+class User(TypePadObject):
     # documented fields
     atom_id       = fields.Something(api_name='id')
     display_name  = fields.Something(api_name='displayName')
@@ -70,41 +175,10 @@ class User(RemoteObject):
     email         = fields.Something()
     userpic       = fields.Something()
 
-    def relationship_url(self, rel='follower', by_group=None):
-        url = "%susers/%s/relationships/@%s" % (remote.BASE_URL, self.id, rel)
-        if by_group:
-            url += "/@by-group/%s" % by_group
-        url += ".json"
-        return url
-
-    relationships = remote.Link(relationship_url, ApiListField('UserRelationship'))
-    
-    def event_url(self, by_group=None):
-        url = "%susers/%s/events" % (remote.BASE_URL, self.id)
-        if by_group:
-            url += "/@by-group/%s" % by_group
-        url += ".json"
-        return url
-    
-    events = remote.Link(event_url, ApiListField('Event'))
-
-    def comment_url(self, filter=None):
-        url = "%susers/%s/comments-sent" % (remote.BASE_URL, self.id)
-        if filter:
-            url += "/@filter/%s" % filter
-        url += ".json"
-        return url
-    
-    comments = remote.Link(comment_url, ApiListField('Asset'))
-
-    def notification_url(self, by_group=None):
-        url = "%susers/%s/notifications" % (remote.BASE_URL, self.id)
-        if by_group:
-            url += "/@by-group/%s" % by_group
-        url += ".json"
-        return url
-    
-    notifications = remote.Link(notification_url, ApiListField('Event'))
+    relationships = TypePadView('UserRelationship')
+    events        = TypePadView('Event')
+    comments      = TypePadView('Asset', api_name='comments-sent')
+    notifications = TypePadView('Event')
 
     @property
     def id(self):
@@ -113,24 +187,24 @@ class User(RemoteObject):
         return int(self.atom_id.split('-', 1)[1])
 
     @classmethod
-    def getSelf(cls, **kwargs):
-        return cls.get(urljoin(remote.BASE_URL, '/users/@self.json'), **kwargs)
+    def get_self(cls, **kwargs):
+        return cls.get('/users/@self.json', **kwargs)
 
-class UserRelationship(RemoteObject):
+class UserRelationship(TypePadObject):
     #status = fields.Something()
     source = fields.Object(User)
     target = fields.Object(User)
 
-class PublicationStatus(RemoteObject):
+class PublicationStatus(TypePadObject):
     published = fields.Something()
     spam      = fields.Something()
 
-class AssetRef(RemoteObject):
+class AssetRef(TypePadObject):
     ref  = fields.Something()
     href = fields.Something()
     type = fields.Something()
 
-class Asset(RemoteObject):
+class Asset(TypePadObject):
     # documented fields
     atom_id      = fields.Something(api_name='id')
     title        = fields.Something()
@@ -146,19 +220,25 @@ class Asset(RemoteObject):
     links        = fields.List(fields.Object(Link))
     in_reply_to  = fields.Object(AssetRef, api_name='inReplyTo')
 
+    @property
+    def actor(self):
+        """
+        An alias for author to satisify more generic 'actor' name used
+        in templates where event/asset are used interchangeably.
+        """
+        return self.author
+
     # astropad extras
     comment_count = fields.Something(api_name='total')
 
-    # TODO make this clever again -- self._id is None for objects out of Lists
-    #comments = ApiListLink('comments', 'Asset')
-    comments = remote.Link(lambda o: '%sassets/%s/comments.json' % (remote.BASE_URL, o.id), ApiListField('Asset'))
+    comments = TypePadView('Asset')
 
     @property
     def id(self):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:asset-1794
         return self.atom_id.split('-', 1)[1]
-    
+
     @property
     def asset_ref(self):
         # This is also stupid. Why not have in_reply_to just be another asset??
@@ -184,7 +264,7 @@ class Asset(RemoteObject):
             return None
     '''
 
-class Event(RemoteObject):
+class Event(TypePadObject):
     atom_id = fields.Something(api_name='id')
     verbs   = fields.List(fields.Something())
     # TODO: vary these based on verb content? oh boy
@@ -212,7 +292,7 @@ class LinkAsset(Asset):
     def __init__(self):
         self.object_types = ["tag:api.typepad.com,2009:Link"]
 
-class Group(RemoteObject):
+class Group(TypePadObject):
     atom_id      = fields.Something(api_name='id')
     display_name = fields.Something(api_name='displayName')
     tagline      = fields.Something()
@@ -221,26 +301,22 @@ class Group(RemoteObject):
     links        = fields.List(fields.Something())
     object_type  = fields.List(fields.Something(), api_name='objectType')
 
-    memberships  = ApiListLink('memberships',   UserRelationship)
-    assets       = ApiListLink('assets',        Asset)
-    events       = ApiListLink('events',        Event)
-    comments     = ApiListLink('comments',      Asset)
-    posts        = ApiListLink('assets/@post',  Post)
-    linkassets   = ApiListLink('assets/@link',  LinkAsset)
+    memberships  = TypePadView(UserRelationship)
+    assets       = TypePadView(Asset)
+    events       = TypePadView(Event)
+    comments     = TypePadView(Asset)
+    posts        = TypePadView(Post)
+    #linkassets   = TypePadView(LinkAsset, api_name='assets/@link')
 
-    def members(self, start_index=1, max_results=50):
-        members = self.memberships(start_index=start_index, max_results=max_results)
-        return [m.source for m in members.entries]
-
-    def group_statuses_url(self, status='admin'):
-        return "%sgroups/%s/memberships/@admin.json" % (remote.BASE_URL, self.id)
-    group_statuses = remote.Link(group_statuses_url, ApiListField('GroupStatus'))
+    #def group_statuses_url(self, status='admin'):
+    #    return "/groups/%s/memberships/@admin.json" % (self.id,)
+    #group_statuses = remote.Link(group_statuses_url, ApiListField('GroupStatus'))
 
     @property
     def id(self):
         return self.atom_id.split('-', 1)[1]
 
-class GroupStatus(RemoteObject):
+class GroupStatus(TypePadObject):
     #status = fields.Something()
     source = fields.Object(User)
     target = fields.Object(Group)
