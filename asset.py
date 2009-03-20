@@ -57,9 +57,12 @@ class TypePadView(View, TypePadObject):
     links         = fields.List(fields.Object(Link))
     entries       = fields.List(fields.Something())
 
-    def __init__(self, cls=None, api_name=None):
+    def __init__(self, cls=None, api_name=None, **kwargs):
         self.cls = cls
         self.api_name = api_name
+        # FIXME: this shouldn't be necessary
+        self._delivered = False
+        self._http = None
 
     def _get_cls(self):
         cls = self.__dict__['cls']
