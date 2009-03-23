@@ -279,7 +279,7 @@ class Event(TypePadObject):
         # yes, this is stupid, but damn it, I need this for urls
         # tag:typepad.com,2003:event-1680
         return self.atom_id.split('-', 1)[1]
-    
+
     def __unicode__(self):
         return unicode(self.object)
 
