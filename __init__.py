@@ -1,5 +1,7 @@
 from remoteobjects import *
+import batchhttp.client
 
-from typepad.batch import *  # including client
+client = batchhttp.client.BatchClient()
+
 from typepad.oauthclient import *
 from typepad.asset import *

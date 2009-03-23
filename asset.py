@@ -8,7 +8,7 @@ from remoteobjects import fields, PromiseObject, remote, View
 from remoteobjects.dataobject import DataObjectMetaclass, find_by_name
 from remoteobjects.promise import PromiseError
 import typepad
-from typepad.batch import BatchError
+from batchhttp.client import BatchError
 
 class TypePadObject(PromiseObject):
     # TODO configurable?

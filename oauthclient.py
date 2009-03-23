@@ -2,7 +2,7 @@ import httplib2
 import urlparse
 from oauth import oauth
 
-from typepad.batch import client
+from typepad import client
 
 __all__ = ('OAuthAuthentication', 'OAuthClient')
 

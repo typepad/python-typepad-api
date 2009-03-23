@@ -1,8 +1,8 @@
 
 from typepad import client, PromiseObject
-import typepad.batch
+import batchhttp.client
 
-typepad.batch.BATCH_ENDPOINT = 'http://api.typepad.com.tpapi-tp.dev.sixapart.com/batch-processor'
+batchhttp.client.BATCH_ENDPOINT = 'http://api.typepad.com.tpapi-tp.dev.sixapart.com/batch-processor'
 
 class Tiny(PromiseObject):
     pass
