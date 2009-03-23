@@ -98,6 +98,7 @@ class TestRemoteObjects(unittest.TestCase):
         resp_content = """{
             "title": "New post #%d",
             "content": "Hi this post has some content is it not nifty",
+            "objectTypes": ["tag:api.typepad.com,2009:Post"],
             "published": "2009-03-23T00:00:00Z",
             "updated": "2009-03-23T00:00:00Z"
         }""" % (somenum,)
@@ -115,6 +116,21 @@ class TestRemoteObjects(unittest.TestCase):
         with self.mockHttp(request, resp_content) as h:
             post_got = typepad.Post.get(p._id, http=h)
             self.assertEquals(post_got.title, 'New post #%d' % (somenum,))
+            self.assertEquals(post_got._id, p._id)
+
+        del_headers = {'if-match': '7', 'accept': 'application/json'}
+        request = dict(url=p._id, method='DELETE', headers=del_headers)
+        response = dict(status=204)
+        with self.mockHttp(request, response) as h:
+            p.delete(http=h)
+
+        self.assert_(p._id is None)
+
+        request = dict(url=post_got._id, headers=headers)
+        response = dict(status=404)
+        with self.mockHttp(request, response) as h:
+            not_there = typepad.Post.get(post_got._id, http=h)
+            self.assertRaises(typepad.Post.NotFound, lambda: not_there.title)
 
     def testChangePost(self):
         # Get post #1 directly from group #1?
