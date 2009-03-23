@@ -5,9 +5,10 @@ try:
 except ImportError:
     import simplejson as json
 
-import unittest
 import logging
+import random
 import sys
+import unittest
 
 from remoteobjects import tests
 import typepad
@@ -82,10 +83,42 @@ class TestRemoteObjects(unittest.TestCase):
             m._http = h
             m.deliver()
 
-    def testPost(self):
+    def testCreateDeletePost(self):
+        g = typepad.Group.get('http://127.0.0.1:8000/groups/1.json')
+
+        somenum = random.randint(1, 10000)
+        p = typepad.Post(
+            title="New post #%d" % (somenum,),
+            content="Hi this post has some content is it not nifty"
+        )
+
+        headers = { 'accept': 'application/json' }
+        content = """{"content": "Hi this post has some content is it not nifty", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "New post #%d"}""" % (somenum,)
+        request = dict(url='http://127.0.0.1:8000/groups/1.json', headers=headers, body=content, method='POST')
+        resp_content = """{
+            "title": "New post #%d",
+            "content": "Hi this post has some content is it not nifty",
+            "published": "2009-03-23T00:00:00Z",
+            "updated": "2009-03-23T00:00:00Z"
+        }""" % (somenum,)
+        response = dict(status=201, content=resp_content)
+        response['content-location'] = 'http://127.0.0.1:8000/assets/307.json'
+        with self.mockHttp(request, response) as h:
+            g.post(p, http=h)
+
+        self.assert_(p._id is not None)
+        self.assertEquals(p.title, "New post #%d" % (somenum,))
+        self.assert_(hasattr(p, 'published'))
+        self.assert_(p.published is not None)
+
+        request = dict(url=p._id, headers=headers)
+        with self.mockHttp(request, resp_content) as h:
+            post_got = typepad.Post.get(p._id, http=h)
+            self.assertEquals(post_got.title, 'New post #%d' % (somenum,))
+
+    def testChangePost(self):
         # Get post #1 directly from group #1?
-        g = typepad.Group()
-        g._id = 'http://127.0.0.1:8000/groups/1.json'
+        g = typepad.Group.get('http://127.0.0.1:8000/groups/1.json')
 
         headers = { 'accept': 'application/json' }
         content = """{
