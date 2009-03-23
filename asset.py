@@ -284,16 +284,13 @@ class Event(TypePadObject):
         return unicode(self.object)
 
 class Comment(Asset):
-    def __init__(self):
-        self.object_types = ["tag:api.typepad.com,2009:Comment"]
+    object_types = fields.Constant(("tag:api.typepad.com,2009:Comment",), api_name='objectTypes')
 
 class Post(Asset):
-    def __init__(self):
-        self.object_types = ["tag:api.typepad.com,2009:Post"]
+    object_types = fields.Constant(("tag:api.typepad.com,2009:Post",), api_name='objectTypes')
 
 class LinkAsset(Asset):
-    def __init__(self):
-        self.object_types = ["tag:api.typepad.com,2009:Link"]
+    object_types = fields.Constant(("tag:api.typepad.com,2009:Link",), api_name='objectTypes')
 
 class Group(TypePadObject):
     atom_id      = fields.Something(api_name='id')
@@ -302,7 +299,7 @@ class Group(TypePadObject):
     avatar       = fields.Something()
     urls         = fields.List(fields.Something())
     links        = fields.List(fields.Something())
-    object_type  = fields.List(fields.Something(), api_name='objectType')
+    object_types = fields.List(fields.Something(), api_name='objectTypes')
 
     memberships  = TypePadView(UserRelationship)
     assets       = TypePadView(Asset)

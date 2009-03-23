@@ -24,15 +24,15 @@ class TestRemoteObjects(unittest.TestCase):
         headers = { 'accept': 'application/json' }
         with self.mockHttp('http://127.0.0.1:8000/users/1.json', content, headers=headers) as h:
             user = typepad.User.get('http://127.0.0.1:8000/users/1.json', http=h)
-        self.assertEquals(user.display_name, 'Deanna Conti')
-        self.assertEquals(user.email, 'dconti@beli.com')
+            self.assertEquals(user.display_name, 'Deanna Conti')
+            self.assertEquals(user.email, 'dconti@beli.com')
 
     def testGroup(self):
         content = """{"displayName": "Augue Tempor"}"""
         headers = { 'accept': 'application/json' }
         with self.mockHttp('http://127.0.0.1:8000/groups/1.json', content, headers=headers) as h:
             group = typepad.Group.get('http://127.0.0.1:8000/groups/1.json', http=h)
-        self.assertEquals(group.display_name, 'Augue Tempor')
+            self.assertEquals(group.display_name, 'Augue Tempor')
 
     def testGroupMembers(self):
         g = typepad.Group()
@@ -61,13 +61,13 @@ class TestRemoteObjects(unittest.TestCase):
 
         headers = { 'accept': 'application/json' }
         with self.mockHttp('http://127.0.0.1:8000/groups/1/memberships.json', content, headers=headers) as h:
-            m = g.memberships(http=h)
-        self.assert_(isinstance(m, typepad.ApiList))
-        self.assertEquals(len(m.entries), 7)
-        self.assertEquals([u.source.display_name for u in m.entries],
-            ['Mike', 'Sherry Monaco', 'Francesca Coppola', 'David Rosato', 'Edgar Bach', 'Jarad Mccaw', 'Deanna Conti'])
+            m = g.memberships
+            m._http = h
+            self.assertEquals(len(m.entries), 7)
+            self.assertEquals([u.source.display_name for u in m.entries],
+                ['Mike', 'Sherry Monaco', 'Francesca Coppola', 'David Rosato', 'Edgar Bach', 'Jarad Mccaw', 'Deanna Conti'])
 
-        # Test sequence behavior of the ApiList.
+        # Test sequence behavior of the API list.
         self.assertEquals(m.entries.__len__(), 7)
         self.assertEquals(m.__len__(), 7)
         self.assertEquals(len(m), 7)
@@ -78,7 +78,9 @@ class TestRemoteObjects(unittest.TestCase):
 
         # Test limit/offset parameters.
         with self.mockHttp('http://127.0.0.1:8000/groups/1/memberships.json?start-index=0', content, headers=headers) as h:
-            m = g.memberships(start_index=0, http=h)
+            m = g.memberships.filter(start_index=0)
+            m._http = h
+            m.deliver()
 
     def testPost(self):
         # Get post #1 directly from group #1?
@@ -94,12 +96,13 @@ class TestRemoteObjects(unittest.TestCase):
         request = dict(url='http://127.0.0.1:8000/assets/1.json', headers=headers)
         with self.mockHttp(request, content) as h:
             e = typepad.Post.get('http://127.0.0.1:8000/assets/1.json', http=h)
-        self.assertEquals(e.title, 'Fames Vivamus Placerat at Condimentum at Primis Consectetuer Nonummy Inceptos Porta dis')
-        self.assertEquals(e.content, 'Posuere felis vestibulum nibh justo vitae elementum.')
+            self.assertEquals(e.title, 'Fames Vivamus Placerat at Condimentum at Primis Consectetuer Nonummy Inceptos Porta dis')
+            self.assertEquals(e.content, 'Posuere felis vestibulum nibh justo vitae elementum.')
         old_etag = e._etag
 
         # Modify the existing post.
         e.title = 'Omg hai'
+        e.content = 'Yay this is my post'
 
         # Save the modified post.
         headers = {
