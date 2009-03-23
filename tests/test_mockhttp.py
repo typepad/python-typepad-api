@@ -94,7 +94,7 @@ class TestRemoteObjects(unittest.TestCase):
 
         headers = { 'accept': 'application/json' }
         content = """{"content": "Hi this post has some content is it not nifty", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "New post #%d"}""" % (somenum,)
-        request = dict(url='http://127.0.0.1:8000/groups/1.json', headers=headers, body=content, method='POST')
+        request = dict(url='http://127.0.0.1:8000/groups/1/assets.json', headers=headers, body=content, method='POST')
         resp_content = """{
             "title": "New post #%d",
             "content": "Hi this post has some content is it not nifty",
@@ -105,7 +105,7 @@ class TestRemoteObjects(unittest.TestCase):
         response = dict(status=201, content=resp_content)
         response['content-location'] = 'http://127.0.0.1:8000/assets/307.json'
         with self.mockHttp(request, response) as h:
-            g.post(p, http=h)
+            g.assets.post(p, http=h)
 
         self.assert_(p._id is not None)
         self.assertEquals(p.title, "New post #%d" % (somenum,))
