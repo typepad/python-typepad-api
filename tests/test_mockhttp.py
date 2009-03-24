@@ -104,7 +104,7 @@ class TestRemoteObjects(unittest.TestCase):
         }""" % (somenum,)
         response = dict(status=201, content=resp_content)
         response['content-location'] = 'http://127.0.0.1:8000/assets/307.json'
-        with self.mockHttp(request, response) as h:
+        with self.mockHttp(request, response, credentials=('mmalone@example.com', 'password')) as h:
             g.assets.post(p, http=h)
 
         self.assert_(p._id is not None)
