@@ -96,6 +96,26 @@ requests = {
           'headers': {'accept': 'application/json'} },
         { 'status': 404 },
     ),
+    'get_mutable_post': (
+        { 'uri': 'http://127.0.0.1:8000/assets/1.json',
+          'headers': {'accept': 'application/json'} },
+        """{
+            "title": "Fames Vivamus Placerat at Condimentum at Primis Consectetuer Nonummy Inceptos Porta dis",
+            "content": "Posuere felis vestibulum nibh justo vitae elementum.",
+            "objectTypes": ["tag:api.typepad.com,2009:Post"]
+        }""",
+    ),
+    'put_mutated_post': (
+        { 'uri': 'http://127.0.0.1:8000/assets/1.json',
+          'headers': {
+            'if-match': '7',
+            'accept': 'application/json',
+          },
+          'body': """{"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"}""",
+          'method': 'PUT' },
+        { 'content': """{"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"}""",
+          'etag': 'xyz' },
+    ),
 }
 
 class TestRemoteObjects(unittest.TestCase):
@@ -178,14 +198,7 @@ class TestRemoteObjects(unittest.TestCase):
         # Get post #1 directly from group #1?
         g = typepad.Group.get('http://127.0.0.1:8000/groups/1.json')
 
-        headers = { 'accept': 'application/json' }
-        content = """{
-            "title": "Fames Vivamus Placerat at Condimentum at Primis Consectetuer Nonummy Inceptos Porta dis",
-            "content": "Posuere felis vestibulum nibh justo vitae elementum.",
-            "objectTypes": ["tag:api.typepad.com,2009:Post"]
-        }"""
-        request = dict(uri='http://127.0.0.1:8000/assets/1.json', headers=headers)
-        with self.http(request, content) as h:
+        with self.http('get_mutable_post') as h:
             e = typepad.Post.get('http://127.0.0.1:8000/assets/1.json', http=h)
             self.assertEquals(e.title, 'Fames Vivamus Placerat at Condimentum at Primis Consectetuer Nonummy Inceptos Porta dis')
             self.assertEquals(e.content, 'Posuere felis vestibulum nibh justo vitae elementum.')
@@ -196,19 +209,10 @@ class TestRemoteObjects(unittest.TestCase):
         e.content = 'Yay this is my post'
 
         # Save the modified post.
-        headers = {
-            'accept': 'application/json',
-            'if-match': old_etag,  # default etag
-        }
-        content = """{"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"}"""
-        request = dict(uri='http://127.0.0.1:8000/assets/1.json', method='PUT', headers=headers, body=content)
-        response = dict(content=content, etag='xyz')
-        with self.http(request, response, credentials=('dconti@beli.com', 'password')) as h:
+        with self.http('put_mutated_post', credentials=('dconti@beli.com', 'password')) as h:
             e.put(http=h)
         self.assertEquals(e.title, 'Omg hai')
         self.assertNotEqual(e._etag, old_etag)
-
-        # Make a new post in group #1.
 
 if __name__ == '__main__':
     tests.log()
