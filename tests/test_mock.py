@@ -25,6 +25,40 @@ requests = {
           'headers': {'accept': 'application/json'} },
         """{"displayName": "Augue Tempor"}""",
     ),
+    'get_group_members': (
+        { 'uri': 'http://127.0.0.1:8000/groups/1/memberships.json',
+          'headers': {'accept': 'application/json'} },
+        json.dumps({
+            "total-results": 5,
+            "start-index":   0,
+            "entries": [{
+                'status': {
+                    'types': ('tag:api.typepad.com,2009:Admin',
+                              'tag:api.typepad.com,2009:Member'),
+                },
+                'target': {},
+                'source': {"displayName": "Mike", "email": "spatino@brilacsipon.info"},
+            }] + [{
+                'status': {
+                    'types': ('tag:api.typepad.com,2009:Member',),
+                },
+                'target': {},
+                'source': u,
+            } for u in (
+                {"displayName": "Sherry Monaco", "email": "cosby@arebe.com"},
+                {"displayName": "Francesca Coppola", "email": "cfrandsen@cenge.com"},
+                {"displayName": "David Rosato", "email": "skemmerer@akekim.biz"},
+                {"displayName": "Edgar Bach", "email": "dconti@beli.com"},
+                {"displayName": "Jarad Mccaw", "email": "jmccaw@arebe.com"},
+                {"displayName": "Deanna Conti", "email": "dconti@beli.com"},
+            )],
+        }),
+    ),
+    'get_group_members_offset': (
+        { 'uri': 'http://127.0.0.1:8000/groups/1/memberships.json?start-index=0',
+          'headers': {'accept': 'application/json'} },
+        """{ "entries": [] }"""
+    ),
 }
 
 class TestRemoteObjects(unittest.TestCase):
@@ -43,11 +77,6 @@ class TestRemoteObjects(unittest.TestCase):
             self.assertEquals(user.email, 'dconti@beli.com')
 
     def testGroup(self):
-        content = """{"displayName": "Augue Tempor"}"""
-        request = {
-            'uri': 'http://127.0.0.1:8000/groups/1.json',
-            'headers': {'accept': 'application/json'},
-        }
         with self.http('get_group') as h:
             group = typepad.Group.get('http://127.0.0.1:8000/groups/1.json', http=h)
             self.assertEquals(group.display_name, 'Augue Tempor')
@@ -56,32 +85,7 @@ class TestRemoteObjects(unittest.TestCase):
         g = typepad.Group()
         g._id = 'http://127.0.0.1:8000/groups/1.json'
 
-        adminstatus  = dict(types=["tag:api.typepad.com,2009:%s" % x for x in ('Admin', 'Member')])
-        memberstatus = dict(types=["tag:api.typepad.com,2009:Member"])
-        users = [
-            {"displayName": "Mike", "email": "spatino@brilacsipon.info"},
-            {"displayName": "Sherry Monaco", "email": "cosby@arebe.com"},
-            {"displayName": "Francesca Coppola", "email": "cfrandsen@cenge.com"},
-            {"displayName": "David Rosato", "email": "skemmerer@akekim.biz"},
-            {"displayName": "Edgar Bach", "email": "dconti@beli.com"},
-            {"displayName": "Jarad Mccaw", "email": "jmccaw@arebe.com"},
-            {"displayName": "Deanna Conti", "email": "dconti@beli.com"},
-        ]
-        group = {
-            "mumble": "butter",
-        }
-        content = json.dumps({
-            "total-results": 5,
-            "start-index":   0,
-            "entries": [dict(status=adminstatus, target=group, source=users[0])] +
-                [dict(status=memberstatus, target=group, source=u) for u in users[1:]],
-        })
-
-        request = {
-            'uri': 'http://127.0.0.1:8000/groups/1/memberships.json',
-            'headers': {'accept': 'application/json'},
-        }
-        with self.http(request, content) as h:
+        with self.http('get_group_members') as h:
             m = g.memberships
             m._http = h
             self.assertEquals(len(m.entries), 7)
@@ -98,11 +102,7 @@ class TestRemoteObjects(unittest.TestCase):
             ['Sherry Monaco', 'Francesca Coppola'])
 
         # Test limit/offset parameters.
-        request = {
-            'uri': 'http://127.0.0.1:8000/groups/1/memberships.json?start-index=0',
-            'headers': {'accept': 'application/json'},
-        }
-        with self.http(request, content) as h:
+        with self.http('get_group_members_offset') as h:
             m = g.memberships.filter(start_index=0)
             m._http = h
             m.deliver()
