@@ -9,22 +9,35 @@ import logging
 import random
 import sys
 import unittest
+import traceback
 
 from remoteobjects import tests
 import typepad
 
+requests = {
+    'get_user': (
+        { 'uri': 'http://127.0.0.1:8000/users/1.json',
+          'headers': {'accept': 'application/json'} },
+        """{"displayName": "Deanna Conti", "email": "dconti@beli.com"}""",
+    ),
+    'get_group': (
+        { 'uri': 'http://127.0.0.1:8000/groups/1.json',
+          'headers': {'accept': 'application/json'} },
+        """{"displayName": "Augue Tempor"}""",
+    ),
+}
+
 class TestRemoteObjects(unittest.TestCase):
 
-    def http(self, request, response, credentials=None):
-        return tests.MockedHttp(request, response)
+    def http(self, key):
+        try:
+            req = requests[key]
+        except KeyError:
+            raise Exception('No such mock request %s' % (callername,))
+        return tests.MockedHttp(*req)
 
     def testUser(self):
-        content = """{"displayName": "Deanna Conti", "email": "dconti@beli.com"}"""
-        request = {
-            'uri': 'http://127.0.0.1:8000/users/1.json',
-            'headers': {'accept': 'application/json'},
-        }
-        with self.http(request, content) as h:
+        with self.http('get_user') as h:
             user = typepad.User.get('http://127.0.0.1:8000/users/1.json', http=h)
             self.assertEquals(user.display_name, 'Deanna Conti')
             self.assertEquals(user.email, 'dconti@beli.com')
@@ -35,7 +48,7 @@ class TestRemoteObjects(unittest.TestCase):
             'uri': 'http://127.0.0.1:8000/groups/1.json',
             'headers': {'accept': 'application/json'},
         }
-        with self.http(request, content) as h:
+        with self.http('get_group') as h:
             group = typepad.Group.get('http://127.0.0.1:8000/groups/1.json', http=h)
             self.assertEquals(group.display_name, 'Augue Tempor')
 
