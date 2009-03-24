@@ -95,3 +95,17 @@ class OAuthClient(oauth.OAuthClient):
             http_url=self.authorization_url,
         )
         return req.to_url()
+
+    def get_file_upload_url(self, upload_url):
+        # oauth GET params for file upload url
+        # since the form is multipart/form-data
+        req = oauth.OAuthRequest.from_consumer_and_token(
+            self.consumer,
+            token = self.token,
+            http_method = 'POST',
+            http_url = upload_url,
+        )
+        # TODO put in logging?
+        # log.debug('file upload sig base string: %s' % oauth.OAuthSignatureMethod_HMAC_SHA1().build_signature_base_string(req, self.consumer, self.token))
+        req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), self.consumer, self.token)
+        return req.to_url()
