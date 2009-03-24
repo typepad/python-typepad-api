@@ -59,11 +59,48 @@ requests = {
           'headers': {'accept': 'application/json'} },
         """{ "entries": [] }"""
     ),
+    'create_post': (
+        { 'uri': 'http://127.0.0.1:8000/groups/1/assets.json',
+          'headers': {'accept': 'application/json'},
+          'body': """{"content": "Hi this post has some content is it not nifty", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "New post #47"}""",
+          'method': 'POST' },
+        { 'status': 201,
+          'location': 'http://127.0.0.1:8000/assets/307.json',
+          'content': """{
+              "title": "New post #47",
+              "content": "Hi this post has some content is it not nifty",
+              "objectTypes": ["tag:api.typepad.com,2009:Post"],
+              "published": "2009-03-23T00:00:00Z",
+              "updated": "2009-03-23T00:00:00Z"
+          }""" },
+    ),
+    'get_created_post': (
+        { 'uri': 'http://127.0.0.1:8000/assets/307.json',
+          'headers': {'accept': 'application/json'} },
+        """{
+            "title": "New post #47",
+            "content": "Hi this post has some content is it not nifty",
+            "objectTypes": ["tag:api.typepad.com,2009:Post"],
+            "published": "2009-03-23T00:00:00Z",
+            "updated": "2009-03-23T00:00:00Z"
+        }""",
+    ),
+    'delete_created_post': (
+        { 'uri': 'http://127.0.0.1:8000/assets/307.json',
+          'method': 'DELETE', 
+          'headers': {'if-match': '7', 'accept': 'application/json'} },
+        { 'status': 204 },
+    ),
+    'get_deleted_post': (
+        { 'uri': 'http://127.0.0.1:8000/assets/307.json',
+          'headers': {'accept': 'application/json'} },
+        { 'status': 404 },
+    ),
 }
 
 class TestRemoteObjects(unittest.TestCase):
 
-    def http(self, key):
+    def http(self, key, credentials=None):
         try:
             req = requests[key]
         except KeyError:
@@ -110,49 +147,30 @@ class TestRemoteObjects(unittest.TestCase):
     def testCreateDeletePost(self):
         g = typepad.Group.get('http://127.0.0.1:8000/groups/1.json')
 
-        somenum = random.randint(1, 10000)
         p = typepad.Post(
-            title="New post #%d" % (somenum,),
+            title="New post #47",
             content="Hi this post has some content is it not nifty"
         )
 
-        headers = { 'accept': 'application/json' }
-        content = """{"content": "Hi this post has some content is it not nifty", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "New post #%d"}""" % (somenum,)
-        request = dict(uri='http://127.0.0.1:8000/groups/1/assets.json', headers=headers, body=content, method='POST')
-        resp_content = """{
-            "title": "New post #%d",
-            "content": "Hi this post has some content is it not nifty",
-            "objectTypes": ["tag:api.typepad.com,2009:Post"],
-            "published": "2009-03-23T00:00:00Z",
-            "updated": "2009-03-23T00:00:00Z"
-        }""" % (somenum,)
-        response = dict(status=201, content=resp_content)
-        response['location'] = 'http://127.0.0.1:8000/assets/307.json'
-        with self.http(request, response, credentials=('mmalone@example.com', 'password')) as h:
+        with self.http('create_post', credentials=('mmalone@example.com', 'password')) as h:
             g.assets.post(p, http=h)
 
         self.assert_(p._id is not None)
-        self.assertEquals(p.title, "New post #%d" % (somenum,))
+        self.assertEquals(p.title, "New post #47")
         self.assert_(hasattr(p, 'published'))
         self.assert_(p.published is not None)
 
-        request = dict(uri=p._id, headers=headers)
-        with self.http(request, resp_content) as h:
+        with self.http('get_created_post') as h:
             post_got = typepad.Post.get(p._id, http=h)
-            self.assertEquals(post_got.title, 'New post #%d' % (somenum,))
+            self.assertEquals(post_got.title, 'New post #47')
             self.assertEquals(post_got._id, p._id)
 
-        del_headers = {'if-match': '7', 'accept': 'application/json'}
-        request = dict(uri=p._id, method='DELETE', headers=del_headers)
-        response = dict(status=204)
-        with self.http(request, response) as h:
+        with self.http('delete_created_post', credentials=('mmalone@example.com', 'password')) as h:
             p.delete(http=h)
 
         self.assert_(p._id is None)
 
-        request = dict(uri=post_got._id, headers=headers)
-        response = dict(status=404)
-        with self.http(request, response) as h:
+        with self.http('get_deleted_post') as h:
             not_there = typepad.Post.get(post_got._id, http=h)
             self.assertRaises(typepad.Post.NotFound, lambda: not_there.title)
 
