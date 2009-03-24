@@ -15,21 +15,27 @@ import typepad
 
 class TestRemoteObjects(unittest.TestCase):
 
-    def http(self, *args, credentials=None, **kwargs):
-        return tests.MockedHttp(*args, **kwargs)
+    def http(self, request, response, credentials=None):
+        return tests.MockedHttp(request, response)
 
     def testUser(self):
         content = """{"displayName": "Deanna Conti", "email": "dconti@beli.com"}"""
-        headers = { 'accept': 'application/json' }
-        with self.mockHttp('http://127.0.0.1:8000/users/1.json', content, headers=headers) as h:
+        request = {
+            'uri': 'http://127.0.0.1:8000/users/1.json',
+            'headers': {'accept': 'application/json'},
+        }
+        with self.http(request, content) as h:
             user = typepad.User.get('http://127.0.0.1:8000/users/1.json', http=h)
             self.assertEquals(user.display_name, 'Deanna Conti')
             self.assertEquals(user.email, 'dconti@beli.com')
 
     def testGroup(self):
         content = """{"displayName": "Augue Tempor"}"""
-        headers = { 'accept': 'application/json' }
-        with self.mockHttp('http://127.0.0.1:8000/groups/1.json', content, headers=headers) as h:
+        request = {
+            'uri': 'http://127.0.0.1:8000/groups/1.json',
+            'headers': {'accept': 'application/json'},
+        }
+        with self.http(request, content) as h:
             group = typepad.Group.get('http://127.0.0.1:8000/groups/1.json', http=h)
             self.assertEquals(group.display_name, 'Augue Tempor')
 
@@ -58,8 +64,11 @@ class TestRemoteObjects(unittest.TestCase):
                 [dict(status=memberstatus, target=group, source=u) for u in users[1:]],
         })
 
-        headers = { 'accept': 'application/json' }
-        with self.mockHttp('http://127.0.0.1:8000/groups/1/memberships.json', content, headers=headers) as h:
+        request = {
+            'uri': 'http://127.0.0.1:8000/groups/1/memberships.json',
+            'headers': {'accept': 'application/json'},
+        }
+        with self.http(request, content) as h:
             m = g.memberships
             m._http = h
             self.assertEquals(len(m.entries), 7)
@@ -76,7 +85,11 @@ class TestRemoteObjects(unittest.TestCase):
             ['Sherry Monaco', 'Francesca Coppola'])
 
         # Test limit/offset parameters.
-        with self.mockHttp('http://127.0.0.1:8000/groups/1/memberships.json?start-index=0', content, headers=headers) as h:
+        request = {
+            'uri': 'http://127.0.0.1:8000/groups/1/memberships.json?start-index=0',
+            'headers': {'accept': 'application/json'},
+        }
+        with self.http(request, content) as h:
             m = g.memberships.filter(start_index=0)
             m._http = h
             m.deliver()
@@ -92,7 +105,7 @@ class TestRemoteObjects(unittest.TestCase):
 
         headers = { 'accept': 'application/json' }
         content = """{"content": "Hi this post has some content is it not nifty", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "New post #%d"}""" % (somenum,)
-        request = dict(url='http://127.0.0.1:8000/groups/1/assets.json', headers=headers, body=content, method='POST')
+        request = dict(uri='http://127.0.0.1:8000/groups/1/assets.json', headers=headers, body=content, method='POST')
         resp_content = """{
             "title": "New post #%d",
             "content": "Hi this post has some content is it not nifty",
@@ -102,7 +115,7 @@ class TestRemoteObjects(unittest.TestCase):
         }""" % (somenum,)
         response = dict(status=201, content=resp_content)
         response['location'] = 'http://127.0.0.1:8000/assets/307.json'
-        with self.mockHttp(request, response, credentials=('mmalone@example.com', 'password')) as h:
+        with self.http(request, response, credentials=('mmalone@example.com', 'password')) as h:
             g.assets.post(p, http=h)
 
         self.assert_(p._id is not None)
@@ -110,23 +123,23 @@ class TestRemoteObjects(unittest.TestCase):
         self.assert_(hasattr(p, 'published'))
         self.assert_(p.published is not None)
 
-        request = dict(url=p._id, headers=headers)
-        with self.mockHttp(request, resp_content) as h:
+        request = dict(uri=p._id, headers=headers)
+        with self.http(request, resp_content) as h:
             post_got = typepad.Post.get(p._id, http=h)
             self.assertEquals(post_got.title, 'New post #%d' % (somenum,))
             self.assertEquals(post_got._id, p._id)
 
         del_headers = {'if-match': '7', 'accept': 'application/json'}
-        request = dict(url=p._id, method='DELETE', headers=del_headers)
+        request = dict(uri=p._id, method='DELETE', headers=del_headers)
         response = dict(status=204)
-        with self.mockHttp(request, response) as h:
+        with self.http(request, response) as h:
             p.delete(http=h)
 
         self.assert_(p._id is None)
 
-        request = dict(url=post_got._id, headers=headers)
+        request = dict(uri=post_got._id, headers=headers)
         response = dict(status=404)
-        with self.mockHttp(request, response) as h:
+        with self.http(request, response) as h:
             not_there = typepad.Post.get(post_got._id, http=h)
             self.assertRaises(typepad.Post.NotFound, lambda: not_there.title)
 
@@ -140,8 +153,8 @@ class TestRemoteObjects(unittest.TestCase):
             "content": "Posuere felis vestibulum nibh justo vitae elementum.",
             "objectTypes": ["tag:api.typepad.com,2009:Post"]
         }"""
-        request = dict(url='http://127.0.0.1:8000/assets/1.json', headers=headers)
-        with self.mockHttp(request, content) as h:
+        request = dict(uri='http://127.0.0.1:8000/assets/1.json', headers=headers)
+        with self.http(request, content) as h:
             e = typepad.Post.get('http://127.0.0.1:8000/assets/1.json', http=h)
             self.assertEquals(e.title, 'Fames Vivamus Placerat at Condimentum at Primis Consectetuer Nonummy Inceptos Porta dis')
             self.assertEquals(e.content, 'Posuere felis vestibulum nibh justo vitae elementum.')
@@ -157,9 +170,9 @@ class TestRemoteObjects(unittest.TestCase):
             'if-match': old_etag,  # default etag
         }
         content = """{"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"}"""
-        request = dict(url='http://127.0.0.1:8000/assets/1.json', method='PUT', headers=headers, body=content)
+        request = dict(uri='http://127.0.0.1:8000/assets/1.json', method='PUT', headers=headers, body=content)
         response = dict(content=content, etag='xyz')
-        with self.mockHttp(request, response, credentials=('dconti@beli.com', 'password')) as h:
+        with self.http(request, response, credentials=('dconti@beli.com', 'password')) as h:
             e.put(http=h)
         self.assertEquals(e.title, 'Omg hai')
         self.assertNotEqual(e._etag, old_etag)
