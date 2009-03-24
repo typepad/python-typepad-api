@@ -9,6 +9,7 @@ from remoteobjects.dataobject import DataObjectMetaclass, find_by_name
 from remoteobjects.promise import PromiseError
 import typepad
 from batchhttp.client import BatchError
+import logging
 
 class TypePadObject(PromiseObject):
     # TODO configurable?
@@ -33,6 +34,7 @@ class Link(TypePadObject):
     width    = fields.Something()
     height   = fields.Something()
     duration = fields.Something()
+    total    = fields.Something()
 
 class SequenceProxyMetaclass(DataObjectMetaclass):
     @staticmethod
@@ -231,8 +233,11 @@ class Asset(TypePadObject):
         """
         return self.author
 
-    # astropad extras
-    comment_count = fields.Something(api_name='total')
+    def comment_count(self):
+        for l in self.links:
+            if l.rel == 'replies':
+                return l.total
+        return 0
 
     comments = TypePadView('Asset')
 
