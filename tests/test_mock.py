@@ -15,9 +15,7 @@ import typepad
 
 class TestRemoteObjects(unittest.TestCase):
 
-    def mockHttp(self, *args, **kwargs):
-        if 'credentials' in kwargs:
-            del kwargs['credentials']
+    def http(self, *args, credentials=None, **kwargs):
         return tests.MockedHttp(*args, **kwargs)
 
     def testUser(self):

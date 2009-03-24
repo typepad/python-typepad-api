@@ -96,7 +96,7 @@ class WithableHttp(object):
         pass
 
 class TestRemoteObjects(test_mock.TestRemoteObjects):
-    def mockHttp(self, *args, **kwargs):
+    def http(self, *args, **kwargs):
         wh = WithableHttp()
 
         if 'credentials' in kwargs:
