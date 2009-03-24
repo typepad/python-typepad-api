@@ -5,7 +5,7 @@ from urllib import urlencode, unquote
 from urlparse import urlsplit, urlunsplit
 
 from remoteobjects import tests
-from typepad.tests import test_mockhttp
+from typepad.tests import test_mock
 
 import typepad
 from oauth import oauth
@@ -95,7 +95,7 @@ class WithableHttp(object):
     def __exit__(self, *exc_info):
         pass
 
-class TestRemoteObjects(test_mockhttp.TestRemoteObjects):
+class TestRemoteObjects(test_mock.TestRemoteObjects):
     def mockHttp(self, *args, **kwargs):
         wh = WithableHttp()
 
