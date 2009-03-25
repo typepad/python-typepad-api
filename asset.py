@@ -92,7 +92,7 @@ class TypePadView(View, TypePadObject):
 
     filterorder = ['following', 'follower', 'friend', 'nonreciprocal',
         'published', 'unpublished', 'spam', 'admin', 'member',
-        'by-group', 'by-user']
+        'by-group', 'by-user', 'photo', 'post', 'video', 'audio', 'comment', 'link']
 
     def filter(self, **kwargs):
         # Split the view's URL into URL parts, filters, and queryargs.
