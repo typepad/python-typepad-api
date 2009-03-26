@@ -4,8 +4,8 @@ import re
 import cgi
 import urllib
 
-from remoteobjects import fields, PromiseObject, remote, View
-from remoteobjects.dataobject import DataObjectMetaclass, find_by_name
+from remoteobjects import fields, PromiseObject, Link, remote
+from remoteobjects.dataobject import find_by_name
 from remoteobjects.promise import PromiseError
 import typepad
 from batchhttp.client import BatchError
@@ -36,7 +36,7 @@ class Link(TypePadObject):
     duration = fields.Something()
     total    = fields.Something()
 
-class SequenceProxyMetaclass(DataObjectMetaclass):
+class SequenceProxyMetaclass(PromiseObject.__metaclass__):
     @staticmethod
     def makeSequenceMethod(methodname):
         def seqmethod(self, *args, **kwargs):
@@ -51,7 +51,7 @@ class SequenceProxyMetaclass(DataObjectMetaclass):
                 attrs[methodname] = cls.makeSequenceMethod(methodname)
         return super(SequenceProxyMetaclass, cls).__new__(cls, name, bases, attrs)
 
-class TypePadView(View, TypePadObject):
+class ListObject(TypePadObject, remoteobjects.ListObject):
     __metaclass__ = SequenceProxyMetaclass
 
     total_results = fields.Something(api_name='totalResults')
@@ -95,7 +95,7 @@ class TypePadView(View, TypePadObject):
         'by-group', 'by-user', 'photo', 'post', 'video', 'audio', 'comment', 'link']
 
     def filter(self, **kwargs):
-        # Split the view's URL into URL parts, filters, and queryargs.
+        # Split the list's URL into URL parts, filters, and queryargs.
         parts = list(urlparse(self._id))
         queryargs = cgi.parse_qs(parts[4], keep_blank_values=True)
         queryargs = dict([(k, v[0]) for k, v in queryargs.iteritems()])
@@ -138,7 +138,7 @@ class TypePadView(View, TypePadObject):
                 if k in ('by-group', 'by-user'):
                     newpath.append(filters[k])
 
-        # Coalesce the URL back into a string and make a new View from it.
+        # Coalesce the URL back into a string and make a new List from it.
         parts[2] = '/'.join(newpath) + '.json'
         parts[4] = urllib.urlencode(queryargs)
         newurl = urlunparse(parts)
@@ -160,7 +160,7 @@ class TypePadView(View, TypePadObject):
         return self.filter(**args)
 
     def update_from_dict(self, data):
-        super(TypePadView, self).update_from_dict(data)
+        super(List, self).update_from_dict(data)
         # Post-convert all the "entries" list items to our entry class.
         self.entries = [self.cls.from_dict(d) for d in self.entries]
 
@@ -180,10 +180,10 @@ class User(TypePadObject):
     email         = fields.Something()
     userpic       = fields.Something()
 
-    relationships = TypePadView('UserRelationship')
-    events        = TypePadView('Event')
-    comments      = TypePadView('Asset', api_name='comments-sent')
-    notifications = TypePadView('Event')
+    relationships = Link(ListObject('UserRelationship'))
+    events        = Link(ListObject('Event'))
+    comments      = Link(ListObject('Asset'), api_name='comments-sent')
+    notifications = Link(ListObject('Event'))
 
     @property
     def id(self):
@@ -239,7 +239,7 @@ class Asset(TypePadObject):
                 return l.total
         return 0
 
-    comments = TypePadView('Asset')
+    comments = Link(ListObject('Asset'))
 
     @property
     def id(self):
@@ -306,16 +306,12 @@ class Group(TypePadObject):
     links        = fields.List(fields.Something())
     object_types = fields.List(fields.Something(), api_name='objectTypes')
 
-    memberships  = TypePadView(UserRelationship)
-    assets       = TypePadView(Asset)
-    events       = TypePadView(Event)
-    comments     = TypePadView(Asset)
-    posts        = TypePadView(Post)
-    #linkassets   = TypePadView(LinkAsset, api_name='assets/@link')
-
-    #def group_statuses_url(self, status='admin'):
-    #    return "/groups/%s/memberships/@admin.json" % (self.id,)
-    #group_statuses = remote.Link(group_statuses_url, ApiListField('GroupStatus'))
+    memberships  = Link(ListObject(UserRelationship))
+    assets       = Link(ListObject(Asset))
+    events       = Link(ListObject(Event))
+    comments     = Link(ListObject(Asset))
+    posts        = Link(ListObject(Post))
+    #linkassets   = Link(ListObject(LinkAsset), api_name='assets/@link')
 
     @property
     def id(self):
