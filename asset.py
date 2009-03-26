@@ -4,14 +4,15 @@ import re
 import cgi
 import urllib
 
-from remoteobjects import fields, PromiseObject, Link, remote
+import remoteobjects
+from remoteobjects import fields
 from remoteobjects.dataobject import find_by_name
 from remoteobjects.promise import PromiseError
 import typepad
 from batchhttp.client import BatchError
 import logging
 
-class TypePadObject(PromiseObject):
+class TypePadObject(remoteobjects.PromiseObject):
     # TODO configurable?
     BASE_URL = 'http://127.0.0.1:8000/'
 
@@ -36,7 +37,7 @@ class Link(TypePadObject):
     duration = fields.Something()
     total    = fields.Something()
 
-class SequenceProxyMetaclass(PromiseObject.__metaclass__):
+class SequenceProxyMetaclass(remoteobjects.PromiseObject.__metaclass__):
     @staticmethod
     def makeSequenceMethod(methodname):
         def seqmethod(self, *args, **kwargs):
@@ -180,10 +181,10 @@ class User(TypePadObject):
     email         = fields.Something()
     userpic       = fields.Something()
 
-    relationships = Link(ListObject('UserRelationship'))
-    events        = Link(ListObject('Event'))
-    comments      = Link(ListObject('Asset'), api_name='comments-sent')
-    notifications = Link(ListObject('Event'))
+    relationships = remoteobjects.Link(ListObject('UserRelationship'))
+    events        = remoteobjects.Link(ListObject('Event'))
+    comments      = remoteobjects.Link(ListObject('Asset'), api_name='comments-sent')
+    notifications = remoteobjects.Link(ListObject('Event'))
 
     @property
     def id(self):
@@ -239,7 +240,7 @@ class Asset(TypePadObject):
                 return l.total
         return 0
 
-    comments = Link(ListObject('Asset'))
+    comments = remoteobjects.Link(ListObject('Asset'))
 
     @property
     def id(self):
@@ -306,12 +307,12 @@ class Group(TypePadObject):
     links        = fields.List(fields.Something())
     object_types = fields.List(fields.Something(), api_name='objectTypes')
 
-    memberships  = Link(ListObject(UserRelationship))
-    assets       = Link(ListObject(Asset))
-    events       = Link(ListObject(Event))
-    comments     = Link(ListObject(Asset))
-    posts        = Link(ListObject(Post))
-    #linkassets   = Link(ListObject(LinkAsset), api_name='assets/@link')
+    memberships  = remoteobjects.Link(ListObject(UserRelationship))
+    assets       = remoteobjects.Link(ListObject(Asset))
+    events       = remoteobjects.Link(ListObject(Event))
+    comments     = remoteobjects.Link(ListObject(Asset))
+    posts        = remoteobjects.Link(ListObject(Post))
+    #linkassets   = remoteobjects.Link(ListObject(LinkAsset), api_name='assets/@link')
 
     @property
     def id(self):
