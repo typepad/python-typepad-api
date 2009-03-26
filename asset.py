@@ -52,44 +52,27 @@ class SequenceProxyMetaclass(remoteobjects.PromiseObject.__metaclass__):
                 attrs[methodname] = cls.makeSequenceMethod(methodname)
         return super(SequenceProxyMetaclass, cls).__new__(cls, name, bases, attrs)
 
+class ListOf(SequenceProxyMetaclass):
+    def __new__(cls, name, bases=None, attr=None):
+        if attr is None:
+            # TODO: memoize me
+            entryclass = name
+            if callable(entryclass):
+                name = cls.__name__ + entryclass.__name__
+            else:
+                name = cls.__name__ + entryclass
+            bases = (ListObject,)
+            attr = {'entryclass': entryclass}
+
+        return super(ListOf, cls).__new__(cls, name, bases, attr)
+
 class ListObject(TypePadObject, remoteobjects.ListObject):
-    __metaclass__ = SequenceProxyMetaclass
+    __metaclass__ = ListOf
 
     total_results = fields.Something(api_name='totalResults')
     start_index   = fields.Something(api_name='startIndex')
     links         = fields.List(fields.Object(Link))
     entries       = fields.List(fields.Something())
-
-    def __init__(self, cls=None, api_name=None, **kwargs):
-        self.cls = cls
-        self.api_name = api_name
-        # FIXME: this shouldn't be necessary
-        self._delivered = False
-        self._http = None
-
-    def _get_cls(self):
-        cls = self.__dict__['cls']
-        if not callable(cls):
-            clsname = '.'.join((self.of_cls.__module__, cls))
-            cls = find_by_name(clsname)
-        return cls
-
-    def _set_cls(self, cls):
-        self.__dict__['cls'] = cls
-
-    cls = property(_get_cls, _set_cls)
-
-    def __get__(self, instance, owner):
-        if instance._id is None:
-            raise AttributeError('Cannot find URL of %s relative to URL-less %s' % (type(self).__name__, owner.__name__))
-
-        assert instance._id.endswith('.json')
-        newurl = instance._id[:-5]
-        newurl += '/' + self.api_name
-        newurl += '.json'
-        ret = type(self).get(newurl)
-        ret.cls = self.cls
-        return ret
 
     filterorder = ['following', 'follower', 'friend', 'nonreciprocal',
         'published', 'unpublished', 'spam', 'admin', 'member',
@@ -102,7 +85,8 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         queryargs = dict([(k, v[0]) for k, v in queryargs.iteritems()])
 
         oldpath = parts[2]
-        assert oldpath.endswith('.json')
+        if not oldpath.endswith('.json'):
+            raise AssertionError('oldpath %r does not end in %r' % (oldpath, '.json'))
         path = oldpath[:-5].split('/')
 
         filters = dict()
@@ -144,8 +128,8 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         parts[4] = urllib.urlencode(queryargs)
         newurl = urlunparse(parts)
 
-        ret = type(self).get(newurl)
-        ret.cls = self.cls
+        ret = self.get(newurl)
+        ret.of_cls = self.of_cls
         return ret
 
     def __getitem__(self, key):
@@ -161,9 +145,31 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         return self.filter(**args)
 
     def update_from_dict(self, data):
-        super(List, self).update_from_dict(data)
+        super(ListObject, self).update_from_dict(data)
         # Post-convert all the "entries" list items to our entry class.
-        self.entries = [self.cls.from_dict(d) for d in self.entries]
+        entryclass = self.entryclass
+        if not callable(entryclass):
+            clsname = '.'.join((self.of_cls.__module__, entryclass))
+            entryclass = find_by_name(clsname)
+        self.entries = [self.entryclass.from_dict(d) for d in self.entries]
+
+class ApiLink(remoteobjects.Link):
+    def __get__(self, instance, owner):
+        try:
+            if instance._id is None:
+                raise AttributeError('Cannot find URL of %s relative to URL-less %s' % (type(self).__name__, owner.__name__))
+
+            assert instance._id.endswith('.json')
+            newurl = instance._id[:-5]
+            newurl += '/' + self.api_name
+            newurl += '.json'
+
+            ret = self.cls.get(newurl)
+            ret.of_cls = self.of_cls
+            return ret
+        except Exception, e:
+            logging.error(str(e))
+            raise
 
 class User(TypePadObject):
     # documented fields
@@ -181,10 +187,10 @@ class User(TypePadObject):
     email         = fields.Something()
     userpic       = fields.Something()
 
-    relationships = remoteobjects.Link(ListObject('UserRelationship'))
-    events        = remoteobjects.Link(ListObject('Event'))
-    comments      = remoteobjects.Link(ListObject('Asset'), api_name='comments-sent')
-    notifications = remoteobjects.Link(ListObject('Event'))
+    relationships = ApiLink(ListOf('UserRelationship'))
+    events        = ApiLink(ListOf('Event'))
+    comments      = ApiLink(ListOf('Asset'), api_name='comments-sent')
+    notifications = ApiLink(ListOf('Event'))
 
     @property
     def id(self):
@@ -240,7 +246,7 @@ class Asset(TypePadObject):
                 return l.total
         return 0
 
-    comments = remoteobjects.Link(ListObject('Asset'))
+    comments = ApiLink(ListOf('Asset'))
 
     @property
     def id(self):
@@ -307,12 +313,12 @@ class Group(TypePadObject):
     links        = fields.List(fields.Something())
     object_types = fields.List(fields.Something(), api_name='objectTypes')
 
-    memberships  = remoteobjects.Link(ListObject(UserRelationship))
-    assets       = remoteobjects.Link(ListObject(Asset))
-    events       = remoteobjects.Link(ListObject(Event))
-    comments     = remoteobjects.Link(ListObject(Asset))
-    posts        = remoteobjects.Link(ListObject(Post))
-    #linkassets   = remoteobjects.Link(ListObject(LinkAsset), api_name='assets/@link')
+    memberships  = ApiLink(ListOf(UserRelationship))
+    assets       = ApiLink(ListOf(Asset))
+    events       = ApiLink(ListOf(Event))
+    comments     = ApiLink(ListOf(Asset))
+    posts        = ApiLink(ListOf(Post))
+    #linkassets   = ApiLink(ListOf(LinkAsset), api_name='assets/@link')
 
     @property
     def id(self):
