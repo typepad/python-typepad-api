@@ -87,7 +87,7 @@ requests = {
     ),
     'delete_created_post': (
         { 'uri': 'http://127.0.0.1:8000/assets/307.json',
-          'method': 'DELETE', 
+          'method': 'DELETE',
           'headers': {'if-match': '7', 'accept': 'application/json'} },
         { 'status': 204 },
     ),
