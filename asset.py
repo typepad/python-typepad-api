@@ -149,8 +149,7 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         # Post-convert all the "entries" list items to our entry class.
         entryclass = self.entryclass
         if not callable(entryclass):
-            clsname = '.'.join((self.of_cls.__module__, entryclass))
-            entryclass = find_by_name(clsname)
+            entryclass = find_by_name(entryclass)
         self.entries = [self.entryclass.from_dict(d) for d in self.entries]
 
 class ApiLink(remoteobjects.Link):
