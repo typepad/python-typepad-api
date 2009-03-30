@@ -259,6 +259,8 @@ class TestLocalObjects(unittest.TestCase):
         self.assert_(enclosure   in links_list)
         self.assert_(enclosure_2 in links_list)
 
+        self.assertRaises(KeyError, lambda: ls['asfdasf'])
+
 if __name__ == '__main__':
     tests.log()
     unittest.main()

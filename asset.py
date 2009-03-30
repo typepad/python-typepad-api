@@ -55,6 +55,8 @@ class LinkSet(set, TypePadObject):
             if x.rel == key:
                 return x
 
+        raise KeyError('No such link %r in this set' % key)
+
 class SequenceProxyMetaclass(remoteobjects.PromiseObject.__metaclass__):
     @staticmethod
     def makeSequenceMethod(methodname):
