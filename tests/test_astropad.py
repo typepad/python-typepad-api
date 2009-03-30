@@ -101,7 +101,6 @@ class TestRemoteObjects(test_mock.TestRemoteObjects):
 
         if 'credentials' in kwargs:
             csr, access_token = gimmeOAuthAccessToken(self, *kwargs['credentials'])
-            del kwargs['credentials']
             wh.http.add_credentials(csr, access_token)
 
         return wh
