@@ -37,6 +37,24 @@ class Link(TypePadObject):
     duration = fields.Something()
     total    = fields.Something()
 
+class LinkSet(set, TypePadObject):
+    def update_from_dict(self, data):
+        self.update([Link.from_dict(x) for x in data])
+
+    def __getitem__(self, key):
+        if isinstance(key, slice):
+            raise KeyError('LinkSets cannot be sliced')
+
+        if key.endswith('_set'):
+            # Gimme all matching links.
+            key = key[:-4]
+            return [x for x in self if x.rel == key]
+
+        # Gimme the first matching link.
+        for x in self:
+            if x.rel == key:
+                return x
+
 class SequenceProxyMetaclass(remoteobjects.PromiseObject.__metaclass__):
     @staticmethod
     def makeSequenceMethod(methodname):

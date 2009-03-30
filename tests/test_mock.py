@@ -241,22 +241,22 @@ class TestLocalObjects(unittest.TestCase):
 
         ls = typepad.LinkSet.from_dict([ replies, enclosure, enclosure_2 ])
 
+        replies     = typepad.Link.from_dict(replies)
+        enclosure   = typepad.Link.from_dict(enclosure)
+        enclosure_2 = typepad.Link.from_dict(enclosure_2)
+
         self.assert_(isinstance(ls, typepad.LinkSet))
-
         self.assertEquals(len(ls), 3)
-        self.assert_(replies in ls)
-        self.assert_(enclosure in ls)
-        self.assert_(enclosure_2 in ls)
 
-        self.assertEquals(ls['replies'], dict(replies))
-        self.assert_(ls['enclosure'] in (dict(enclosure), dict(enclosure_2)))
-        self.assertEquals(ls['replies_set'], list(dict(replies)))
-        self.assertEquals(ls['enclosure_set'], list(dict(enclosure), dict(enclosure_2)))
+        self.assertEquals(ls['replies'], replies)
+        self.assert_(ls['enclosure'] in (enclosure, enclosure_2))
+        self.assertEquals(ls['replies_set'], [ replies ])
+        self.assertEquals(ls['enclosure_set'], [ enclosure, enclosure_2 ])
 
         links_list = list(ls)
         self.assertEquals(len(links_list), 3)
-        self.assert_(replies in links_list)
-        self.assert_(enclosure in links_list)
+        self.assert_(replies     in links_list)
+        self.assert_(enclosure   in links_list)
         self.assert_(enclosure_2 in links_list)
 
 if __name__ == '__main__':
