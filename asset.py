@@ -89,7 +89,7 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
 
     total_results = fields.Something(api_name='totalResults')
     start_index   = fields.Something(api_name='startIndex')
-    links         = fields.List(fields.Object(Link))
+    links         = fields.Object(LinkSet)
     entries       = fields.List(fields.Something())
 
     filterorder = ['following', 'follower', 'friend', 'nonreciprocal',
@@ -246,7 +246,7 @@ class Asset(TypePadObject):
     categories   = fields.List(fields.Something())
     object_types = fields.List(fields.Something(), api_name='objectTypes')
     status       = fields.Object(PublicationStatus)
-    links        = fields.List(fields.Object(Link))
+    links        = fields.Object(LinkSet)
     in_reply_to  = fields.Object(AssetRef, api_name='inReplyTo')
 
     @property
