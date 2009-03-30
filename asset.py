@@ -41,6 +41,9 @@ class LinkSet(set, TypePadObject):
     def update_from_dict(self, data):
         self.update([Link.from_dict(x) for x in data])
 
+    def to_dict(self):
+        return [x.to_dict() for x in self]
+
     def __getitem__(self, key):
         if isinstance(key, slice):
             raise KeyError('LinkSets cannot be sliced')

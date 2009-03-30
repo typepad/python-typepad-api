@@ -261,6 +261,12 @@ class TestLocalObjects(unittest.TestCase):
 
         self.assertRaises(KeyError, lambda: ls['asfdasf'])
 
+        links_json = ls.to_dict()
+
+        self.assert_(isinstance(links_json, list))
+        self.assert_(len(links_json), 3)
+        self.assert_(replies.to_dict() in links_json)
+
 if __name__ == '__main__':
     tests.log()
     unittest.main()
