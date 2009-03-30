@@ -168,7 +168,7 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         entryclass = self.entryclass
         if not callable(entryclass):
             entryclass = find_by_name(entryclass)
-        self.entries = [self.entryclass.from_dict(d) for d in self.entries]
+        self.entries = [entryclass.from_dict(d) for d in self.entries]
 
 class ApiLink(remoteobjects.Link):
     def __get__(self, instance, owner):
