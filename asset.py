@@ -17,6 +17,11 @@ class TypePadObject(remoteobjects.PromiseObject):
     BASE_URL = 'http://127.0.0.1:8000/'
 
     @classmethod
+    def get_response(cls, url, http=None, **kwargs):
+        http = typepad.client.http
+        return super(TypePadObject, cls).get_response(url, http=http, **kwargs)
+
+    @classmethod
     def get(cls, url, *args, **kwargs):
         if not urlparse(url)[1]:  # network location
             url = urljoin(cls.BASE_URL, url)
