@@ -242,6 +242,7 @@ class AssetRef(TypePadObject):
     ref  = fields.Something()
     href = fields.Something()
     type = fields.Something()
+    id   = fields.Something(api_name='urlId')
 
 class Asset(TypePadObject):
     # documented fields
