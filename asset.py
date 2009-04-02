@@ -29,9 +29,14 @@ class TypePadObject(remoteobjects.PromiseObject):
         ret = super(TypePadObject, cls).get(url, *args, **kwargs)
         try:
             typepad.client.add(ret)
-        except BatchError:
-            pass
+        except BatchError, ex:
+            raise PromiseError("Cannot get %s %s outside a batch request"
+                % (cls.__name__, url))
         return ret
+
+    def deliver(self):
+        raise PromiseError("Cannot deliver %s %s except by batch request"
+            % (type(self).__name__, self._id))
 
 class Link(TypePadObject):
     rel      = fields.Something()
@@ -65,22 +70,23 @@ class LinkSet(set, TypePadObject):
 
         raise KeyError('No such link %r in this set' % key)
 
-class SequenceProxyMetaclass(remoteobjects.PromiseObject.__metaclass__):
-    @staticmethod
-    def makeSequenceMethod(methodname):
+class SequenceProxy(object):
+    def make_sequence_method(methodname):
         def seqmethod(self, *args, **kwargs):
             # Proxy these methods to self.entries.
             return getattr(self.entries, methodname)(*args, **kwargs)
         seqmethod.__name__ = methodname
         return seqmethod
 
-    def __new__(cls, name, bases, attrs):
-        for methodname in ('__len__', '__getitem__', '__setitem__', '__delitem__', '__iter__', '__reversed__', '__contains__'):
-            if methodname not in attrs:
-                attrs[methodname] = cls.makeSequenceMethod(methodname)
-        return super(SequenceProxyMetaclass, cls).__new__(cls, name, bases, attrs)
+    __len__      = make_sequence_method('__len__')
+    __getitem__  = make_sequence_method('__getitem__')
+    __setitem__  = make_sequence_method('__setitem__')
+    __delitem__  = make_sequence_method('__delitem__')
+    __iter__     = make_sequence_method('__iter__')
+    __reversed__ = make_sequence_method('__reversed__')
+    __contains__ = make_sequence_method('__contains__')
 
-class ListOf(SequenceProxyMetaclass):
+class ListOf(remoteobjects.PromiseObject.__metaclass__):
     def __new__(cls, name, bases=None, attr=None):
         if attr is None:
             # TODO: memoize me
@@ -92,6 +98,7 @@ class ListOf(SequenceProxyMetaclass):
             bases = (ListObject,)
             attr = {'entryclass': entryclass}
 
+        bases = bases + (SequenceProxy,)
         return super(ListOf, cls).__new__(cls, name, bases, attr)
 
 class ListObject(TypePadObject, remoteobjects.ListObject):
