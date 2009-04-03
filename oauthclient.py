@@ -1,10 +1,14 @@
+import httplib
 import httplib2
 import urlparse
 from oauth import oauth
+import logging
 
-from typepad import client
+from django.conf import settings
 
-__all__ = ('OAuthAuthentication', 'OAuthClient')
+import typepad
+
+__all__ = ('OAuthAuthentication', 'OAuthClient', 'OAuthHttp')
 
 class OAuthAuthentication(httplib2.Authentication):
 
@@ -33,11 +37,23 @@ class OAuthAuthentication(httplib2.Authentication):
         uri = urlparse.urlunsplit(('http', self.host) + partial_uri[2:])
 
         csr, token = self.credentials
+        assert token.secret is not None
+
         orly = oauth.OAuthRequest.from_consumer_and_token(csr, token,
             http_method=method, http_url=uri)
         sm = oauth.OAuthSignatureMethod_HMAC_SHA1()
         orly.sign_request(sm, csr, token)
         headers.update(orly.to_header())
+
+class OAuthHttp(httplib2.Http):
+    def add_credentials(self, name, password, domain=""):
+        super(OAuthHttp, self).add_credentials(name, password, domain)
+        if isinstance(name, oauth.OAuthConsumer) and domain:
+            # Preauthorize these credentials for any request at that domain.
+            cred = (name, password)
+            domain = domain.lower()
+            auth = OAuthAuthentication(cred, domain, "http://%s/" % domain, {}, None, None, self)
+            self.authorizations.append(auth)
 
 httplib2.AUTH_SCHEME_CLASSES['oauth'] = OAuthAuthentication
 httplib2.AUTH_SCHEME_ORDER[0:0] = ('oauth',)  # unshift onto front
@@ -63,32 +79,45 @@ class OAuthClient(oauth.OAuthClient):
 
     def fetch_request_token(self):
         # -> OAuthToken
-        h = client.http
+        gp_token = oauth.OAuthToken(key=settings.OAUTH_GENERAL_PURPOSE_KEY,
+            secret=settings.OAUTH_GENERAL_PURPOSE_SECRET)
+
+        h = typepad.client.http
         req = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer,
+            token=gp_token,
             http_method = 'GET',
             http_url = self.request_token_url,
         )
-        req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), self.consumer, None)
+
+        sign_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
+        req.set_parameter('oauth_signature_method', sign_method.get_name())
+        logging.error('SIGNING SIG BASE STRING %s' % (sign_method.build_signature_base_string(req, self.consumer, self.token),))
+        req.sign_request(sign_method, self.consumer, self.token)
+
         resp, content = h.request(req.to_url(), method=req.get_normalized_http_method())
+        if resp.status != 200:
+            raise httplib.HTTPException('WHAT %d %s?!' % (resp.status, resp.reason))
         self.token = oauth.OAuthToken.from_string(content)
         return self.token
 
     def fetch_access_token(self, request_token_str=None):
         # -> OAuthToken
-        h = client.http
+        h = typepad.client.http
         req = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer,
             token = self.token,
             http_url = self.access_token_url,
         )
-        req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), self.consumer, self.token)
+        sign_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
+        logging.error('SIGNING SIG BASE STRING %s' % (sign_method.build_signature_base_string(req, self.consumer, self.token),))
+        req.sign_request(sign_method, self.consumer, self.token)
         resp, content = h.request(req.to_url(), method=req.get_normalized_http_method())
         self.token = oauth.OAuthToken.from_string(content)
         return self.token
 
     def authorize_token(self):
-        h = client.http
+        h = typepad.client.http
         req = oauth.OAuthRequest.from_token_and_callback(
             self.token,
             callback=self.callback_url,

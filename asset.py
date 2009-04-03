@@ -14,7 +14,7 @@ import logging
 
 class TypePadObject(remoteobjects.PromiseObject):
     # TODO configurable?
-    BASE_URL = 'http://127.0.0.1:8000/'
+    BASE_URL = 'http://7:8000/'
 
     @classmethod
     def get_response(cls, url, http=None, **kwargs):
