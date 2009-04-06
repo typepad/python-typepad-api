@@ -13,8 +13,7 @@ from batchhttp.client import BatchError
 import logging
 
 class TypePadObject(remoteobjects.PromiseObject):
-    # TODO configurable?
-    BASE_URL = 'http://7:8000/'
+    base_url = None
 
     @classmethod
     def get_response(cls, url, http=None, **kwargs):
@@ -23,8 +22,8 @@ class TypePadObject(remoteobjects.PromiseObject):
 
     @classmethod
     def get(cls, url, *args, **kwargs):
-        if not urlparse(url)[1]:  # network location
-            url = urljoin(cls.BASE_URL, url)
+        if cls.base_url is not None and not urlparse(url)[1]:  # network location
+            url = urljoin(cls.base_url, url)
 
         ret = super(TypePadObject, cls).get(url, *args, **kwargs)
         try:
