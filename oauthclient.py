@@ -39,11 +39,16 @@ class OAuthAuthentication(httplib2.Authentication):
         csr, token = self.credentials
         assert token.secret is not None
 
-        orly = oauth.OAuthRequest.from_consumer_and_token(csr, token,
+        req = oauth.OAuthRequest.from_consumer_and_token(csr, token,
             http_method=method, http_url=uri)
-        sm = oauth.OAuthSignatureMethod_HMAC_SHA1()
-        orly.sign_request(sm, csr, token)
-        headers.update(orly.to_header())
+
+        sign_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
+        req.set_parameter('oauth_signature_method', sign_method.get_name())
+        logging.error('SIGNING SIG BASE STRING %s'
+            % (sign_method.build_signature_base_string(req, csr, token),))
+        req.sign_request(sign_method, csr, token)
+
+        headers.update(req.to_header())
 
 class OAuthHttp(httplib2.Http):
     def add_credentials(self, name, password, domain=""):
