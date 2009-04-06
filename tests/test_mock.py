@@ -125,7 +125,14 @@ class TestRemoteObjects(unittest.TestCase):
             req = requests[key]
         except KeyError:
             raise Exception('No such mock request %s' % (callername,))
-        return tests.MockedHttp(*req)
+
+        mockhttp = tests.MockedHttp(*req)
+        typepad.client.http = mockhttp.mock
+
+        return mockhttp
+
+    def setUp(self):
+        typepad.TypePadObject.batch_requests = False
 
     def testUser(self):
         with self.http('get_user') as h:
