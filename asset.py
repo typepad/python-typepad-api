@@ -14,6 +14,7 @@ import logging
 
 class TypePadObject(remoteobjects.PromiseObject):
     base_url = None
+    batch_requests = True
 
     @classmethod
     def get_response(cls, url, http=None, **kwargs):
@@ -26,16 +27,19 @@ class TypePadObject(remoteobjects.PromiseObject):
             url = urljoin(cls.base_url, url)
 
         ret = super(TypePadObject, cls).get(url, *args, **kwargs)
-        try:
-            typepad.client.add(ret)
-        except BatchError, ex:
-            raise PromiseError("Cannot get %s %s outside a batch request"
-                % (cls.__name__, url))
+        if cls.batch_requests:
+            try:
+                typepad.client.add(ret)
+            except BatchError, ex:
+                raise PromiseError("Cannot get %s %s outside a batch request"
+                    % (cls.__name__, url))
         return ret
 
     def deliver(self):
-        raise PromiseError("Cannot deliver %s %s except by batch request"
-            % (type(self).__name__, self._id))
+        if self.batch_requests:
+            raise PromiseError("Cannot deliver %s %s except by batch request"
+                % (type(self).__name__, self._id))
+        return super(TypePadObject, self).deliver()
 
 class Link(TypePadObject):
     rel      = fields.Something()
