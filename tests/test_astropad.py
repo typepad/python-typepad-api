@@ -4,11 +4,12 @@ import unittest
 from urllib import urlencode, unquote
 from urlparse import urlsplit, urlunsplit
 
+import nose
+from oauth import oauth
+
 from remoteobjects import tests
 from typepad.tests import test_mock
-
 import typepad
-from oauth import oauth
 
 def gimmeOAuthAccessToken(self, email, password):
     key, secret = 'key', 'secret'
@@ -96,6 +97,11 @@ class WithableHttp(object):
         pass
 
 class TestRemoteObjects(test_mock.TestRemoteObjects):
+
+    def setUp(self):
+        if tests.are_automated():
+            raise nose.SkipTest('no astropad tests when automated')
+
     def http(self, *args, **kwargs):
         wh = WithableHttp()
 
@@ -106,6 +112,11 @@ class TestRemoteObjects(test_mock.TestRemoteObjects):
         return wh
 
 class TestAstropad(unittest.TestCase):
+
+    def setUp(self):
+        if tests.are_automated():
+            raise nose.SkipTest('no astropad tests when automated')
+
     def testOAuthSetup(self):
         self.assertEquals(httplib2.AUTH_SCHEME_ORDER[0], 'oauth')
         self.assert_('oauth' in httplib2.AUTH_SCHEME_CLASSES)
