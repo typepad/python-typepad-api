@@ -101,6 +101,7 @@ class TestRemoteObjects(test_mock.TestRemoteObjects):
     def setUp(self):
         if tests.are_automated():
             raise nose.SkipTest('no astropad tests when automated')
+        super(TestRemoteObjects, self).setUp()
 
     def http(self, *args, **kwargs):
         wh = WithableHttp()
