@@ -258,6 +258,7 @@ class AssetRef(TypePadObject):
 
 class Asset(TypePadObject):
     # documented fields
+    id           = fields.Something(api_name='urlId')
     atom_id      = fields.Something(api_name='id')
     title        = fields.Something()
     author       = fields.Object(User)
@@ -297,12 +298,6 @@ class Asset(TypePadObject):
     favorites = ApiLink(ListOf('Asset'))
 
     @property
-    def id(self):
-        # yes, this is stupid, but damn it, I need this for urls
-        # tag:typepad.com,2003:asset-1794
-        return self.atom_id.split('-', 1)[1]
-
-    @property
     def asset_ref(self):
         # This is also stupid. Why not have in_reply_to just be another asset??
         ref = AssetRef()
@@ -328,17 +323,12 @@ class Asset(TypePadObject):
     '''
 
 class Event(TypePadObject):
+    id      = fields.Something(api_name='urlId')
     atom_id = fields.Something(api_name='id')
     verbs   = fields.List(fields.Something())
     # TODO: vary these based on verb content? oh boy
     actor   = fields.Object(User)
     object  = fields.Object(Asset)
-
-    @property
-    def id(self):
-        # yes, this is stupid, but damn it, I need this for urls
-        # tag:typepad.com,2003:event-1680
-        return self.atom_id.split('-', 1)[1]
 
     def __unicode__(self):
         return unicode(self.object)
@@ -352,6 +342,7 @@ class Post(Asset):
 class LinkAsset(Asset):
     object_types = fields.Constant(("tag:api.typepad.com,2009:Link",), api_name='objectTypes')
 
+
 class ElsewhereAccount(TypePadObject):
     domain            = fields.Something()
     username          = fields.Something()
@@ -361,11 +352,12 @@ class ElsewhereAccount(TypePadObject):
     provider_url      = fields.Something(api_name='providerURL')
     provider_icon_url = fields.Something(api_name='providerIconURL')
 
+
 class Group(TypePadObject):
+    id           = fields.Something(api_name='urlId')
     atom_id      = fields.Something(api_name='id')
     display_name = fields.Something(api_name='displayName')
     tagline      = fields.Something()
-    url_id       = fields.Something(api_name='urlId')
     urls         = fields.List(fields.Something())
     links        = fields.List(fields.Something())
     object_types = fields.List(fields.Something(), api_name='objectTypes')
@@ -377,9 +369,6 @@ class Group(TypePadObject):
     posts        = ApiLink(ListOf(Post))
     #linkassets   = ApiLink(ListOf(LinkAsset), api_name='assets/@link')
 
-    @property
-    def id(self):
-        return self.atom_id.split('-', 1)[1]
 
 class Application(TypePadObject):
     owner   = fields.Object(Group)
