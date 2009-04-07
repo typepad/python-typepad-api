@@ -210,26 +210,26 @@ class ApiLink(remoteobjects.Link):
 
 class User(TypePadObject):
     # documented fields
-    id            = fields.Something(api_name='urlId')
-    atom_id       = fields.Something(api_name='id')
-    display_name  = fields.Something(api_name='displayName')
-    profile_alias = fields.Something(api_name='profileAlias')
-    about_me      = fields.Something(api_name='aboutMe')
-    interests     = fields.List(fields.Something())
-    urls          = fields.List(fields.Something())
-    accounts      = fields.List(fields.Something())
-    links         = fields.List(fields.Something())
-    object_type   = fields.Something(api_name='objectType')
+    id                 = fields.Something(api_name='urlId')
+    atom_id            = fields.Something(api_name='id')
+    display_name       = fields.Something(api_name='displayName')
+    preferred_username = fields.Something(api_name='preferredUsername')
+    about_me           = fields.Something(api_name='aboutMe')
+    interests          = fields.List(fields.Something())
+    urls               = fields.List(fields.Something())
+    accounts           = fields.List(fields.Something())
+    links              = fields.List(fields.Something())
+    object_types       = fields.Something(api_name='objectTypes')
 
     # astropad extras
-    email         = fields.Something()
-    userpic       = fields.Something()
+    email              = fields.Something()
+    userpic            = fields.Something()
 
-    relationships = ApiLink(ListOf('UserRelationship'))
-    events        = ApiLink(ListOf('Event'))
-    comments      = ApiLink(ListOf('Asset'), api_name='comments-sent')
-    notifications = ApiLink(ListOf('Event'))
-    memberships   = ApiLink(ListOf('UserRelationship'))
+    relationships      = ApiLink(ListOf('UserRelationship'))
+    events             = ApiLink(ListOf('Event'))
+    comments           = ApiLink(ListOf('Asset'), api_name='comments-sent')
+    notifications      = ApiLink(ListOf('Event'))
+    memberships        = ApiLink(ListOf('UserRelationship'))
     elsewhere_accounts = ApiLink(ListOf('ElsewhereAccount'))
 
     @classmethod
