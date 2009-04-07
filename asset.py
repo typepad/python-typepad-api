@@ -218,12 +218,11 @@ class User(TypePadObject):
     interests          = fields.List(fields.Something())
     urls               = fields.List(fields.Something())
     accounts           = fields.List(fields.Something())
-    links              = fields.List(fields.Something())
+    links              = fields.Object(LinkSet)
     object_types       = fields.Something(api_name='objectTypes')
 
     # astropad extras
     email              = fields.Something()
-    userpic            = fields.Something()
 
     relationships      = ApiLink(ListOf('UserRelationship'))
     events             = ApiLink(ListOf('Event'))
