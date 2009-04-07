@@ -382,18 +382,21 @@ class Group(TypePadObject):
         return self.atom_id.split('-', 1)[1]
 
 class Application(TypePadObject):
-    owner        = fields.Object(Group)
-    api_key      = fields.Something()
-    links        = fields.List(fields.Object(Link))
+    owner   = fields.Object(Group)
+    api_key = fields.Something()
+    links   = fields.Object(LinkSet)
 
+    @property
     def oauth_request_token(self):
-        return self.links['oauth-request-token-endpoint']
+        return self.links['oauth-request-token-endpoint'].href
 
+    @property
     def oauth_authorization_page(self):
-        return self.links['oauth-authorization-page']
+        return self.links['oauth-authorization-page'].href
 
+    @property
     def oauth_access_token_endpoint(self):
-        return self.links['oauth-access-token-endpoint']
+        return self.links['oauth-access-token-endpoint'].href
 
 class GroupStatus(TypePadObject):
     #status = fields.Something()
