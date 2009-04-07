@@ -210,6 +210,7 @@ class ApiLink(remoteobjects.Link):
 
 class User(TypePadObject):
     # documented fields
+    id            = fields.Something(api_name='urlId')
     atom_id       = fields.Something(api_name='id')
     display_name  = fields.Something(api_name='displayName')
     profile_alias = fields.Something(api_name='profileAlias')
@@ -230,12 +231,6 @@ class User(TypePadObject):
     notifications = ApiLink(ListOf('Event'))
     memberships   = ApiLink(ListOf('UserRelationship'))
     elsewhere_accounts = ApiLink(ListOf('ElsewhereAccount'))
-
-    @property
-    def id(self):
-        # yes, this is stupid, but damn it, I need this for urls
-        # tag:typepad.com,2003:user-50
-        return int(self.atom_id.split('-', 1)[1])
 
     @classmethod
     def get_self(cls, **kwargs):
