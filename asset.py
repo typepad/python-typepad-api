@@ -228,6 +228,8 @@ class User(TypePadObject):
     events        = ApiLink(ListOf('Event'))
     comments      = ApiLink(ListOf('Asset'), api_name='comments-sent')
     notifications = ApiLink(ListOf('Event'))
+    memberships   = ApiLink(ListOf('UserRelationship'))
+    elsewhere_accounts = ApiLink(ListOf('ElsewhereAccount'))
 
     @property
     def id(self):
@@ -350,11 +352,20 @@ class Post(Asset):
 class LinkAsset(Asset):
     object_types = fields.Constant(("tag:api.typepad.com,2009:Link",), api_name='objectTypes')
 
+class ElsewhereAccount(TypePadObject):
+    domain            = fields.Something()
+    username          = fields.Something()
+    user_id           = fields.Something(api_name='userId')
+    url               = fields.Something()
+    provider_name     = fields.Something(api_name='providerName')
+    provider_url      = fields.Something(api_name='providerURL')
+    provider_icon_url = fields.Something(api_name='providerIconURL')
+
 class Group(TypePadObject):
     atom_id      = fields.Something(api_name='id')
     display_name = fields.Something(api_name='displayName')
     tagline      = fields.Something()
-    avatar       = fields.Something()
+    url_id       = fields.Something(api_name='urlId')
     urls         = fields.List(fields.Something())
     links        = fields.List(fields.Something())
     object_types = fields.List(fields.Something(), api_name='objectTypes')
@@ -369,6 +380,20 @@ class Group(TypePadObject):
     @property
     def id(self):
         return self.atom_id.split('-', 1)[1]
+
+class Application(TypePadObject):
+    owner        = fields.Object(Group)
+    api_key      = fields.Something()
+    links        = fields.List(fields.Object(Link))
+
+    def oauth_request_token(self):
+        return self.links['oauth-request-token-endpoint']
+
+    def oauth_authorization_page(self):
+        return self.links['oauth-authorization-page']
+
+    def oauth_access_token_endpoint(self):
+        return self.links['oauth-access-token-endpoint']
 
 class GroupStatus(TypePadObject):
     #status = fields.Something()
