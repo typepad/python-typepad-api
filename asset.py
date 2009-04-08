@@ -31,8 +31,12 @@ class TypePadObject(remoteobjects.PromiseObject):
             try:
                 typepad.client.add(ret)
             except BatchError, ex:
-                raise PromiseError("Cannot get %s %s outside a batch request"
-                    % (cls.__name__, url))
+                # We're suppressing an exception here for ListObjects
+                # since in some cases we merely want the object to
+                # 'post' against.
+                if not issubclass(cls, ListObject):
+                    raise PromiseError("Cannot get %s %s outside a batch request"
+                        % (cls.__name__, url))
         return ret
 
     def deliver(self):
@@ -360,8 +364,14 @@ class Group(TypePadObject):
     assets       = ApiLink(ListOf(Asset))
     events       = ApiLink(ListOf(Event))
     comments     = ApiLink(ListOf(Asset))
-    posts        = ApiLink(ListOf(Post))
-    #linkassets   = ApiLink(ListOf(LinkAsset), api_name='assets/@link')
+
+    # comments     = ApiLink(ListOf(Asset), api_name='comment-assets')
+    # post_assets  = ApiLink(ListOf(Post), api_name='post-assets')
+    # photo_assets = ApiLink(ListOf(Post), api_name='photo-assets')
+    # link_assets  = ApiLink(ListOf(Post), api_name='link-assets')
+    # video_assets = ApiLink(ListOf(Post), api_name='video-assets')
+    # audio_assets = ApiLink(ListOf(Post), api_name='audio-assets')
+    # link_assets  = ApiLink(ListOf(LinkAsset), api_name='assets/@link')
 
 
 class Application(TypePadObject):
