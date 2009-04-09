@@ -29,7 +29,7 @@ class TypePadObject(remoteobjects.PromiseObject):
         ret = super(TypePadObject, cls).get(url, *args, **kwargs)
         if cls.batch_requests:
             try:
-                typepad.client.add(ret.get_request(), ret.update_from_subresponse)
+                typepad.client.add(ret.get_request(), ret.update_from_response)
             except BatchError, ex:
                 # We're suppressing an exception here for ListObjects
                 # since in some cases we merely want the object to
@@ -38,10 +38,6 @@ class TypePadObject(remoteobjects.PromiseObject):
                     raise PromiseError("Cannot get %s %s outside a batch request"
                         % (cls.__name__, url))
         return ret
-
-    def update_from_subresponse(self, url, response, content):
-        self._raise_response(response, url)
-        self.update_from_response(response, content)
 
     def deliver(self):
         if self.batch_requests:
