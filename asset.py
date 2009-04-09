@@ -46,13 +46,13 @@ class TypePadObject(remoteobjects.RemoteObject):
         return super(TypePadObject, self).deliver()
 
 class Link(TypePadObject):
-    rel      = fields.Something()
-    href     = fields.Something()
-    type     = fields.Something()
-    width    = fields.Something()
-    height   = fields.Something()
-    duration = fields.Something()
-    total    = fields.Something()
+    rel      = fields.Field()
+    href     = fields.Field()
+    type     = fields.Field()
+    width    = fields.Field()
+    height   = fields.Field()
+    duration = fields.Field()
+    total    = fields.Field()
 
 class LinkSet(set, TypePadObject):
     def update_from_dict(self, data):
@@ -111,10 +111,10 @@ class ListOf(remoteobjects.ListObject.__metaclass__):
 class ListObject(TypePadObject, remoteobjects.ListObject):
     __metaclass__ = ListOf
 
-    total_results = fields.Something(api_name='totalResults')
-    start_index   = fields.Something(api_name='startIndex')
+    total_results = fields.Field(api_name='totalResults')
+    start_index   = fields.Field(api_name='startIndex')
     links         = fields.Object(LinkSet)
-    entries       = fields.List(fields.Something())
+    entries       = fields.List(fields.Field())
 
     filterorder = ['following', 'follower', 'friend', 'nonreciprocal',
         'published', 'unpublished', 'spam', 'admin', 'member',
@@ -214,19 +214,19 @@ class ApiLink(fields.Link):
 
 class User(TypePadObject):
     # documented fields
-    id                 = fields.Something(api_name='urlId')
-    atom_id            = fields.Something(api_name='id')
-    display_name       = fields.Something(api_name='displayName')
-    preferred_username = fields.Something(api_name='preferredUsername')
-    about_me           = fields.Something(api_name='aboutMe')
-    interests          = fields.List(fields.Something())
-    urls               = fields.List(fields.Something())
-    accounts           = fields.List(fields.Something())
+    id                 = fields.Field(api_name='urlId')
+    atom_id            = fields.Field(api_name='id')
+    display_name       = fields.Field(api_name='displayName')
+    preferred_username = fields.Field(api_name='preferredUsername')
+    about_me           = fields.Field(api_name='aboutMe')
+    interests          = fields.List(fields.Field())
+    urls               = fields.List(fields.Field())
+    accounts           = fields.List(fields.Field())
     links              = fields.Object(LinkSet)
-    object_types       = fields.Something(api_name='objectTypes')
+    object_types       = fields.Field(api_name='objectTypes')
 
     # astropad extras
-    email              = fields.Something()
+    email              = fields.Field()
 
     relationships      = ApiLink(ListOf('UserRelationship'))
     events             = ApiLink(ListOf('Event'))
@@ -240,33 +240,33 @@ class User(TypePadObject):
         return cls.get('/users/@self.json', **kwargs)
 
 class UserRelationship(TypePadObject):
-    #status = fields.Something()
+    #status = fields.Field()
     source = fields.Object(User)
     target = fields.Object(User)
 
 class PublicationStatus(TypePadObject):
-    published = fields.Something()
-    spam      = fields.Something()
+    published = fields.Field()
+    spam      = fields.Field()
 
 class AssetRef(TypePadObject):
-    ref  = fields.Something()
-    href = fields.Something()
-    type = fields.Something()
-    id   = fields.Something(api_name='urlId')
+    ref  = fields.Field()
+    href = fields.Field()
+    type = fields.Field()
+    id   = fields.Field(api_name='urlId')
 
 class Asset(TypePadObject):
     # documented fields
-    id           = fields.Something(api_name='urlId')
-    atom_id      = fields.Something(api_name='id')
-    title        = fields.Something()
+    id           = fields.Field(api_name='urlId')
+    atom_id      = fields.Field(api_name='id')
+    title        = fields.Field()
     author       = fields.Object(User)
     published    = fields.Datetime()
     updated      = fields.Datetime()
-    summary      = fields.Something()
-    content      = fields.Something()
+    summary      = fields.Field()
+    content      = fields.Field()
     # TODO  categories should be Tags?
-    categories   = fields.List(fields.Something())
-    object_types = fields.List(fields.Something(), api_name='objectTypes')
+    categories   = fields.List(fields.Field())
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
     status       = fields.Object(PublicationStatus)
     links        = fields.Object(LinkSet)
     in_reply_to  = fields.Object(AssetRef, api_name='inReplyTo')
@@ -321,9 +321,9 @@ class Asset(TypePadObject):
     '''
 
 class Event(TypePadObject):
-    id      = fields.Something(api_name='urlId')
-    atom_id = fields.Something(api_name='id')
-    verbs   = fields.List(fields.Something())
+    id      = fields.Field(api_name='urlId')
+    atom_id = fields.Field(api_name='id')
+    verbs   = fields.List(fields.Field())
     # TODO: vary these based on verb content? oh boy
     actor   = fields.Object(User)
     object  = fields.Object(Asset)
@@ -342,23 +342,23 @@ class LinkAsset(Asset):
 
 
 class ElsewhereAccount(TypePadObject):
-    domain            = fields.Something()
-    username          = fields.Something()
-    user_id           = fields.Something(api_name='userId')
-    url               = fields.Something()
-    provider_name     = fields.Something(api_name='providerName')
-    provider_url      = fields.Something(api_name='providerURL')
-    provider_icon_url = fields.Something(api_name='providerIconURL')
+    domain            = fields.Field()
+    username          = fields.Field()
+    user_id           = fields.Field(api_name='userId')
+    url               = fields.Field()
+    provider_name     = fields.Field(api_name='providerName')
+    provider_url      = fields.Field(api_name='providerURL')
+    provider_icon_url = fields.Field(api_name='providerIconURL')
 
 
 class Group(TypePadObject):
-    id           = fields.Something(api_name='urlId')
-    atom_id      = fields.Something(api_name='id')
-    display_name = fields.Something(api_name='displayName')
-    tagline      = fields.Something()
-    urls         = fields.List(fields.Something())
-    links        = fields.List(fields.Something())
-    object_types = fields.List(fields.Something(), api_name='objectTypes')
+    id           = fields.Field(api_name='urlId')
+    atom_id      = fields.Field(api_name='id')
+    display_name = fields.Field(api_name='displayName')
+    tagline      = fields.Field()
+    urls         = fields.List(fields.Field())
+    links        = fields.List(fields.Field())
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
 
     memberships  = ApiLink(ListOf(UserRelationship))
     assets       = ApiLink(ListOf(Asset))
@@ -376,7 +376,7 @@ class Group(TypePadObject):
 
 class Application(TypePadObject):
     owner   = fields.Object(Group)
-    api_key = fields.Something()
+    api_key = fields.Field()
     links   = fields.Object(LinkSet)
 
     @property
@@ -392,6 +392,6 @@ class Application(TypePadObject):
         return self.links['oauth-access-token-endpoint'].href
 
 class GroupStatus(TypePadObject):
-    #status = fields.Something()
+    #status = fields.Field()
     source = fields.Object(User)
     target = fields.Object(Group)
