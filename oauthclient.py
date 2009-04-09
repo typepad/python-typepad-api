@@ -8,7 +8,9 @@ from django.conf import settings
 
 import typepad
 
-__all__ = ('OAuthAuthentication', 'OAuthClient', 'OAuthHttp')
+__all__ = ('OAuthAuthentication', 'OAuthClient', 'OAuthHttp', 'log')
+
+log = logging.getLogger('typepad.oauthclient')
 
 class OAuthAuthentication(httplib2.Authentication):
 
@@ -45,8 +47,9 @@ class OAuthAuthentication(httplib2.Authentication):
 
         sign_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
         req.set_parameter('oauth_signature_method', sign_method.get_name())
-        logging.error('SIGNING SIG BASE STRING %s'
-            % (sign_method.build_signature_base_string(req, csr, token),))
+        log.debug('Signing base string %r for web request %s'
+            % (sign_method.build_signature_base_string(req, csr, token),
+               request_uri))
         req.sign_request(sign_method, csr, token)
 
         headers.update(req.to_header())
@@ -54,7 +57,8 @@ class OAuthAuthentication(httplib2.Authentication):
 class OAuthHttp(httplib2.Http):
     def add_credentials(self, name, password, domain=""):
         super(OAuthHttp, self).add_credentials(name, password, domain)
-        logging.debug("Setting credentials for name, password: %s, %s" % (name, password))
+        log.debug("Setting credentials for name %s password %s"
+            % (name, password))
         if isinstance(name, oauth.OAuthConsumer) and domain:
             # Preauthorize these credentials for any request at that domain.
             cred = (name, password)
@@ -100,7 +104,9 @@ class OAuthClient(oauth.OAuthClient):
 
         sign_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
         req.set_parameter('oauth_signature_method', sign_method.get_name())
-        logging.error('SIGNING SIG BASE STRING %s' % (sign_method.build_signature_base_string(req, self.consumer, self.token),))
+        log.debug('Signing base string %r in fetch_request_token()'
+            % (sign_method.build_signature_base_string(req, self.consumer,
+                                                       self.token),))
         req.sign_request(sign_method, self.consumer, self.token)
 
         resp, content = h.request(req.to_url(), method=req.get_normalized_http_method())
@@ -117,9 +123,14 @@ class OAuthClient(oauth.OAuthClient):
             token = self.token,
             http_url = self.access_token_url,
         )
+
         sign_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
-        logging.error('SIGNING SIG BASE STRING %s' % (sign_method.build_signature_base_string(req, self.consumer, self.token),))
+        req.set_parameter('oauth_signature_method', sign_method.get_name())
+        log.debug('Signing base string %r in fetch_access_token()'
+            % (sign_method.build_signature_base_string(req, self.consumer,
+                                                       self.token),))
         req.sign_request(sign_method, self.consumer, self.token)
+
         resp, content = h.request(req.to_url(), method=req.get_normalized_http_method())
         self.token = oauth.OAuthToken.from_string(content)
         return self.token
@@ -142,7 +153,11 @@ class OAuthClient(oauth.OAuthClient):
             http_method = 'POST',
             http_url = upload_url,
         )
-        # TODO put in logging?
-        # log.debug('file upload sig base string: %s' % oauth.OAuthSignatureMethod_HMAC_SHA1().build_signature_base_string(req, self.consumer, self.token))
-        req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), self.consumer, self.token)
+
+        sign_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
+        req.set_parameter('oauth_signature_method', sign_method.get_name())
+        log.debug('Signing base string %r in get_file_upload_url()'
+            % (sign_method.build_signature_base_string(req, self.consumer,
+                                                       self.token),))
+        req.sign_request(sign_method, self.consumer, self.token)
         return req.to_url()
