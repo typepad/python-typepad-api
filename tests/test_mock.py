@@ -147,7 +147,7 @@ class TestRemoteObjects(unittest.TestCase):
 
     def testGroupMembers(self):
         g = typepad.Group()
-        g._id = 'http://127.0.0.1:8000/groups/1.json'
+        g._location = 'http://127.0.0.1:8000/groups/1.json'
 
         with self.http('get_group_members') as h:
             m = g.memberships
@@ -182,23 +182,23 @@ class TestRemoteObjects(unittest.TestCase):
         with self.http('create_post', credentials=('mmalone@example.com', 'password')) as h:
             g.assets.post(p, http=h)
 
-        self.assert_(p._id is not None)
+        self.assert_(p._location is not None)
         self.assertEquals(p.title, "New post #47")
         self.assert_(hasattr(p, 'published'))
         self.assert_(p.published is not None)
 
         with self.http('get_created_post') as h:
-            post_got = typepad.Post.get(p._id, http=h)
+            post_got = typepad.Post.get(p._location, http=h)
             self.assertEquals(post_got.title, 'New post #47')
-            self.assertEquals(post_got._id, p._id)
+            self.assertEquals(post_got._location, p._location)
 
         with self.http('delete_created_post', credentials=('mmalone@example.com', 'password')) as h:
             p.delete(http=h)
 
-        self.assert_(p._id is None)
+        self.assert_(p._location is None)
 
         with self.http('get_deleted_post') as h:
-            not_there = typepad.Post.get(post_got._id, http=h)
+            not_there = typepad.Post.get(post_got._location, http=h)
             self.assertRaises(typepad.Post.NotFound, lambda: not_there.title)
 
     def testChangePost(self):

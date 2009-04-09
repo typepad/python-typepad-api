@@ -46,7 +46,7 @@ class TypePadObject(remoteobjects.PromiseObject):
     def deliver(self):
         if self.batch_requests:
             raise PromiseError("Cannot deliver %s %s except by batch request"
-                % (type(self).__name__, self._id))
+                % (type(self).__name__, self._location))
         return super(TypePadObject, self).deliver()
 
 class Link(TypePadObject):
@@ -126,7 +126,7 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
 
     def filter(self, **kwargs):
         # Split the list's URL into URL parts, filters, and queryargs.
-        parts = list(urlparse(self._id))
+        parts = list(urlparse(self._location))
         queryargs = cgi.parse_qs(parts[4], keep_blank_values=True)
         queryargs = dict([(k, v[0]) for k, v in queryargs.iteritems()])
 
@@ -201,11 +201,11 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
 class ApiLink(remoteobjects.Link):
     def __get__(self, instance, owner):
         try:
-            if instance._id is None:
+            if instance._location is None:
                 raise AttributeError('Cannot find URL of %s relative to URL-less %s' % (type(self).__name__, owner.__name__))
 
-            assert instance._id.endswith('.json')
-            newurl = instance._id[:-5]
+            assert instance._location.endswith('.json')
+            newurl = instance._location[:-5]
             newurl += '/' + self.api_name
             newurl += '.json'
 
