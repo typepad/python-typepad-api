@@ -12,7 +12,7 @@ import typepad
 from batchhttp.client import BatchError
 import logging
 
-class TypePadObject(remoteobjects.PromiseObject):
+class TypePadObject(remoteobjects.RemoteObject):
     base_url = None
     batch_requests = True
 
@@ -93,7 +93,7 @@ class SequenceProxy(object):
     __reversed__ = make_sequence_method('__reversed__')
     __contains__ = make_sequence_method('__contains__')
 
-class ListOf(remoteobjects.PromiseObject.__metaclass__):
+class ListOf(remoteobjects.ListObject.__metaclass__):
     def __new__(cls, name, bases=None, attr=None):
         if attr is None:
             # TODO: memoize me
@@ -194,7 +194,7 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
             entryclass = find_by_name(entryclass)
         self.entries = [entryclass.from_dict(d) for d in self.entries]
 
-class ApiLink(remoteobjects.Link):
+class ApiLink(fields.Link):
     def __get__(self, instance, owner):
         try:
             if instance._location is None:
