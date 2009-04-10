@@ -340,11 +340,7 @@ class Asset(TypePadObject):
         return ref
 
     def __unicode__(self):
-        if self.title:
-            return self.title
-        if self.summary:
-            return self.summary
-        return self.content
+        return self.title or self.summary or self.content
 
 class Event(TypePadObject):
     id      = fields.Field(api_name='urlId')
