@@ -394,7 +394,7 @@ class Group(TypePadObject):
 
     # TODO: these aren't really UserRelationships because the target is really a group
     memberships  = ApiLink(ListOf('UserRelationship'))
-    #assets       = ApiLink(ListOf('Asset'))
+    assets       = ApiLink(ListOf('Asset'))
     events       = ApiLink(ListOf('Event'))
     comments     = ApiLink(ListOf('Asset'))
 
