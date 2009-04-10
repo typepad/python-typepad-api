@@ -95,6 +95,7 @@ class OAuthClient(oauth.OAuthClient):
             secret=settings.OAUTH_GENERAL_PURPOSE_SECRET)
 
         h = typepad.client.http
+        h.clear_credentials()
         req = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer,
             # token=gp_token,
