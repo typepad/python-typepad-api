@@ -393,5 +393,5 @@ class Application(TypePadObject):
 
 class GroupStatus(TypePadObject):
     #status = fields.Field()
-    source = fields.Object(User)
-    target = fields.Object(Group)
+    source = fields.Object('User')
+    target = fields.Object('Group')
