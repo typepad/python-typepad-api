@@ -283,8 +283,10 @@ class TestLocalObjects(unittest.TestCase):
         self.assertEquals(ls['replies'], replies)
         self.assert_(ls['enclosure'] in (enclosure, enclosure_2))
         self.assertEquals(list(ls['replies_set']), [ replies ])
-        self.assertEquals(list(ls['enclosure_set']), [ enclosure, enclosure_2 ])
-        self.assertEquals(list(ls['avatar_set']), [ largest, smallest, medium ])
+        enclosures = sorted(list(ls['enclosure_set']), key=lambda x: x.href)
+        self.assertEquals(enclosures, [ enclosure, enclosure_2 ])
+        avatars = sorted(list(ls['avatar_set']), key=lambda x: x.href)
+        self.assertEquals(avatars, [ largest, medium, smallest ])
 
         # testing link_by_width method:
         self.assertEquals(ls['avatar_set'].link_by_width(1000).to_dict(), largest.to_dict())
