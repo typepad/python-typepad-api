@@ -321,7 +321,7 @@ class Asset(TypePadObject):
         return 0
 
     comments = ApiLink(ListOf('Asset'))
-    
+
     def favorite_count(self):
         for l in self.links:
             if l.rel == 'favorites':
