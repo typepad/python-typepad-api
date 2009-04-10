@@ -360,8 +360,8 @@ class Event(TypePadObject):
     atom_id = fields.Field(api_name='id')
     verbs   = fields.List(fields.Field())
     # TODO: vary these based on verb content? oh boy
-    actor   = fields.Object(User)
-    object  = fields.Object(Asset)
+    actor   = fields.Object('User')
+    object  = fields.Object('Asset')
 
     def __unicode__(self):
         return unicode(self.object)
