@@ -241,8 +241,8 @@ class User(TypePadObject):
 
 class UserRelationship(TypePadObject):
     #status = fields.Field()
-    source = fields.Object(User)
-    target = fields.Object(User)
+    source = fields.Object('User')
+    target = fields.Object('User')
 
 class PublicationStatus(TypePadObject):
     published = fields.Field()
