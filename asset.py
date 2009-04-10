@@ -54,6 +54,9 @@ class Link(TypePadObject):
     duration = fields.Field()
     total    = fields.Field()
 
+    def __repr__(self):
+        return "<Link %s>" % self.href
+
 
 class LinkSet(set, TypePadObject):
     def update_from_dict(self, data):
@@ -78,7 +81,7 @@ class LinkSet(set, TypePadObject):
 
         raise KeyError('No such link %r in this set' % key)
 
-    def link_by_width(self, width):
+    def link_by_width(self, width=None):
         """ An algorithm for selecting the best appropriate image
         given a specified display width.
 
