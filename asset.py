@@ -346,15 +346,6 @@ class Asset(TypePadObject):
             return self.summary
         return self.content
 
-    '''
-    @property
-    def author(self):
-        try:
-            return self.authors[0]
-        except IndexError:
-            return None
-    '''
-
 class Event(TypePadObject):
     id      = fields.Field(api_name='urlId')
     atom_id = fields.Field(api_name='id')
