@@ -259,7 +259,7 @@ class Asset(TypePadObject):
     id           = fields.Field(api_name='urlId')
     atom_id      = fields.Field(api_name='id')
     title        = fields.Field()
-    author       = fields.Object(User)
+    author       = fields.Object('User')
     published    = fields.Datetime()
     updated      = fields.Datetime()
     summary      = fields.Field()
@@ -267,9 +267,9 @@ class Asset(TypePadObject):
     # TODO  categories should be Tags?
     categories   = fields.List(fields.Field())
     object_types = fields.List(fields.Field(), api_name='objectTypes')
-    status       = fields.Object(PublicationStatus)
-    links        = fields.Object(LinkSet)
-    in_reply_to  = fields.Object(AssetRef, api_name='inReplyTo')
+    status       = fields.Object('PublicationStatus')
+    links        = fields.Object('LinkSet')
+    in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
 
     @property
     def actor(self):
