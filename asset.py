@@ -54,6 +54,7 @@ class Link(TypePadObject):
     duration = fields.Field()
     total    = fields.Field()
 
+
 class LinkSet(set, TypePadObject):
     def update_from_dict(self, data):
         self.update([Link.from_dict(x) for x in data])
@@ -68,7 +69,7 @@ class LinkSet(set, TypePadObject):
         if key.endswith('_set'):
             # Gimme all matching links.
             key = key[:-4]
-            return [x for x in self if x.rel == key]
+            return LinkSet([x for x in self if x.rel == key])
 
         # Gimme the first matching link.
         for x in self:
@@ -76,6 +77,37 @@ class LinkSet(set, TypePadObject):
                 return x
 
         raise KeyError('No such link %r in this set' % key)
+
+    def link_by_width(self, width):
+        """ An algorithm for selecting the best appropriate image
+        given a specified display width.
+
+        If no width is given, the widest image is selected.
+
+        If a width is given, the first image that meets that width
+        or is larger is selected. If none meet that size, the one
+        that was closest to the specified width is chosen.
+        """
+        # TODO: is there a brisk way to do this?
+        widest = None
+        best = None
+        for link in self:
+            # Keep track of the widest variant; this will be our failsafe.
+            if (not widest) or link.width > widest.width:
+                widest = link
+            # Width was specified; enclosure is equal or larger than this
+            if width and link.width >= width:
+                # Assign if nothing was already chosen or if this new
+                # enclosure is smaller than the last best one.
+                if (not best) or link.width < best.width:
+                    best = link
+
+        # use best available image if none was selected as the 'best' fit
+        if best is None:
+            return widest
+        else:
+            return best
+
 
 class SequenceProxy(object):
     def make_sequence_method(methodname):
@@ -362,12 +394,12 @@ class Group(TypePadObject):
 
     # TODO: these aren't really UserRelationships because the target is really a group
     memberships  = ApiLink(ListOf('UserRelationship'))
-    assets       = ApiLink(ListOf('Asset'))
+    #assets       = ApiLink(ListOf('Asset'))
     events       = ApiLink(ListOf('Event'))
     comments     = ApiLink(ListOf('Asset'))
 
     # comments     = ApiLink(ListOf(Asset), api_name='comment-assets')
-    # post_assets  = ApiLink(ListOf(Post), api_name='post-assets')
+    post_assets  = ApiLink(ListOf(Post), api_name='post-assets')
     # photo_assets = ApiLink(ListOf(Post), api_name='photo-assets')
     # link_assets  = ApiLink(ListOf(Post), api_name='link-assets')
     # video_assets = ApiLink(ListOf(Post), api_name='video-assets')
