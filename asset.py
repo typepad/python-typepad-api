@@ -360,10 +360,11 @@ class Group(TypePadObject):
     links        = fields.List(fields.Field())
     object_types = fields.List(fields.Field(), api_name='objectTypes')
 
-    memberships  = ApiLink(ListOf(UserRelationship))
-    assets       = ApiLink(ListOf(Asset))
-    events       = ApiLink(ListOf(Event))
-    comments     = ApiLink(ListOf(Asset))
+    # TODO: these aren't really UserRelationships because the target is really a group
+    memberships  = ApiLink(ListOf('UserRelationship'))
+    assets       = ApiLink(ListOf('Asset'))
+    events       = ApiLink(ListOf('Event'))
+    comments     = ApiLink(ListOf('Asset'))
 
     # comments     = ApiLink(ListOf(Asset), api_name='comment-assets')
     # post_assets  = ApiLink(ListOf(Post), api_name='post-assets')
