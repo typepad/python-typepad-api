@@ -60,7 +60,7 @@ requests = {
         """{ "entries": [] }"""
     ),
     'create_post': (
-        { 'uri': 'http://127.0.0.1:8000/groups/1/assets.json',
+        { 'uri': 'http://127.0.0.1:8000/groups/1/post-assets.json',
           'headers': {'accept': 'application/json'},
           'body': """{"content": "Hi this post has some content is it not nifty", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "New post #47"}""",
           'method': 'POST' },
@@ -257,7 +257,7 @@ class TestLocalObjects(unittest.TestCase):
 
         self.assertEquals(ls['replies'], replies)
         self.assert_(ls['enclosure'] in (enclosure, enclosure_2))
-        self.assertEquals(ls['replies_set'], [ replies ])
+        self.assertEquals(ls['replies_set'], typepad.LinkSet([ replies ]))
         self.assertEquals(ls['enclosure_set'], [ enclosure, enclosure_2 ])
 
         links_list = list(ls)
