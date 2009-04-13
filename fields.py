@@ -15,7 +15,6 @@ class Link(remoteobjects.fields.Link):
     """
 
     def __get__(self, instance, owner):
-
         """Generates the `TypePadObject` representing the target of this
         `Link` object.
 
