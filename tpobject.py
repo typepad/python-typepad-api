@@ -10,17 +10,43 @@ from remoteobjects.promise import PromiseError
 import typepad
 from typepad import fields
 
+
 class TypePadObject(remoteobjects.RemoteObject):
+
+    """A `RemoteObject` representing an object in the TypePad API.
+
+    All HTTP requests made for a `TypePadObject` are made through the
+    `typepad.client` instance of `batchhttp.client.BatchClient`. Unlike other
+    `PromiseObject` instances, `TypePadObject` instances cannot be
+    independently delivered; they must be delivered by an outside object
+    (namely `typepad.client`).
+
+    """
+
     batch_requests = True
 
     @classmethod
     def get_response(cls, url, http=None, **kwargs):
+        """Performs the given HTTP request through `typepad.client`
+        `BatchClient` instance."""
         if not urlparse(url)[1]:  # network location
             url = urljoin(typepad.client.endpoint, url)
         return super(TypePadObject, cls).get_response(url, http=typepad.client.http, **kwargs)
 
     @classmethod
     def get(cls, url, *args, **kwargs):
+        """Promises a new `TypePadObject` instance for the named resource.
+
+        If parameter `url` is not an absolute URL but the `TypePadObject`
+        class has been configured with a base URL, the resulting instance will
+        reference the given URL relative to the base address.
+
+        If batch requests are enabled, the request that delivers the resulting
+        `TypePadObject` instance will be added to the `typepad.client`
+        `BatchClient` instance's batch request. If `typepad.client` has no
+        active batch request, a `PromiseError` will be raised.
+
+        """
         if not urlparse(url)[1]:  # network location
             url = urljoin(typepad.client.endpoint, url)
 
@@ -38,12 +64,28 @@ class TypePadObject(remoteobjects.RemoteObject):
         return ret
 
     def deliver(self):
+        """Prevents self-delivery of this instance if batch requests are
+        enabled for `TypePadObject` instances.
+
+        If batch requests are not enabled, delivers the object as by
+        `PromiseObject.deliver()`.
+
+        """
         if self.batch_requests:
             raise PromiseError("Cannot deliver %s %s except by batch request"
                 % (type(self).__name__, self._location))
         return super(TypePadObject, self).deliver()
 
+
 class Link(TypePadObject):
+
+    """A `TypePadObject` representing a link from to another resource.
+
+    The target of a `Link` object may be something other than an API resource,
+    such as a `User` instance's avatar image.
+
+    """
+
     rel      = fields.Field()
     href     = fields.Field()
     type     = fields.Field()
@@ -53,17 +95,47 @@ class Link(TypePadObject):
     total    = fields.Field()
 
     def __repr__(self):
+        """Returns a developer-readable representation of this object."""
         return "<Link %s>" % self.href
 
 
 class LinkSet(set, TypePadObject):
+
+    """A `TypePadObject` representing a set of `Link` objects.
+
+    `LinkSet` provides convenience methods for slicing the set of `Link`
+    objects by their content. For example, the `Link` with `rel="avatar"` can
+    be selected with `linkset['rel__avatar']`.
+
+    """
+
     def update_from_dict(self, data):
+        """Fills this `LinkSet` with `Link` instances representing the given
+        data."""
         self.update([Link.from_dict(x) for x in data])
 
     def to_dict(self):
+        """Returns a list of dictionary-ized representations of the `Link`
+        instances contained in this `LinkSet`."""
         return [x.to_dict() for x in self]
 
     def __getitem__(self, key):
+        """Returns the `Link` or `LinkSet` described by the given key.
+
+        Parameter `key` should be a string containing the axis and value by
+        which to slice the `LinkSet` instance, separated by two underscores.
+        For example, to select the contained `Link` with a `rel` value of
+        `avatar`, the key should be `rel__avatar`. All fields of the `Link`
+        object are valid axes.
+
+        If you append an `s` to the axis, the result will be a new `LinkSet`
+        containing *all* the matching `Link` instances. The returned object
+        will be a `LinkSet` even if there is only one matching `Link`.
+
+        If in either case no `Link` instances match the requested criterion, a
+        `KeyError` is raised.
+
+        """
         if isinstance(key, slice):
             raise KeyError('LinkSets cannot be sliced')
 
@@ -128,6 +200,7 @@ class SequenceProxy(object):
     __iter__     = make_sequence_method('__iter__')
     __reversed__ = make_sequence_method('__reversed__')
     __contains__ = make_sequence_method('__contains__')
+
 
 class ListOf(remoteobjects.ListObject.__metaclass__):
     def __new__(cls, name, bases=None, attr=None):
