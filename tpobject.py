@@ -125,12 +125,15 @@ class LinkSet(set, TypePadObject):
         Parameter `key` should be a string containing the axis and value by
         which to slice the `LinkSet` instance, separated by two underscores.
         For example, to select the contained `Link` with a `rel` value of
-        `avatar`, the key should be `rel__avatar`. All fields of the `Link`
-        object are valid axes.
+        `avatar`, the key should be `rel__avatar`.
 
-        If you append an `s` to the axis, the result will be a new `LinkSet`
-        containing *all* the matching `Link` instances. The returned object
-        will be a `LinkSet` even if there is only one matching `Link`.
+        If the axis is `rel`, a new `LinkSet` instance containing all the
+        `Link` instances with the requested value for `rel` are returned.
+
+        If the axis is `width`, the `Link` instance best matching that width
+        as discovered by the `link_by_width()` method is returned.
+
+        No other axes are supported.
 
         If in either case no `Link` instances match the requested criterion, a
         `KeyError` is raised.
@@ -155,14 +158,16 @@ class LinkSet(set, TypePadObject):
         raise KeyError('No such link %r in this set' % key)
 
     def link_by_width(self, width=None):
-        """ An algorithm for selecting the best appropriate image
-        given a specified display width.
+        """Returns the `Link` instance from this `LinkSet` that best matches
+        the requested display width.
 
-        If no width is given, the widest image is selected.
+        If optional parameter `width` is specified, the `Link` instance
+        representing the smallest image wider than `width` is returned. If
+        there is no such image, or if `width` is not specified, the `Link` for
+        the widest image is returned.
 
-        If a width is given, the first image that meets that width
-        or is larger is selected. If none meet that size, the one
-        that was closest to the specified width is chosen.
+        If there are no images in this `LinkSet`, returns `None`.
+
         """
         # TODO: is there a brisk way to do this?
         widest = None
