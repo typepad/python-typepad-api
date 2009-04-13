@@ -223,6 +223,10 @@ class TestRemoteObjects(unittest.TestCase):
 
 class TestLocalObjects(unittest.TestCase):
 
+    @tests.todo
+    def testRelativeUrls(self):
+        raise NotImplementedError()
+
     def testLinks(self):
 
         replies = {
