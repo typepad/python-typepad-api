@@ -138,7 +138,6 @@ class TestRemoteObjects(unittest.TestCase):
         with self.http('get_user') as h:
             user = typepad.User.get('http://127.0.0.1:8000/users/1.json', http=h)
             self.assertEquals(user.display_name, 'Deanna Conti')
-            self.assertEquals(user.email, 'dconti@beli.com')
 
     def testGroup(self):
         with self.http('get_group') as h:
