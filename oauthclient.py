@@ -36,8 +36,7 @@ class OAuthAuthentication(httplib2.Authentication):
         """
         # TODO: wtf, have to rebuild uri from partial uri and host?
         partial_uri = urlparse.urlsplit(request_uri)
-        # FIXME: shouldn't be hardcoding protocol here as https
-        uri = urlparse.urlunsplit(('https', self.host) + partial_uri[2:])
+        uri = urlparse.urlunsplit((self.http.default_scheme, self.host) + partial_uri[2:])
 
         csr, token = self.credentials
         assert token.secret is not None
@@ -55,16 +54,19 @@ class OAuthAuthentication(httplib2.Authentication):
         headers.update(req.to_header())
 
 class OAuthHttp(httplib2.Http):
+    default_scheme = None
+
     def add_credentials(self, name, password, domain=""):
         super(OAuthHttp, self).add_credentials(name, password, domain)
         log.debug("Setting credentials for name %s password %s"
             % (name, password))
         if isinstance(name, oauth.OAuthConsumer) and domain:
+            if self.default_scheme is None:
+                self.default_scheme = urlparse.urlsplit(typepad.client.endpoint)[0]
             # Preauthorize these credentials for any request at that domain.
             cred = (name, password)
             domain = domain.lower()
-            # FIXME: shouldn't be hardcoding protocol here as https
-            auth = OAuthAuthentication(cred, domain, "https://%s/" % domain, {}, None, None, self)
+            auth = OAuthAuthentication(cred, domain, "%s://%s/" % ( self.default_scheme, domain ), {}, None, None, self)
             self.authorizations.append(auth)
 
 httplib2.AUTH_SCHEME_CLASSES['oauth'] = OAuthAuthentication
