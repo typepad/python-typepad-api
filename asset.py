@@ -25,7 +25,6 @@ class User(TypePadObject):
 
     """
 
-    # documented fields
     id                 = fields.Field(api_name='urlId')
     atom_id            = fields.Field(api_name='id')
     display_name       = fields.Field(api_name='displayName')
@@ -37,14 +36,11 @@ class User(TypePadObject):
     links              = fields.Object(LinkSet)
     object_types       = fields.Field(api_name='objectTypes')
 
-    # astropad extras
-    email              = fields.Field()
-
-    relationships      = fields.Link(ListOf('UserRelationship'))
+    relationships      = fields.Link(ListOf('Relationship'))
     events             = fields.Link(ListOf('Event'))
     comments           = fields.Link(ListOf('Asset'), api_name='comments-sent')
     notifications      = fields.Link(ListOf('Event'))
-    memberships        = fields.Link(ListOf('UserRelationship'))
+    memberships        = fields.Link(ListOf('Relationship'))
     elsewhere_accounts = fields.Link(ListOf('ElsewhereAccount'))
 
     @classmethod
@@ -54,13 +50,13 @@ class User(TypePadObject):
         return cls.get('/users/@self.json', **kwargs)
 
 
-class UserRelationship(TypePadObject):
+class Relationship(TypePadObject):
 
     """The unidirectional relationship between pairs of users and groups."""
 
-    #status = fields.Field()
     source = fields.Object('User')
     target = fields.Object('User')
+    status = fields.Object('RelationshipStatus')
 
 
 class RelationshipStatus(TypePadObject):
@@ -157,6 +153,7 @@ class Asset(TypePadObject):
     def __unicode__(self):
         return self.title or self.summary or self.content
 
+
 class Event(TypePadObject):
 
     """An action that a user or group did.
@@ -230,8 +227,8 @@ class Group(TypePadObject):
     links        = fields.List(fields.Field())
     object_types = fields.List(fields.Field(), api_name='objectTypes')
 
-    # TODO: these aren't really UserRelationships because the target is really a group
-    memberships  = fields.Link(ListOf('UserRelationship'))
+    # TODO: these aren't really Relationships because the target is really a group
+    memberships  = fields.Link(ListOf('Relationship'))
     assets       = fields.Link(ListOf('Asset'))
     events       = fields.Link(ListOf('Event'))
     comments     = fields.Link(ListOf('Asset'))
