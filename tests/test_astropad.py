@@ -1,5 +1,6 @@
 import httplib2
 import logging
+import os
 import unittest
 from urllib import urlencode, unquote
 from urlparse import urlsplit, urlunsplit
@@ -99,8 +100,8 @@ class WithableHttp(object):
 class TestRemoteObjects(test_mock.TestRemoteObjects):
 
     def setUp(self):
-        if tests.are_automated():
-            raise nose.SkipTest('no astropad tests when automated')
+        if not os.getenv('TEST_ASTROPAD'):
+            raise nose.SkipTest('no astropad tests without TEST_ASTROPAD=1')
         super(TestRemoteObjects, self).setUp()
 
     def http(self, *args, **kwargs):
@@ -115,8 +116,8 @@ class TestRemoteObjects(test_mock.TestRemoteObjects):
 class TestAstropad(unittest.TestCase):
 
     def setUp(self):
-        if tests.are_automated():
-            raise nose.SkipTest('no astropad tests when automated')
+        if not os.getenv('TEST_ASTROPAD'):
+            raise nose.SkipTest('no astropad tests without TEST_ASTROPAD=1')
 
     def testOAuthSetup(self):
         self.assertEquals(httplib2.AUTH_SCHEME_ORDER[0], 'oauth')
