@@ -50,6 +50,19 @@ class User(TypePadObject):
         return cls.get('/users/@self.json', **kwargs)
 
 
+class ElsewhereAccount(TypePadObject):
+
+    """A user account on an external website."""
+
+    domain            = fields.Field()
+    username          = fields.Field()
+    user_id           = fields.Field(api_name='userId')
+    url               = fields.Field()
+    provider_name     = fields.Field(api_name='providerName')
+    provider_url      = fields.Field(api_name='providerURL')
+    provider_icon_url = fields.Field(api_name='providerIconURL')
+
+
 class Relationship(TypePadObject):
 
     """The unidirectional relationship between pairs of users and groups."""
@@ -67,31 +80,88 @@ class RelationshipStatus(TypePadObject):
     types = fields.List(fields.Field())
 
 
-class PublicationStatus(TypePadObject):
+class Group(TypePadObject):
 
-    """A container for the flags that represent an asset's publication status.
+    """A group that users can join, and to which users can post assets.
 
-    Publication status is currently represented by two flags: published and
-    spam. The published flag is false when an asset is held for moderation,
-    and can be set to true to publish the asset. The spam flag is true when
-    TypePad's spam filter has determined that an asset is spam, or when the
-    asset has been marked as spam by a moderator.
+    TypePad API social applications are represented as groups.
 
     """
 
-    published = fields.Field()
-    spam      = fields.Field()
+    id           = fields.Field(api_name='urlId')
+    atom_id      = fields.Field(api_name='id')
+    display_name = fields.Field(api_name='displayName')
+    tagline      = fields.Field()
+    urls         = fields.List(fields.Field())
+    links        = fields.List(fields.Field())
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
+
+    # TODO: these aren't really Relationships because the target is really a group
+    memberships  = fields.Link(ListOf('Relationship'))
+    assets       = fields.Link(ListOf('Asset'))
+    events       = fields.Link(ListOf('Event'))
+    comments     = fields.Link(ListOf('Asset'))
+
+    # comments     = fields.Link(ListOf(Asset), api_name='comment-assets')
+    post_assets  = fields.Link(ListOf(Post), api_name='post-assets')
+    # photo_assets = fields.Link(ListOf(Post), api_name='photo-assets')
+    # link_assets  = fields.Link(ListOf(Post), api_name='link-assets')
+    # video_assets = fields.Link(ListOf(Post), api_name='video-assets')
+    # audio_assets = fields.Link(ListOf(Post), api_name='audio-assets')
+    # link_assets  = fields.Link(ListOf(LinkAsset), api_name='assets/@link')
 
 
-class AssetRef(TypePadObject):
+class Application(TypePadObject):
 
-    """A structure that refers to an asset without including its full
-    content."""
+    """An application that can authenticate to the TypePad API using OAuth.
 
-    ref  = fields.Field()
-    href = fields.Field()
-    type = fields.Field()
-    id   = fields.Field(api_name='urlId')
+    An application is identified by its OAuth consumer key, which in the case
+    of a hosted group is the same as the identifier for the group itself.
+
+    """
+
+    owner   = fields.Object(Group)
+    api_key = fields.Field()
+    links   = fields.Object(LinkSet)
+
+    @property
+    def oauth_request_token(self):
+        """The URL from which to request the OAuth request token."""
+        return self.links['oauth-request-token-endpoint'].href
+
+    @property
+    def oauth_authorization_page(self):
+        """The URL at which end users can authorize the application to access
+        their accounts."""
+        return self.links['oauth-authorization-page'].href
+
+    @property
+    def oauth_access_token_endpoint(self):
+        """The URL from which to request the OAuth access token."""
+        return self.links['oauth-access-token-endpoint'].href
+
+
+class Event(TypePadObject):
+
+    """An action that a user or group did.
+
+    An event has an `actor`, which is the user or group that did the action; a
+    set of `verbs` that describe what kind of action occured; and an `object`
+    that is the object that the action was done to. In the current TypePad API
+    implementation, only assets, users and groups can be the object of an
+    event.
+
+    """
+
+    id      = fields.Field(api_name='urlId')
+    atom_id = fields.Field(api_name='id')
+    verbs   = fields.List(fields.Field())
+    # TODO: vary these based on verb content? oh boy
+    actor   = fields.Object('User')
+    object  = fields.Object('Asset')
+
+    def __unicode__(self):
+        return unicode(self.object)
 
 
 class Asset(TypePadObject):
@@ -154,36 +224,6 @@ class Asset(TypePadObject):
         return self.title or self.summary or self.content
 
 
-class Event(TypePadObject):
-
-    """An action that a user or group did.
-
-    An event has an `actor`, which is the user or group that did the action; a
-    set of `verbs` that describe what kind of action occured; and an `object`
-    that is the object that the action was done to. In the current TypePad API
-    implementation, only assets, users and groups can be the object of an
-    event.
-
-    """
-
-    id      = fields.Field(api_name='urlId')
-    atom_id = fields.Field(api_name='id')
-    verbs   = fields.List(fields.Field())
-    # TODO: vary these based on verb content? oh boy
-    actor   = fields.Object('User')
-    object  = fields.Object('Asset')
-
-    def __unicode__(self):
-        return unicode(self.object)
-
-
-class Comment(Asset):
-
-    """A text comment posted in reply to some other asset."""
-
-    object_types = fields.Constant(("tag:api.typepad.com,2009:Comment",), api_name='objectTypes')
-
-
 class Post(Asset):
 
     """An entry in a blog."""
@@ -198,75 +238,28 @@ class LinkAsset(Asset):
     object_types = fields.Constant(("tag:api.typepad.com,2009:Link",), api_name='objectTypes')
 
 
-class ElsewhereAccount(TypePadObject):
+class AssetRef(TypePadObject):
 
-    """A user account on an external website."""
+    """A structure that refers to an asset without including its full
+    content."""
 
-    domain            = fields.Field()
-    username          = fields.Field()
-    user_id           = fields.Field(api_name='userId')
-    url               = fields.Field()
-    provider_name     = fields.Field(api_name='providerName')
-    provider_url      = fields.Field(api_name='providerURL')
-    provider_icon_url = fields.Field(api_name='providerIconURL')
+    ref  = fields.Field()
+    href = fields.Field()
+    type = fields.Field()
+    id   = fields.Field(api_name='urlId')
 
 
-class Group(TypePadObject):
+class PublicationStatus(TypePadObject):
 
-    """A group that users can join, and to which users can post assets.
+    """A container for the flags that represent an asset's publication status.
 
-    TypePad API social applications are represented as groups.
-
-    """
-
-    id           = fields.Field(api_name='urlId')
-    atom_id      = fields.Field(api_name='id')
-    display_name = fields.Field(api_name='displayName')
-    tagline      = fields.Field()
-    urls         = fields.List(fields.Field())
-    links        = fields.List(fields.Field())
-    object_types = fields.List(fields.Field(), api_name='objectTypes')
-
-    # TODO: these aren't really Relationships because the target is really a group
-    memberships  = fields.Link(ListOf('Relationship'))
-    assets       = fields.Link(ListOf('Asset'))
-    events       = fields.Link(ListOf('Event'))
-    comments     = fields.Link(ListOf('Asset'))
-
-    # comments     = fields.Link(ListOf(Asset), api_name='comment-assets')
-    post_assets  = fields.Link(ListOf(Post), api_name='post-assets')
-    # photo_assets = fields.Link(ListOf(Post), api_name='photo-assets')
-    # link_assets  = fields.Link(ListOf(Post), api_name='link-assets')
-    # video_assets = fields.Link(ListOf(Post), api_name='video-assets')
-    # audio_assets = fields.Link(ListOf(Post), api_name='audio-assets')
-    # link_assets  = fields.Link(ListOf(LinkAsset), api_name='assets/@link')
-
-
-class Application(TypePadObject):
-
-    """An application that can authenticate to the TypePad API using OAuth.
-
-    An application is identified by its OAuth consumer key, which in the case
-    of a hosted group is the same as the identifier for the group itself.
+    Publication status is currently represented by two flags: published and
+    spam. The published flag is false when an asset is held for moderation,
+    and can be set to true to publish the asset. The spam flag is true when
+    TypePad's spam filter has determined that an asset is spam, or when the
+    asset has been marked as spam by a moderator.
 
     """
 
-    owner   = fields.Object(Group)
-    api_key = fields.Field()
-    links   = fields.Object(LinkSet)
-
-    @property
-    def oauth_request_token(self):
-        """The URL from which to request the OAuth request token."""
-        return self.links['oauth-request-token-endpoint'].href
-
-    @property
-    def oauth_authorization_page(self):
-        """The URL at which end users can authorize the application to access
-        their accounts."""
-        return self.links['oauth-authorization-page'].href
-
-    @property
-    def oauth_access_token_endpoint(self):
-        """The URL from which to request the OAuth access token."""
-        return self.links['oauth-access-token-endpoint'].href
+    published = fields.Field()
+    spam      = fields.Field()
