@@ -11,18 +11,18 @@ import typepad
 from typepad import fields
 
 class TypePadObject(remoteobjects.RemoteObject):
-    base_url = None
     batch_requests = True
 
     @classmethod
     def get_response(cls, url, http=None, **kwargs):
-        http = typepad.client.http
-        return super(TypePadObject, cls).get_response(url, http=http, **kwargs)
+        if not urlparse(url)[1]:  # network location
+            url = urljoin(typepad.client.endpoint, url)
+        return super(TypePadObject, cls).get_response(url, http=typepad.client.http, **kwargs)
 
     @classmethod
     def get(cls, url, *args, **kwargs):
-        if cls.base_url is not None and not urlparse(url)[1]:  # network location
-            url = urljoin(cls.base_url, url)
+        if not urlparse(url)[1]:  # network location
+            url = urljoin(typepad.client.endpoint, url)
 
         ret = super(TypePadObject, cls).get(url, *args, **kwargs)
         if cls.batch_requests:
@@ -67,10 +67,13 @@ class LinkSet(set, TypePadObject):
         if isinstance(key, slice):
             raise KeyError('LinkSets cannot be sliced')
 
-        if key.endswith('_set'):
+        if key.startswith('rel__'):
             # Gimme all matching links.
-            key = key[:-4]
+            key = key[5:]
             return LinkSet([x for x in self if x.rel == key])
+        elif key.startswith('width__'):
+            width = int(key[7:])
+            return self.link_by_width(width)
 
         # Gimme the first matching link.
         for x in self:
