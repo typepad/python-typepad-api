@@ -191,10 +191,24 @@ class LinkSet(set, TypePadObject):
 
 
 class SequenceProxy(object):
+
+    """An abstract class implementing the sequence protocol by proxying it to
+    an instance attribute.
+
+    `SequenceProxy` instances act like sequences by forwarding all sequence
+    method calls to their `entries` attributes. The `entries` attribute should
+    be a list or some other that implements the sequence protocol.
+
+    """
+
     def make_sequence_method(methodname):
+        """Makes a new function that proxies calls to `methodname` to the
+        `entries` attribute of the instance on which the function is called as
+        an instance method."""
         def seqmethod(self, *args, **kwargs):
             # Proxy these methods to self.entries.
             return getattr(self.entries, methodname)(*args, **kwargs)
+        # TODO: use functools.update_wrapper here
         seqmethod.__name__ = methodname
         return seqmethod
 
@@ -208,7 +222,31 @@ class SequenceProxy(object):
 
 
 class ListOf(remoteobjects.ListObject.__metaclass__):
+
+    """Metaclass defining a `ListObject` containing of some other class.
+
+    Unlike most metaclasses, this metaclass can be called directly to define
+    new `ListObject` classes that contain objects of a specified other class,
+    like so:
+
+    >>> ListOfEntry = ListOf(Entry)
+
+    """
+
     def __new__(cls, name, bases=None, attr=None):
+        """Creates a new `ListObject` subclass.
+
+        If `bases` and `attr` are specified, as in a regular subclass
+        declaration, a new `ListObject` subclass bound to no particular
+        `TypePadObject` class is created. `name` is the declared name of the
+        new class, as usual.
+
+        If only `name` is specified, that value is used as a reference to a
+        `TypePadObject` class to which the new `ListObject` class is bound.
+        The `name` parameter can be either a name or a `TypePadObject` class,
+        as when declaring a `fields.Object` on a class.
+
+        """
         if attr is None:
             # TODO: memoize me
             entryclass = name
@@ -222,7 +260,30 @@ class ListOf(remoteobjects.ListObject.__metaclass__):
         bases = bases + (SequenceProxy,)
         return super(ListOf, cls).__new__(cls, name, bases, attr)
 
+
 class ListObject(TypePadObject, remoteobjects.ListObject):
+
+    """A `TypePadObject` representing a list of other `TypePadObject`
+    instances.
+
+    Endpoints in the TypePad API can be either objects themselves or sets of
+    objects, which are represented in the client library as `ListObject`
+    instances. As the API lists are homogeneous, all `ListObject` instances
+    you'll use in practice are configured for particular `TypePadObject`
+    classes (their "entry classes"). A `ListObject` instance will hold only
+    instances of its configured class.
+
+    The primary way to reference a `ListObject` class is to call its
+    metaclass, `ListOf`, with a reference to or name of that class.
+
+    >>> ListOfEntry = ListOf(Entry)
+
+    For an `Entry` list you then fetch with the `ListOfEntry` class's `get()`
+    method, all the entities in the list resource's `entries` member will be
+    decoded into `Entry` instances.
+
+    """
+
     __metaclass__ = ListOf
 
     total_results = fields.Field(api_name='totalResults')
@@ -235,6 +296,15 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         'by-group', 'by-user', 'photo', 'post', 'video', 'audio', 'comment', 'link']
 
     def filter(self, **kwargs):
+        """Returns a new `ListObject` instance representing the same endpoint
+        as this `ListObject` instance with the additional filtering applied.
+
+        This method filters the `ListObject` as does
+        `remoteobjects.ListObject.filter()`, but specially treats filters
+        defined in the TypePad API. These special filters are not added in as
+        query parameters but as path components.
+
+        """
         # Split the list's URL into URL parts, filters, and queryargs.
         parts = list(urlparse(self._location))
         queryargs = cgi.parse_qs(parts[4], keep_blank_values=True)
@@ -289,6 +359,9 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         return ret
 
     def __getitem__(self, key):
+        """Returns the specified members of the `ListObject` instance's
+        `entries` list or, if the `ListObject` has not yet been delivered,
+        filters the `ListObject` according to the given slice."""
         if self._delivered or not isinstance(key, slice):
             return self.entries[key]
         args = dict()
@@ -301,6 +374,13 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         return self.filter(**args)
 
     def update_from_dict(self, data):
+        """Fills this `ListObject` instance with the data from the given
+        dictionary.
+
+        The contents of the dictionary's `entries` member will be decoded into
+        instances of this `ListObject` instance's entry class.
+
+        """
         super(ListObject, self).update_from_dict(data)
         # Post-convert all the "entries" list items to our entry class.
         entryclass = self.entryclass
