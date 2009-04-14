@@ -12,6 +12,7 @@ from remoteobjects import tests
 from typepad.tests import test_asset
 import typepad
 
+
 def gimmeOAuthAccessToken(self, email, password):
     key, secret = 'key', 'secret'
 
@@ -86,6 +87,7 @@ def gimmeOAuthAccessToken(self, email, password):
 
     return csr, access_token
 
+
 class WithableHttp(object):
     def __init__(self):
         self.http = httplib2.Http()
@@ -96,6 +98,7 @@ class WithableHttp(object):
 
     def __exit__(self, *exc_info):
         pass
+
 
 class TestAsset(test_asset.TestAsset):
 
@@ -112,6 +115,7 @@ class TestAsset(test_asset.TestAsset):
             wh.http.add_credentials(csr, access_token)
 
         return wh
+
 
 class TestAstropad(unittest.TestCase):
 
@@ -161,6 +165,7 @@ class TestAstropad(unittest.TestCase):
         self.assertEquals(resp.status, 200)  # cached OK!
         self.assertEquals(resp['content-type'], 'application/json')
         self.assert_(resp.fromcache)
+
 
 if __name__ == '__main__':
     tests.log()
