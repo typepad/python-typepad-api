@@ -103,7 +103,7 @@ class Group(TypePadObject):
     comments     = fields.Link(ListOf('Asset'))
 
     # comments     = fields.Link(ListOf(Asset), api_name='comment-assets')
-    post_assets  = fields.Link(ListOf(Post), api_name='post-assets')
+    post_assets  = fields.Link(ListOf('Post'), api_name='post-assets')
     # photo_assets = fields.Link(ListOf(Post), api_name='photo-assets')
     # link_assets  = fields.Link(ListOf(Post), api_name='link-assets')
     # video_assets = fields.Link(ListOf(Post), api_name='video-assets')
@@ -222,6 +222,13 @@ class Asset(TypePadObject):
 
     def __unicode__(self):
         return self.title or self.summary or self.content
+
+
+class Comment(Asset):
+
+    """A text comment posted in reply to some other asset."""
+
+    object_types = fields.Constant(("tag:api.typepad.com,2009:Comment",), api_name='objectTypes')
 
 
 class Post(Asset):
