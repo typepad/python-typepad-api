@@ -1,3 +1,5 @@
+from remoteobjects.dataobject import find_by_name
+
 from typepad.tpobject import *
 from typepad import fields
 
@@ -55,9 +57,21 @@ class Relationship(TypePadObject):
     """The unidirectional relationship between pairs of users and groups."""
 
     # TODO: these can be Users or Groups
-    source = fields.Object('User')
-    target = fields.Object('User')
+    source = fields.Field()
+    target = fields.Field()
     status = fields.Object('RelationshipStatus')
+
+    def update_from_dict(self, data):
+        super(Relationship, self).update_from_dict(data)
+        source_class, target_class = self.status.classes()
+        self.source = source_class.from_dict(data['source'])
+        self.target = target_class.from_dict(data['target'])
+
+    def to_dict(self):
+        ret = super(Relationship, self).to_dict()
+        ret['source'] = ret['source'].to_dict()
+        ret['target'] = ret['target'].to_dict()
+        return ret
 
 
 class RelationshipStatus(TypePadObject):
@@ -66,6 +80,18 @@ class RelationshipStatus(TypePadObject):
     without the associated endpoints."""
 
     types = fields.List(fields.Field())
+
+    def classes(self):
+        user_class = find_by_name('User')
+
+        type_ = self.types[0]
+        if type_ in ('tag:api.typepad.com,2009:Contact', 'tag:api.typepad.com,2009:Blocked'):
+            return user_class, user_class
+        elif type_ in ('tag:api.typepad.com,2009:Member', 'tag:api.typepad.com,2009:Moderator', 'tag:api.typepad.com,2009:Admin'):
+            return find_by_name('Group'), user_class
+
+        raise ValueError('Instance %r has an unknown relationship type %r'
+            % (self, type_))
 
 
 class Group(TypePadObject):

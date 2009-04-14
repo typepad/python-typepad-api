@@ -9,7 +9,7 @@ import nose
 from oauth import oauth
 
 from remoteobjects import tests
-from typepad.tests import test_mock
+from typepad.tests import test_asset
 import typepad
 
 def gimmeOAuthAccessToken(self, email, password):
@@ -97,7 +97,7 @@ class WithableHttp(object):
     def __exit__(self, *exc_info):
         pass
 
-class TestRemoteObjects(test_mock.TestRemoteObjects):
+class TestAsset(test_asset.TestAsset):
 
     def setUp(self):
         if not os.getenv('TEST_ASTROPAD'):
