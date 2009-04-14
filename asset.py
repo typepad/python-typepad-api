@@ -67,6 +67,7 @@ class Relationship(TypePadObject):
 
     """The unidirectional relationship between pairs of users and groups."""
 
+    # TODO: these can be Users or Groups
     source = fields.Object('User')
     target = fields.Object('User')
     status = fields.Object('RelationshipStatus')
@@ -93,7 +94,7 @@ class Group(TypePadObject):
     display_name = fields.Field(api_name='displayName')
     tagline      = fields.Field()
     urls         = fields.List(fields.Field())
-    links        = fields.List(fields.Field())
+    links        = fields.Object(LinkSet)
     object_types = fields.List(fields.Field(), api_name='objectTypes')
 
     # TODO: these aren't really Relationships because the target is really a group
@@ -120,8 +121,9 @@ class Application(TypePadObject):
 
     """
 
-    owner   = fields.Object(Group)
     api_key = fields.Field()
+    # TODO: this can be a User or Group
+    owner   = fields.Object(Group)
     links   = fields.Object(LinkSet)
 
     @property
@@ -155,10 +157,10 @@ class Event(TypePadObject):
 
     id      = fields.Field(api_name='urlId')
     atom_id = fields.Field(api_name='id')
-    verbs   = fields.List(fields.Field())
     # TODO: vary these based on verb content? oh boy
     actor   = fields.Object('User')
     object  = fields.Object('Asset')
+    verbs   = fields.List(fields.Field())
 
     def __unicode__(self):
         return unicode(self.object)
@@ -177,7 +179,7 @@ class Asset(TypePadObject):
     updated      = fields.Datetime()
     summary      = fields.Field()
     content      = fields.Field()
-    # TODO  categories should be Tags?
+    # TODO: categories should be Tags?
     categories   = fields.List(fields.Field())
     object_types = fields.List(fields.Field(), api_name='objectTypes')
     status       = fields.Object('PublicationStatus')
@@ -195,6 +197,7 @@ class Asset(TypePadObject):
         return self.author
 
     def comment_count(self):
+        # TODO: use the LinkSet
         for l in self.links:
             if l.rel == 'replies':
                 return l.total
@@ -203,6 +206,7 @@ class Asset(TypePadObject):
     comments = fields.Link(ListOf('Asset'))
 
     def favorite_count(self):
+        # TODO: use the LinkSet
         for l in self.links:
             if l.rel == 'favorites':
                 return l.total
@@ -251,9 +255,9 @@ class AssetRef(TypePadObject):
     content."""
 
     ref  = fields.Field()
+    id   = fields.Field(api_name='urlId')
     href = fields.Field()
     type = fields.Field()
-    id   = fields.Field(api_name='urlId')
 
 
 class PublicationStatus(TypePadObject):
