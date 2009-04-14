@@ -7,12 +7,12 @@ from remoteobjects.fields import *
 
 class Link(remoteobjects.fields.Link):
 
-    """A `TypePadObject` property representing a 'link' from one TypePad API
+    """A `TypePadObject` property representing a link from one TypePad API
     object to another.
 
     This `Link` works like `remoteobjects.fields.Link`, but builds links using
-    the TypePad API URL scheme. That is, a `Link` on `/asset/1.json` called
-    `events` links to `/asset/1/events.json`.
+    the TypePad API URL scheme. That is, a `Link` on ``/asset/1.json`` called
+    ``events`` links to ``/asset/1/events.json``.
 
     """
 
@@ -20,7 +20,7 @@ class Link(remoteobjects.fields.Link):
         """Generates the `TypePadObject` representing the target of this
         `Link` object.
 
-        This `__get__` implementation implements the `../x/target.json` style
+        This `__get__()` implementation implements the ``../x/target.json`` style
         URLs used in the TypePad API.
 
         """
@@ -47,8 +47,8 @@ class Object(remoteobjects.fields.Object):
 
     This `Object` field class honors a `TypePadObject` structure's
     `objectTypes` member when decoding an object, only using the specified
-    class if the dictionary to decode has no `objectTypes` in it or the
-    `objectTypes` specifies an unknown type.
+    class if the dictionary to decode has no ``objectTypes`` in it or the
+    ``objectTypes`` specifies an unknown type.
 
     """
 
@@ -56,15 +56,15 @@ class Object(remoteobjects.fields.Object):
         """Configures this `Object` field.
 
         Optional parameter `cls` specifies the `TypePadObject` class to use if
-        the value to decode has no `objectTypes` member.
+        the value to decode has no ``objectTypes`` member.
 
         """
         super(Object, self).__init__(cls, **kwargs)
 
     def decode(self, value):
-        """Decodes the given dictionary into a `TypePadObject` instance.
+        """Decodes the given dictionary into a GTypePadObject` instance.
 
-        If the `value` dictionary contains an `objectTypes` value that matches
+        If the `value` dictionary contains an ``objectTypes`` value that matches
         a known `TypePadObject` class, an instance of that class is returned.
         Otherwise, an instance of the `Object` field's default class is
         returned.
