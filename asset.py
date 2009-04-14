@@ -1,16 +1,3 @@
-from urlparse import urljoin, urlparse, urlunparse
-from datetime import datetime
-import re
-import cgi
-import urllib
-
-import remoteobjects
-from remoteobjects.dataobject import find_by_name
-from remoteobjects.promise import PromiseError
-import typepad
-from batchhttp.client import BatchError
-import logging
-
 from typepad.tpobject import *
 from typepad import fields
 
