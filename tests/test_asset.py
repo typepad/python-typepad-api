@@ -222,6 +222,45 @@ class TestAsset(unittest.TestCase):
         self.assertNotEqual(e._etag, old_etag)
 
 
+class TestLocally(unittest.TestCase):
+
+    def testRelationships(self):
+        data = {
+            'source': {'displayName': 'Nikola'},
+            'target': {'displayName': 'Theophila'},
+            'status': {
+                'types': ['tag:api.typepad.com,2009:Contact'],
+            },
+        }
+
+        r = typepad.Relationship.from_dict(data)
+        self.assert_(isinstance(r.source, typepad.User))
+        self.assert_(isinstance(r.target, typepad.User))
+
+        data['status']['types'] = ['tag:api.typepad.com,2009:Blocked']
+        r = typepad.Relationship.from_dict(data)
+        self.assert_(isinstance(r.source, typepad.User))
+        self.assert_(isinstance(r.target, typepad.User))
+
+        data['status']['types'] = ['tag:api.typepad.com,2009:Member']
+        r = typepad.Relationship.from_dict(data)
+        self.assert_(isinstance(r.source, typepad.Group))
+        self.assert_(isinstance(r.target, typepad.User))
+
+        data['status']['types'] = ['tag:api.typepad.com,2009:Moderator']
+        r = typepad.Relationship.from_dict(data)
+        self.assert_(isinstance(r.source, typepad.Group))
+        self.assert_(isinstance(r.target, typepad.User))
+
+        data['status']['types'] = ['tag:api.typepad.com,2009:Admin']
+        r = typepad.Relationship.from_dict(data)
+        self.assert_(isinstance(r.source, typepad.Group))
+        self.assert_(isinstance(r.target, typepad.User))
+
+        data['status']['types'] = ['tag:api.typepad.com,2009:Asfdasf']
+        self.assertRaises(ValueError, lambda: typepad.Relationship.from_dict(data))
+
+
 if __name__ == '__main__':
     tests.log()
     unittest.main()
