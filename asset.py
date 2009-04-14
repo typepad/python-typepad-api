@@ -283,6 +283,11 @@ class AssetRef(TypePadObject):
     type = fields.Field()
 
 
+# TODO: write this class
+class Favorite(TypePadObject):
+    pass
+
+
 class PublicationStatus(TypePadObject):
 
     """A container for the flags that represent an asset's publication status.
@@ -297,3 +302,8 @@ class PublicationStatus(TypePadObject):
 
     published = fields.Field()
     spam      = fields.Field()
+
+
+# TODO: write this class
+class Tag(TypePadObject):
+    pass
