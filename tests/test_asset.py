@@ -36,21 +36,21 @@ requests = {
                     'types': ('tag:api.typepad.com,2009:Admin',
                               'tag:api.typepad.com,2009:Member'),
                 },
-                'target': {},
-                'source': {"displayName": "Mike", "email": "spatino@brilacsipon.info"},
+                'target': {"objectTypes": ["tag:api.typepad.com,2009:Group"]},
+                'source': {"displayName": "Mike", "objectTypes": ["tag:api.typepad.com,2009:User"]},
             }] + [{
                 'status': {
                     'types': ('tag:api.typepad.com,2009:Member',),
                 },
-                'target': {},
+                'target': {"objectTypes": ["tag:api.typepad.com,2009:Group"]},
                 'source': u,
             } for u in (
-                {"displayName": "Sherry Monaco", "email": "cosby@arebe.com"},
-                {"displayName": "Francesca Coppola", "email": "cfrandsen@cenge.com"},
-                {"displayName": "David Rosato", "email": "skemmerer@akekim.biz"},
-                {"displayName": "Edgar Bach", "email": "dconti@beli.com"},
-                {"displayName": "Jarad Mccaw", "email": "jmccaw@arebe.com"},
-                {"displayName": "Deanna Conti", "email": "dconti@beli.com"},
+                {"displayName": "Sherry Monaco", "objectTypes": ["tag:api.typepad.com,2009:User"]},
+                {"displayName": "Francesca Coppola", "objectTypes": ["tag:api.typepad.com,2009:User"]},
+                {"displayName": "David Rosato", "objectTypes": ["tag:api.typepad.com,2009:User"]},
+                {"displayName": "Edgar Bach", "objectTypes": ["tag:api.typepad.com,2009:User"]},
+                {"displayName": "Jarad Mccaw", "objectTypes": ["tag:api.typepad.com,2009:User"]},
+                {"displayName": "Deanna Conti", "objectTypes": ["tag:api.typepad.com,2009:User"]},
             )],
         }),
     ),
@@ -226,8 +226,14 @@ class TestLocally(unittest.TestCase):
 
     def testRelationships(self):
         data = {
-            'source': {'displayName': 'Nikola'},
-            'target': {'displayName': 'Theophila'},
+            'source': {
+                'displayName': 'Nikola',
+                'objectTypes': ['tag:api.typepad.com,2009:User'],
+            },
+            'target': {
+                'displayName': 'Theophila',
+                'objectTypes': ['tag:api.typepad.com,2009:User'],
+            },
             'status': {
                 'types': ['tag:api.typepad.com,2009:Contact'],
             },
@@ -242,7 +248,8 @@ class TestLocally(unittest.TestCase):
         self.assert_(isinstance(r.source, typepad.User))
         self.assert_(isinstance(r.target, typepad.User))
 
-        data['status']['types'] = ['tag:api.typepad.com,2009:Member']
+        data['status']['types']       = ['tag:api.typepad.com,2009:Member']
+        data['source']['objectTypes'] = ['tag:api.typepad.com,2009:Group']
         r = typepad.Relationship.from_dict(data)
         self.assert_(isinstance(r.source, typepad.Group))
         self.assert_(isinstance(r.target, typepad.User))
@@ -258,7 +265,9 @@ class TestLocally(unittest.TestCase):
         self.assert_(isinstance(r.target, typepad.User))
 
         data['status']['types'] = ['tag:api.typepad.com,2009:Asfdasf']
-        self.assertRaises(ValueError, lambda: typepad.Relationship.from_dict(data))
+        r = typepad.Relationship.from_dict(data)
+        self.assert_(isinstance(r.source, typepad.Group))
+        self.assert_(isinstance(r.target, typepad.User))
 
 
 if __name__ == '__main__':

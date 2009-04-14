@@ -56,30 +56,9 @@ class Relationship(TypePadObject):
 
     """The unidirectional relationship between pairs of users and groups."""
 
-    source = fields.Field()
-    target = fields.Field()
+    source = fields.Object()
+    target = fields.Object()
     status = fields.Object('RelationshipStatus')
-
-    def update_from_dict(self, data):
-        """Fills this `Relationship` instance with the data from the given
-        dictionary.
-
-        The `source` and `target` attributes of this `Relationship` instance
-        will be set according to the type of relationship it represents.
-
-        """
-        super(Relationship, self).update_from_dict(data)
-        source_class, target_class = self.status.classes()
-        self.source = source_class.from_dict(data['source'])
-        self.target = target_class.from_dict(data['target'])
-
-    def to_dict(self):
-        """Returns the dictionary-ized version of this `Relationship`
-        instance."""
-        ret = super(Relationship, self).to_dict()
-        ret['source'] = ret['source'].to_dict()
-        ret['target'] = ret['target'].to_dict()
-        return ret
 
 
 class RelationshipStatus(TypePadObject):
@@ -88,20 +67,6 @@ class RelationshipStatus(TypePadObject):
     without the associated endpoints."""
 
     types = fields.List(fields.Field())
-
-    def classes(self):
-        """Returns a tuple of the source and target `TypePadObject` classes
-        for a `Relationship` of this type."""
-        user_class = find_by_name('User')
-
-        type_ = self.types[0]
-        if type_ in ('tag:api.typepad.com,2009:Contact', 'tag:api.typepad.com,2009:Blocked'):
-            return user_class, user_class
-        elif type_ in ('tag:api.typepad.com,2009:Member', 'tag:api.typepad.com,2009:Moderator', 'tag:api.typepad.com,2009:Admin'):
-            return find_by_name('Group'), user_class
-
-        raise ValueError('Instance %r has an unknown relationship type %r'
-            % (self, type_))
 
 
 class Group(TypePadObject):
