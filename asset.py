@@ -24,13 +24,12 @@ class User(TypePadObject):
     accounts           = fields.List(fields.Field())
     links              = fields.Object(LinkSet)
     object_types       = fields.Field(api_name='objectTypes')
-
     relationships      = fields.Link(ListOf('Relationship'))
     events             = fields.Link(ListOf('Event'))
-    comments           = fields.Link(ListOf('Asset'), api_name='comments-sent')
+    comments           = fields.Link(ListOf('Comment'), api_name='comments-sent')
     notifications      = fields.Link(ListOf('Event'))
     memberships        = fields.Link(ListOf('Relationship'))
-    elsewhere_accounts = fields.Link(ListOf('ElsewhereAccount'))
+    elsewhere_accounts = fields.Link(ListOf('ElsewhereAccount'), api_name='elsewhere-accounts')
 
     @classmethod
     def get_self(cls, **kwargs):
@@ -93,11 +92,10 @@ class Group(TypePadObject):
 
     # comments     = fields.Link(ListOf(Asset), api_name='comment-assets')
     post_assets  = fields.Link(ListOf('Post'), api_name='post-assets')
-    # photo_assets = fields.Link(ListOf(Post), api_name='photo-assets')
-    # link_assets  = fields.Link(ListOf(Post), api_name='link-assets')
-    # video_assets = fields.Link(ListOf(Post), api_name='video-assets')
-    # audio_assets = fields.Link(ListOf(Post), api_name='audio-assets')
-    # link_assets  = fields.Link(ListOf(LinkAsset), api_name='assets/@link')
+    photo_assets = fields.Link(ListOf('Photo'), api_name='photo-assets')
+    link_assets  = fields.Link(ListOf('LinkAsset'), api_name='link-assets')
+    video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
+    audio_assets = fields.Link(ListOf('Audio'), api_name='audio-assets')
 
 
 class Application(TypePadObject):
@@ -228,6 +226,20 @@ class Post(Asset):
     """An entry in a blog."""
 
     object_types = fields.Constant(("tag:api.typepad.com,2009:Post",), api_name='objectTypes')
+
+
+class Photo(Asset):
+
+    """An entry in a blog."""
+
+    object_types = fields.Constant(("tag:api.typepad.com,2009:Photo",), api_name='objectTypes')
+
+
+class Audio(Asset):
+
+    """An entry in a blog."""
+
+    object_types = fields.Constant(("tag:api.typepad.com,2009:Audio",), api_name='objectTypes')
 
 
 class LinkAsset(Asset):
