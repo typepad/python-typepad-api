@@ -4,6 +4,7 @@ import urlparse
 from oauth import oauth
 import logging
 
+# FIXME: This module should not rely on Django settings; it should be configured externally
 from django.conf import settings
 
 import typepad
