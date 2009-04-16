@@ -246,6 +246,11 @@ class TestLocally(unittest.TestCase):
         a = make_asset(data)
         self.assertEquals(type(a), typepad.LinkAsset)
 
+        # Ignore extra objectTypes.
+        data['objectTypes'] = ('http://example.com/internet/', 'tag:api.typepad.com,2009:Post')
+        a = make_asset(data)
+        self.assertEquals(type(a), typepad.Post)
+
 
     def testClassyAssetsFromDict(self):
         self.checkClassyAssets(make_asset=typepad.Asset.from_dict)
