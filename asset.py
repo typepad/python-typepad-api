@@ -23,7 +23,7 @@ class User(TypePadObject):
     urls               = fields.List(fields.Field())
     accounts           = fields.List(fields.Field())
     links              = fields.Object(LinkSet)
-    object_types       = fields.Field(api_name='objectTypes')
+    object_types       = fields.Constant(("tag:api.typepad.com,2009:User",), api_name='objectTypes')
     relationships      = fields.Link(ListOf('Relationship'))
     events             = fields.Link(ListOf('Event'))
     comments           = fields.Link(ListOf('Comment'), api_name='comments-sent')
@@ -82,7 +82,7 @@ class Group(TypePadObject):
     tagline      = fields.Field()
     urls         = fields.List(fields.Field())
     links        = fields.Object(LinkSet)
-    object_types = fields.List(fields.Field(), api_name='objectTypes')
+    object_types = fields.Constant(("tag:api.typepad.com,2009:Group",), api_name='objectTypes')
 
     # TODO: these aren't really Relationships because the target is really a group
     memberships  = fields.Link(ListOf('Relationship'))
@@ -242,11 +242,25 @@ class Audio(Asset):
     object_types = fields.Constant(("tag:api.typepad.com,2009:Audio",), api_name='objectTypes')
 
 
+class Video(Asset):
+
+    """An entry in a blog."""
+
+    object_types = fields.Constant(("tag:api.typepad.com,2009:Video",), api_name='objectTypes')
+
+
 class LinkAsset(Asset):
 
     """A shared link to some URL."""
 
     object_types = fields.Constant(("tag:api.typepad.com,2009:Link",), api_name='objectTypes')
+
+
+class Document(Asset):
+
+    """A shared link to some URL."""
+
+    object_types = fields.Constant(("tag:api.typepad.com,2009:Document",), api_name='objectTypes')
 
 
 class AssetRef(TypePadObject):
