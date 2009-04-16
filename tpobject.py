@@ -11,6 +11,22 @@ import typepad
 from typepad import fields
 
 
+classes_by_object_type = {}
+
+
+class TypePadObjectMetaclass(remoteobjects.RemoteObject.__metaclass__):
+
+    def __new__(cls, name, bases, attrs):
+        newcls = super(TypePadObjectMetaclass, cls).__new__(cls, name, bases, attrs)
+        try:
+            api_type = attrs['object_type']
+        except KeyError:
+            pass
+        else:
+            classes_by_object_type[api_type] = newcls.__name__
+        return newcls
+
+
 class TypePadObject(remoteobjects.RemoteObject):
 
     """A `RemoteObject` representing an object in the TypePad API.
@@ -23,7 +39,12 @@ class TypePadObject(remoteobjects.RemoteObject):
 
     """
 
+    __metaclass__ = TypePadObjectMetaclass
+
+    object_type = None
     batch_requests = True
+
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
 
     @classmethod
     def get_response(cls, url, http=None, **kwargs):
@@ -61,6 +82,39 @@ class TypePadObject(remoteobjects.RemoteObject):
                 if not issubclass(cls, ListObject):
                     raise PromiseError("Cannot get %s %s outside a batch request"
                         % (cls.__name__, url))
+        return ret
+
+    @classmethod
+    def from_dict(cls, data):
+        try:
+            # Decide what type this should be.
+            objtypes = data['objectTypes']
+        except (TypeError, KeyError):
+            pass
+        else:
+            for objtype in objtypes:
+                if objtype in classes_by_object_type:
+                    objclsname = classes_by_object_type[objtype]
+                    objcls = find_by_name(objclsname)
+                    ret = objcls()
+                    ret.update_from_dict(data)
+                    return ret
+        return super(TypePadObject, cls).from_dict(data)
+
+    @classmethod
+    def from_response(cls, url, response, content):
+        cls.raise_for_response(url, response, content)
+        data = json.loads(content)
+        # Use from_dict() to vary based on the response data.
+        self = cls.from_dict(data)
+        # TODO: re-updating to set the _location and _etag seems wasteful
+        self.update_from_response(url, response, content)
+        return self
+
+    def to_dict(self):
+        ret = super(TypePadObject, self).to_dict()
+        if 'objectTypes' not in ret:
+            ret['objectTypes'] = (self.object_type,)
         return ret
 
     def deliver(self):
@@ -221,7 +275,7 @@ class SequenceProxy(object):
     __contains__ = make_sequence_method('__contains__')
 
 
-class ListOf(remoteobjects.ListObject.__metaclass__):
+class ListOf(TypePadObjectMetaclass, remoteobjects.ListObject.__metaclass__):
 
     """Metaclass defining a `ListObject` containing of some other class.
 
