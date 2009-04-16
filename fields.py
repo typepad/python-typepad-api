@@ -3,6 +3,7 @@ import logging
 import remoteobjects.dataobject
 import remoteobjects.fields
 from remoteobjects.fields import *
+import typepad.tpobject
 
 
 class Link(remoteobjects.fields.Link):
@@ -62,7 +63,7 @@ class Object(remoteobjects.fields.Object):
         super(Object, self).__init__(cls, **kwargs)
 
     def decode(self, value):
-        """Decodes the given dictionary into a GTypePadObject` instance.
+        """Decodes the given dictionary into a `TypePadObject` instance.
 
         If the `value` dictionary contains an ``objectTypes`` value that matches
         a known `TypePadObject` class, an instance of that class is returned.
@@ -75,16 +76,10 @@ class Object(remoteobjects.fields.Object):
         """
         try:
             # Decide what type this should be.
-            objtype = value['objectTypes'][0]
-
-            # TODO: looking up by objectTypes constants would be nice
-            # instead of assuming the URI matches the class name
-            assert objtype.startswith('tag:api.typepad.com,2009:')
-            objtype = objtype[25:]
-
-            objcls = remoteobjects.dataobject.find_by_name(objtype)
+            objtypes = value['objectTypes']
+            objcls = typepad.tpobject.TypePadObject.subclass_with_constant_field('object_types', objtypes)
             return objcls.from_dict(value)
-        except (IndexError, TypeError, KeyError, AssertionError):
+        except (TypeError, KeyError, ValueError):
             # Fall back to superimplementation.
             pass
 
