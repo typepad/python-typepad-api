@@ -174,13 +174,13 @@ class LinkSet(set, TypePadObject):
         best = None
         for link in self:
             # Keep track of the widest variant; this will be our failsafe.
-            if (not widest) or link.width > widest.width:
+            if (not widest) or int(link.width) > int(widest.width):
                 widest = link
             # Width was specified; enclosure is equal or larger than this
-            if width and link.width >= width:
+            if width and int(link.width) >= width:
                 # Assign if nothing was already chosen or if this new
                 # enclosure is smaller than the last best one.
-                if (not best) or link.width < best.width:
+                if (not best) or int(link.width) < int(best.width):
                     best = link
 
         # use best available image if none was selected as the 'best' fit
@@ -295,6 +295,9 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         'published', 'unpublished', 'spam', 'admin', 'member',
         'by-group', 'by-user', 'photo', 'post', 'video', 'audio', 'comment', 'link']
 
+    def count(self):
+        return self.total_results
+
     def filter(self, **kwargs):
         """Returns a new `ListObject` instance representing the same endpoint
         as this `ListObject` instance with the additional filtering applied.
@@ -385,5 +388,7 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         # Post-convert all the "entries" list items to our entry class.
         entryclass = self.entryclass
         if not callable(entryclass):
+            print "looking up class by name %s" % entryclass
             entryclass = find_by_name(entryclass)
+            print "found class %s" % str(entryclass)
         self.entries = [entryclass.from_dict(d) for d in self.entries]
