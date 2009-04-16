@@ -224,6 +224,44 @@ class TestAsset(unittest.TestCase):
 
 class TestLocally(unittest.TestCase):
 
+    def checkClassyAssets(self, make_asset):
+        data = {
+            'id':          '7',
+            'urlId':       '7',
+            'title':       'some asset',
+            'objectTypes': ('http://example.com/internet/',),
+        }
+
+        # Unknown objectTypes should yield an Asset.
+        a = make_asset(data)
+        self.assertEquals(type(a), typepad.Asset)
+
+        # Known objectTypes should yield that type.
+        data['objectTypes'] = ('tag:api.typepad.com,2009:Post',)
+        a = make_asset(data)
+        self.assertEquals(type(a), typepad.Post)
+
+        # Type name needn't match the word in objectTypes.
+        data['objectTypes'] = ('tag:api.typepad.com,2009:Link',)
+        a = make_asset(data)
+        self.assertEquals(type(a), typepad.LinkAsset)
+
+
+    def testClassyAssetsFromDict(self):
+        self.checkClassyAssets(make_asset=typepad.Asset.from_dict)
+
+
+    def testClassyAssetObjectFields(self):
+        class AssetKeeper(typepad.TypePadObject):
+            asset = typepad.fields.Object('Asset')
+
+        def make_asset(data):
+            k = AssetKeeper.from_dict({'asset': data})
+            return k.asset
+
+        self.checkClassyAssets(make_asset)
+
+
     def testRelationships(self):
         data = {
             'source': {
