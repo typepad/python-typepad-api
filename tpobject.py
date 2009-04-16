@@ -388,7 +388,5 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         # Post-convert all the "entries" list items to our entry class.
         entryclass = self.entryclass
         if not callable(entryclass):
-            print "looking up class by name %s" % entryclass
             entryclass = find_by_name(entryclass)
-            print "found class %s" % str(entryclass)
         self.entries = [entryclass.from_dict(d) for d in self.entries]
