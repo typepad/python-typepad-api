@@ -24,7 +24,7 @@ class User(TypePadObject):
     interests          = fields.List(fields.Field())
     urls               = fields.List(fields.Field())
     accounts           = fields.List(fields.Field())
-    links              = fields.Object(LinkSet)
+    links              = fields.Object('LinkSet')
     relationships      = fields.Link(ListOf('Relationship'))
     events             = fields.Link(ListOf('Event'))
     comments           = fields.Link(ListOf('Comment'), api_name='comments-sent')
@@ -84,7 +84,7 @@ class Group(TypePadObject):
     display_name = fields.Field(api_name='displayName')
     tagline      = fields.Field()
     urls         = fields.List(fields.Field())
-    links        = fields.Object(LinkSet)
+    links        = fields.Object('LinkSet')
 
     # TODO: these aren't really Relationships because the target is really a group
     memberships  = fields.Link(ListOf('Relationship'))
@@ -111,8 +111,8 @@ class Application(TypePadObject):
 
     api_key = fields.Field()
     # TODO: this can be a User or Group
-    owner   = fields.Object(Group)
-    links   = fields.Object(LinkSet)
+    owner   = fields.Object('Group')
+    links   = fields.Object('LinkSet')
 
     @property
     def oauth_request_token(self):
@@ -181,25 +181,22 @@ class Asset(TypePadObject):
 
         This alias lets us use `Asset` instances interchangeably with `Event`
         instances in templates.
-
         """
         return self.author
 
     def comment_count(self):
-        # TODO: use the LinkSet
-        for l in self.links:
-            if l.rel == 'replies':
-                return l.total
-        return 0
+        try:
+            return self.links['replies'].total
+        except (TypeError, KeyError):
+            return 0
 
     comments = fields.Link(ListOf('Asset'))
 
     def favorite_count(self):
-        # TODO: use the LinkSet
-        for l in self.links:
-            if l.rel == 'favorites':
-                return l.total
-        return 0
+        try:
+            return self.links['favorites'].total
+        except (TypeError, KeyError):
+            return 0
 
     favorites = fields.Link(ListOf('Asset'))
 
@@ -207,11 +204,9 @@ class Asset(TypePadObject):
     def asset_ref(self):
         """An `AssetRef` instance representing this asset."""
         # TODO: "This is also stupid. Why not have in_reply_to just be another asset??"
-        ref = AssetRef()
-        ref.type = 'application/json'
-        ref.href = '/assets/%s.json' % self.id
-        ref.ref = self.atom_id
-        return ref
+        return AssetRef(type='application/json',
+                        href='/assets/%s.json' % self.id,
+                        ref=self.atom_id)
 
     def __unicode__(self):
         return self.title or self.summary or self.content

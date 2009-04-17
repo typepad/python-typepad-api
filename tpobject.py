@@ -197,7 +197,7 @@ class LinkSet(set, TypePadObject):
         if key.startswith('rel__'):
             # Gimme all matching links.
             key = key[5:]
-            return LinkSet([x for x in self if x.rel == key])
+            return self.__class__([x for x in self if x.rel == key])
         elif key.startswith('width__'):
             width = int(key[7:])
             return self.link_by_width(width)
@@ -340,7 +340,7 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
 
     total_results = fields.Field(api_name='totalResults')
     start_index   = fields.Field(api_name='startIndex')
-    links         = fields.Object(LinkSet)
+    links         = fields.Object('LinkSet')
     entries       = fields.List(fields.Field())
 
     filterorder = ['following', 'follower', 'friend', 'nonreciprocal',
