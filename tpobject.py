@@ -84,32 +84,30 @@ class TypePadObject(remoteobjects.RemoteObject):
                         % (cls.__name__, url))
         return ret
 
-    @classmethod
-    def from_dict(cls, data):
-        try:
-            # Decide what type this should be.
-            objtypes = data['objectTypes']
-        except (TypeError, KeyError):
-            pass
-        else:
-            for objtype in objtypes:
-                if objtype in classes_by_object_type:
-                    objclsname = classes_by_object_type[objtype]
-                    objcls = find_by_name(objclsname)
-                    ret = objcls()
-                    ret.update_from_dict(data)
-                    return ret
-        return super(TypePadObject, cls).from_dict(data)
+    def update_from_dict(self, data):
+        # What should I be?
+        objtypes = ()
+        if not hasattr(self, '_originaldata'):
+            try:
+                objtypes = data['objectTypes']
+            except (TypeError, KeyError):
+                pass
 
-    @classmethod
-    def from_response(cls, url, response, content):
-        cls.raise_for_response(url, response, content)
-        data = json.loads(content)
-        # Use from_dict() to vary based on the response data.
-        self = cls.from_dict(data)
-        # TODO: re-updating to set the _location and _etag seems wasteful
-        self.update_from_response(url, response, content)
-        return self
+        for objtype in objtypes:
+            try:
+                objclsname = classes_by_object_type[objtype]
+                objcls = find_by_name(objclsname)  # KeyError
+            except KeyError:
+                continue
+
+            # Is that a change?
+            if objcls is not self.__class__:
+                self.__class__ = objcls
+
+                # Redispatch from the beginning.
+                return self.update_from_dict(data)
+
+        return super(TypePadObject, self).update_from_dict(data)
 
     def to_dict(self):
         ret = super(TypePadObject, self).to_dict()
