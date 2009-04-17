@@ -348,7 +348,7 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         'by-group', 'by-user', 'photo', 'post', 'video', 'audio', 'comment', 'link']
 
     def count(self):
-        return self.total_results
+        return int(self.total_results)
 
     def filter(self, **kwargs):
         """Returns a new `ListObject` instance representing the same endpoint
