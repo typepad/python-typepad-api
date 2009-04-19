@@ -272,9 +272,11 @@ class AssetRef(TypePadObject):
     type = fields.Field()
 
 
-# TODO: write this class
 class Favorite(TypePadObject):
-    pass
+
+    """A favorite of some other asset."""
+
+    object_type = "tag:api.typepad.com,2009:Favorite"
 
 
 class PublicationStatus(TypePadObject):
