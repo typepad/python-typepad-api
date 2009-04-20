@@ -28,6 +28,7 @@ class User(TypePadObject):
     relationships      = fields.Link(ListOf('Relationship'))
     events             = fields.Link(ListOf('Event'))
     comments           = fields.Link(ListOf('Comment'), api_name='comments-sent')
+    favorites          = fields.Link(ListOf('Favorite'))
     notifications      = fields.Link(ListOf('Event'))
     memberships        = fields.Link(ListOf('Relationship'))
     elsewhere_accounts = fields.Link(ListOf('ElsewhereAccount'), api_name='elsewhere-accounts')
