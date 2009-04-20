@@ -131,6 +131,11 @@ class Application(TypePadObject):
         """The URL from which to request the OAuth access token."""
         return self.links['oauth-access-token-endpoint'].href
 
+    @property
+    def session_sync_script(self):
+        """The URL from which to request session sync javascript."""
+        return self.links['session-sync-script'].href
+
 
 class Event(TypePadObject):
 
