@@ -207,7 +207,8 @@ class Asset(TypePadObject):
         # TODO: "This is also stupid. Why not have in_reply_to just be another asset??"
         return AssetRef(type='application/json',
                         href='/assets/%s.json' % self.id,
-                        ref=self.atom_id)
+                        ref=self.atom_id,
+                        object_types=self.object_types)
 
     def __unicode__(self):
         return self.title or self.summary or self.content
