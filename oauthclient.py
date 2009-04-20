@@ -4,9 +4,6 @@ import urlparse
 from oauth import oauth
 import logging
 
-# FIXME: This module should not rely on Django settings; it should be configured externally
-from django.conf import settings
-
 import typepad
 
 __all__ = ('OAuthAuthentication', 'OAuthClient', 'OAuthHttp', 'log')
@@ -54,6 +51,10 @@ class OAuthAuthentication(httplib2.Authentication):
 
         headers.update(req.to_header())
 
+httplib2.AUTH_SCHEME_CLASSES['oauth'] = OAuthAuthentication
+httplib2.AUTH_SCHEME_ORDER[0:0] = ('oauth',)  # unshift onto front
+
+
 class OAuthHttp(httplib2.Http):
     default_scheme = None
 
@@ -70,8 +71,6 @@ class OAuthHttp(httplib2.Http):
             auth = OAuthAuthentication(cred, domain, "%s://%s/" % ( self.default_scheme, domain ), {}, None, None, self)
             self.authorizations.append(auth)
 
-httplib2.AUTH_SCHEME_CLASSES['oauth'] = OAuthAuthentication
-httplib2.AUTH_SCHEME_ORDER[0:0] = ('oauth',)  # unshift onto front
 
 class OAuthClient(oauth.OAuthClient):
     """
@@ -93,15 +92,10 @@ class OAuthClient(oauth.OAuthClient):
         self.token = oauth.OAuthToken.from_string(token_str)
 
     def fetch_request_token(self):
-        # -> OAuthToken
-        gp_token = oauth.OAuthToken(key=settings.OAUTH_GENERAL_PURPOSE_KEY,
-            secret=settings.OAUTH_GENERAL_PURPOSE_SECRET)
-
         h = typepad.client.http
         h.clear_credentials()
         req = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer,
-            # token=gp_token,
             http_method = 'GET',
             http_url = self.request_token_url,
         )
