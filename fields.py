@@ -25,6 +25,9 @@ class Link(remoteobjects.fields.Link):
         URLs used in the TypePad API.
 
         """
+        if instance is None:
+            return self
+
         try:
             if instance._location is None:
                 raise AttributeError('Cannot find URL of %s relative to URL-less %s' % (type(self).__name__, owner.__name__))
