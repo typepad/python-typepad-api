@@ -11,8 +11,8 @@ import sys
 import unittest
 import traceback
 
-from remoteobjects import tests
 import typepad
+from typepad.tests import utils
 
 requests = {
     'get_user': (
@@ -127,7 +127,7 @@ class TestAsset(unittest.TestCase):
         except KeyError:
             raise Exception('No such mock request %s' % (callername,))
 
-        mockhttp = tests.MockedHttp(*req)
+        mockhttp = utils.MockedHttp(*req)
         typepad.client.http = mockhttp.mock
 
         return mockhttp
@@ -314,5 +314,5 @@ class TestLocally(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests.log()
+    utils.log()
     unittest.main()

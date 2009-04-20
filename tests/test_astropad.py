@@ -8,9 +8,9 @@ from urlparse import urlsplit, urlunsplit
 import nose
 from oauth import oauth
 
-from remoteobjects import tests
-from typepad.tests import test_asset
 import typepad
+from typepad.tests import utils
+from typepad.tests import test_asset
 
 
 def gimmeOAuthAccessToken(self, email, password):
@@ -168,5 +168,5 @@ class TestAstropad(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests.log()
+    utils.log()
     unittest.main()

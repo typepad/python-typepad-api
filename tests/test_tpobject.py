@@ -11,13 +11,13 @@ import sys
 import unittest
 import traceback
 
-from remoteobjects import tests
 import typepad
+from typepad.tests import utils
 
 
 class TestObjects(unittest.TestCase):
 
-    @tests.todo
+    @utils.todo
     def testRelativeUrls(self):
         raise NotImplementedError()
 
@@ -129,5 +129,5 @@ class TestObjects(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    tests.log()
+    utils.log()
     unittest.main()
