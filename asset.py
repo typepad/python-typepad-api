@@ -205,9 +205,10 @@ class Asset(TypePadObject):
     def asset_ref(self):
         """An `AssetRef` instance representing this asset."""
         # TODO: "This is also stupid. Why not have in_reply_to just be another asset??"
-        return AssetRef(type='application/json',
-                        href='/assets/%s.json' % self.id,
+        return AssetRef(id=self.id,
                         ref=self.atom_id,
+                        href='/assets/%s.json' % self.id,
+                        type='application/json',
                         object_types=self.object_types)
 
     def __unicode__(self):
@@ -219,6 +220,13 @@ class Comment(Asset):
     """A text comment posted in reply to some other asset."""
 
     object_type = "tag:api.typepad.com,2009:Comment"
+
+
+class Favorite(Asset):
+
+    """A favorite of some other asset."""
+
+    object_type = "tag:api.typepad.com,2009:Favorite"
 
 
 class Post(Asset):
@@ -272,13 +280,6 @@ class AssetRef(TypePadObject):
     id   = fields.Field(api_name='urlId')
     href = fields.Field()
     type = fields.Field()
-
-
-class Favorite(TypePadObject):
-
-    """A favorite of some other asset."""
-
-    object_type = "tag:api.typepad.com,2009:Favorite"
 
 
 class PublicationStatus(TypePadObject):

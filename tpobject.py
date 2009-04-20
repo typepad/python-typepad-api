@@ -145,7 +145,7 @@ class Link(TypePadObject):
     height   = fields.Field()
     duration = fields.Field()
     total    = fields.Field()
-    favorite = fields.Field(api_name="favoritedByUser")
+    by_user = fields.Field(api_name="byUser")
 
     def __repr__(self):
         """Returns a developer-readable representation of this object."""
