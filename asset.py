@@ -1,3 +1,10 @@
+"""
+
+The `typepad.asset` module contains `TypePadObject` implementations of all the
+content objects provided in the TypePad API.
+
+"""
+
 from remoteobjects.dataobject import find_by_name
 
 from typepad.tpobject import *

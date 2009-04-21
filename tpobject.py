@@ -1,3 +1,22 @@
+"""
+
+The `typepad.tpobject` module houses the `TypePadObject` class and related
+classes, providing a `RemoteObject` based implementation of the generic
+TypePad API.
+
+The module contains:
+
+* the `TypePadObject` class, a `RemoteObject` subclass that enforces batch
+  requesting and ``objectTypes`` behavior
+
+* the `Link` and `LinkSet` classes, implementing the TypePad API's common link
+  mechanism using objects' ``links`` attributes
+
+* the `ListObject` class and `ListOf` metaclass, providing an interface for
+  working with the TypePad API's list endpoints
+
+"""
+
 from urlparse import urljoin, urlparse, urlunparse
 import cgi
 import urllib
@@ -85,6 +104,27 @@ class TypePadObject(remoteobjects.RemoteObject):
         return ret
 
     def update_from_dict(self, data):
+        """Updates this object with the given data, transforming it into an
+        instance of a different `TypePadObject` subclass if necessary.
+
+        This implementation fills this `TypePadObject` instance with the data
+        in parameter `data`, as in `RemoteObject.update_from_dict()`.
+
+        If the data specify a different `TypePadObject` subclass than the one
+        of which `self` is an instance, `self` will be modified to be an
+        instance of the described class. That is, if:
+
+        * this is the first time `update_from_dict()` is called on the instance,
+        * the `data` parameter is a dictionary containing an ``objectTypes``
+          item,
+        * that ``objectTypes`` item is a list of object type identifiers, and
+        * the object type identifiers describe a different `TypePadObject`
+          subclass besides the one `self` belongs to,
+
+        `self` will be turned into an instance of the class specified in the
+        `data` parameter's ``objectTypes`` list.
+
+        """
         # What should I be?
         objtypes = ()
         if not hasattr(self, '_originaldata'):
@@ -276,13 +316,21 @@ class SequenceProxy(object):
 
 class ListOf(TypePadObjectMetaclass, remoteobjects.ListObject.__metaclass__):
 
-    """Metaclass defining a `ListObject` containing of some other class.
+    """Metaclass defining a `ListObject` containing a list of some other
+    class's instances.
 
     Unlike most metaclasses, this metaclass can be called directly to define
     new `ListObject` classes that contain objects of a specified other class,
     like so:
 
     >>> ListOfEntry = ListOf(Entry)
+
+    This is equivalent to defining ``ListOfEntry`` yourself:
+
+    >>> class ListOfEntry(typepad.ListObject):
+    ...     entryclass = Entry
+
+    which is a `ListObject` of ``Entry`` instances.
 
     """
 
@@ -310,6 +358,8 @@ class ListOf(TypePadObjectMetaclass, remoteobjects.ListObject.__metaclass__):
             bases = (ListObject,)
             attr = {'entryclass': entryclass}
 
+        # TODO: Doesn't this mean ListObject is already a SequenceProxy, so
+        # we needn't make every ListOf instance a SequenceProxy subclass too?
         bases = bases + (SequenceProxy,)
         return super(ListOf, cls).__new__(cls, name, bases, attr)
 
