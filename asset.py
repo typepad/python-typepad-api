@@ -46,6 +46,20 @@ class User(TypePadObject):
         client library is authenticating."""
         return cls.get('/users/@self.json', **kwargs)
 
+    @classmethod
+    def get_user(cls, userid):
+        """Returns a `User` instance by their username or unique identifier."""
+        return cls.get('/users/%s.json' % userid)
+
+    @classmethod
+    def get_group_user(cls, group, userid):
+        # TODO handle if the user isn't a member of the group
+        u = User.get('/users/%s/memberships/@by-group/%s.json' % (userid, group.id))
+        # this is necessary since other requests use atom_id to construct
+        # related URLs
+        u.atom_id = 'tag:api.typepad.com,2009:User-%s' % (userid,)
+        return u
+
 
 class ElsewhereAccount(TypePadObject):
 
@@ -107,6 +121,11 @@ class Group(TypePadObject):
     video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
     audio_assets = fields.Link(ListOf('Audio'), api_name='audio-assets')
 
+    @classmethod
+    def get_group(cls, groupid):
+        """Returns a `Group` instance by the group's unique identifier."""
+        return cls.get('/groups/%s.json' % groupid)
+
 
 class Application(TypePadObject):
 
@@ -143,6 +162,11 @@ class Application(TypePadObject):
         """The URL from which to request session sync javascript."""
         return self.links['session-sync-script'].href
 
+    @classmethod
+    def get_application(cls, consumer_key):
+        """Returns an `Application` instance by the consumer key."""
+        return cls.get('/applications/%s.json' % consumer_key)
+
 
 class Event(TypePadObject):
 
@@ -166,6 +190,18 @@ class Event(TypePadObject):
     def __unicode__(self):
         return unicode(self.object)
 
+    @classmethod
+    def get_event(cls, eventid):
+        """Returns an `Event` instance using the given identifier."""
+        return cls.get('/events/%s.json' % eventid)
+
+    ## TODO remove this when event.object has a url _id
+    ## this is currently used to delete an object in the entry view
+    def get_asset(self):
+        """Returns the `Asset` instance referenced by the event."""
+        cls = find_by_name('Asset')
+        return cls.get_asset(self.object.id)
+
 
 class Asset(TypePadObject):
 
@@ -187,6 +223,13 @@ class Asset(TypePadObject):
     status       = fields.Object('PublicationStatus')
     links        = fields.Object('LinkSet')
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
+
+    @classmethod
+    def get_asset(cls, assetid):
+        """Returns a `Asset` instance by the identifier for the asset."""
+        a = cls.get('/assets/%s.json' % assetid)
+        a.atom_id = 'tag:api.typepad.com,2009:Asset-%s' % assetid
+        return a
 
     @property
     def actor(self):
