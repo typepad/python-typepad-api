@@ -250,37 +250,35 @@ class LinkSet(set, TypePadObject):
 
         raise KeyError('No such link %r in this set' % key)
 
-    def link_by_width(self, width=None):
+    def link_by_width(self, width=0):
         """Returns the `Link` instance from this `LinkSet` that best matches
         the requested display width.
 
         If optional parameter `width` is specified, the `Link` instance
-        representing the smallest image wider than `width` is returned. If
-        there is no such image, or if `width` is not specified, the `Link` for
-        the widest image is returned.
+        representing the smallest image wider or matching the `width`
+        specified is returned. If there is no such image, or if `width` is
+        not specified, the `Link` for the widest image is returned.
 
         If there are no images in this `LinkSet`, returns `None`.
 
         """
-        # TODO: is there a brisk way to do this?
-        widest = None
-        best = None
-        for link in self:
-            # Keep track of the widest variant; this will be our failsafe.
-            if (not widest) or int(link.width) > int(widest.width):
-                widest = link
-            # Width was specified; enclosure is equal or larger than this
-            if width and int(link.width) >= width:
-                # Assign if nothing was already chosen or if this new
-                # enclosure is smaller than the last best one.
-                if (not best) or int(link.width) < int(best.width):
-                    best = link
-
-        # use best available image if none was selected as the 'best' fit
-        if best is None:
-            return widest
+        if width == 0:
+            # Select the widest link
+            better = lambda x: best is None or best.width < x.width
         else:
-            return best
+            # Select the image with the specified width or just greater
+            better = lambda x: width <= x.width and (best is None or x.width < best.width)
+
+        best = None
+        for x in self:
+            if better(x):
+                best = x
+
+        if best is None and width != 0:
+            # Try again, this time just return the widest image available
+            return self.link_by_width()
+
+        return best
 
 
 class SequenceProxy(object):
