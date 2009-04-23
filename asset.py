@@ -51,15 +51,6 @@ class User(TypePadObject):
         """Returns a `User` instance by their username or unique identifier."""
         return cls.get('/users/%s.json' % userid)
 
-    @classmethod
-    def get_group_user(cls, group, userid):
-        # TODO handle if the user isn't a member of the group
-        u = User.get('/users/%s/memberships/@by-group/%s.json' % (userid, group.id))
-        # this is necessary since other requests use atom_id to construct
-        # related URLs
-        u.atom_id = 'tag:api.typepad.com,2009:User-%s' % (userid,)
-        return u
-
 
 class ElsewhereAccount(TypePadObject):
 
