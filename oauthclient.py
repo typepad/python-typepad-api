@@ -92,7 +92,7 @@ class OAuthClient(oauth.OAuthClient):
         self.token = oauth.OAuthToken.from_string(token_str)
 
     def fetch_request_token(self):
-        h = typepad.client.http
+        h = typepad.client
         h.clear_credentials()
         req = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer,
@@ -115,7 +115,7 @@ class OAuthClient(oauth.OAuthClient):
 
     def fetch_access_token(self, request_token_str=None):
         # -> OAuthToken
-        h = typepad.client.http
+        h = typepad.client
         req = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer,
             token = self.token,
@@ -134,7 +134,6 @@ class OAuthClient(oauth.OAuthClient):
         return self.token
 
     def authorize_token(self):
-        h = typepad.client.http
         req = oauth.OAuthRequest.from_token_and_callback(
             self.token,
             callback=self.callback_url,

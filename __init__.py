@@ -20,7 +20,10 @@ import batchhttp.client
 
 from typepad.oauthclient import *
 
-client = batchhttp.client.BatchClient(http=OAuthHttp())
+class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
+    pass
+
+client = TypePadClient()
 
 from typepad.tpobject import *
 from typepad import fields

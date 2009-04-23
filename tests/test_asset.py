@@ -128,7 +128,7 @@ class TestAsset(unittest.TestCase):
             raise Exception('No such mock request %s' % (callername,))
 
         mockhttp = utils.MockedHttp(*req)
-        typepad.client.http = mockhttp.mock
+        typepad.client = mockhttp.mock
 
         return mockhttp
 

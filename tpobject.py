@@ -71,7 +71,7 @@ class TypePadObject(remoteobjects.RemoteObject):
         `BatchClient` instance."""
         if not urlparse(url)[1]:  # network location
             url = urljoin(typepad.client.endpoint, url)
-        return super(TypePadObject, cls).get_response(url, http=typepad.client.http, **kwargs)
+        return super(TypePadObject, cls).get_response(url, http=typepad.client, **kwargs)
 
     @classmethod
     def get(cls, url, *args, **kwargs):
@@ -93,7 +93,7 @@ class TypePadObject(remoteobjects.RemoteObject):
         ret = super(TypePadObject, cls).get(url, *args, **kwargs)
         if cls.batch_requests:
             try:
-                typepad.client.add(ret.get_request(), ret.update_from_response)
+                typepad.client.batch(ret.get_request(), ret.update_from_response)
             except BatchError, ex:
                 # We're suppressing an exception here for ListObjects
                 # since in some cases we merely want the object to
