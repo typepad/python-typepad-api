@@ -84,14 +84,17 @@ class TypePadObject(remoteobjects.RemoteObject):
         If batch requests are enabled, the request that delivers the resulting
         `TypePadObject` instance will be added to the `typepad.client`
         `BatchClient` instance's batch request. If `typepad.client` has no
-        active batch request, a `PromiseError` will be raised.
+        active batch request, a `PromiseError` will be raised. The `batch`
+        parameter can be used to force a non-batch request if batch
+        requests are enabled.
 
         """
         if not urlparse(url)[1]:  # network location
             url = urljoin(typepad.client.endpoint, url)
 
         ret = super(TypePadObject, cls).get(url, *args, **kwargs)
-        if cls.batch_requests:
+        ret.batch_requests = kwargs.get('batch', cls.batch_requests)
+        if ret.batch_requests:
             try:
                 typepad.client.batch(ret.get_request(), ret.update_from_response)
             except BatchError, ex:
