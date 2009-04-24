@@ -15,7 +15,7 @@ Package contents
    :maxdepth: 2
 
    tpobject
-   asset
+   api
    fields
    oauthclient
 

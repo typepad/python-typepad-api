@@ -1,5 +1,5 @@
 TypePad Content Objects
 =======================
 
-.. automodule:: typepad.asset
+.. automodule:: typepad.api
    :members:
