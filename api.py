@@ -171,12 +171,13 @@ class Event(TypePadObject):
 
     """
 
-    id      = fields.Field(api_name='urlId')
-    atom_id = fields.Field(api_name='id')
+    id        = fields.Field(api_name='urlId')
+    atom_id   = fields.Field(api_name='id')
     # TODO: vary these based on verb content? oh boy
-    actor   = fields.Object('User')
-    object  = fields.Object('Asset')
-    verbs   = fields.List(fields.Field())
+    actor     = fields.Object('User')
+    object    = fields.Object('Asset')
+    published = fields.Datetime()
+    verbs     = fields.List(fields.Field())
 
     def __unicode__(self):
         return unicode(self.object)
