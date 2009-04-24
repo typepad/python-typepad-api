@@ -41,4 +41,4 @@ client = TypePadClient()
 
 from typepad.tpobject import *
 from typepad import fields
-from typepad.asset import *
+from typepad.api import *

@@ -1,6 +1,6 @@
 """
 
-The `typepad.asset` module contains `TypePadObject` implementations of all the
+The `typepad.api` module contains `TypePadObject` implementations of all the
 content objects provided in the TypePad API.
 
 """
