@@ -152,6 +152,11 @@ class Application(TypePadObject):
     def session_sync_script(self):
         """The URL from which to request session sync javascript."""
         return self.links['session-sync-script'].href
+    
+    @property
+    def user_flyouts_script(self):
+        """The URL from which to request session sync javascript."""
+        return self.links['user-flyouts-script'].href
 
     @classmethod
     def get_application(cls, consumer_key):
