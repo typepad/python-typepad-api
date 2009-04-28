@@ -155,7 +155,7 @@ class Application(TypePadObject):
     
     @property
     def user_flyouts_script(self):
-        """The URL from which to request session sync javascript."""
+        """The URL from which to request typepad user flyout javascript."""
         return self.links['user-flyouts-script'].href
 
     @classmethod
