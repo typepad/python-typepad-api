@@ -152,6 +152,11 @@ class Application(TypePadObject):
     def session_sync_script(self):
         """The URL from which to request session sync javascript."""
         return self.links['session-sync-script'].href
+
+    @property
+    def signout_page(self):
+        """The URL at which end users can sign out of TypePad."""
+        return self.links['signout-page'].href
     
     @property
     def user_flyouts_script(self):
