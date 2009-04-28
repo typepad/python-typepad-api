@@ -154,6 +154,12 @@ class Application(TypePadObject):
         return self.links['session-sync-script'].href
 
     @property
+    def oauth_identification_page(self):
+        """The URL at which end users can identify themselves to sign into 
+        typepad, thereby signing into this site."""
+        return self.links['oauth-identification-page'].href
+
+    @property
     def signout_page(self):
         """The URL at which end users can sign out of TypePad."""
         return self.links['signout-page'].href
