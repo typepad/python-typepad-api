@@ -27,6 +27,7 @@ class User(TypePadObject):
     atom_id            = fields.Field(api_name='id')
     display_name       = fields.Field(api_name='displayName')
     preferred_username = fields.Field(api_name='preferredUsername')
+    email              = fields.Field()
     about_me           = fields.Field(api_name='aboutMe')
     interests          = fields.List(fields.Field())
     urls               = fields.List(fields.Field())
