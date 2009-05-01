@@ -19,6 +19,7 @@ The module contains:
 
 from urlparse import urljoin, urlparse, urlunparse
 import cgi
+import inspect
 import urllib
 
 from batchhttp.client import BatchError
@@ -98,12 +99,9 @@ class TypePadObject(remoteobjects.RemoteObject):
             try:
                 typepad.client.batch(ret.get_request(), ret.update_from_response)
             except BatchError, ex:
-                # We're suppressing an exception here for ListObjects
-                # since in some cases we merely want the object to
-                # 'post' against.
-                if not issubclass(cls, ListObject):
-                    raise PromiseError("Cannot get %s %s outside a batch request"
-                        % (cls.__name__, url))
+                # Remember our caller in case we need to complain about
+                # delivery later.
+                ret._origin = inspect.stack()[1][1:3]
         return ret
 
     def update_from_dict(self, data):
@@ -167,8 +165,15 @@ class TypePadObject(remoteobjects.RemoteObject):
 
         """
         if self.batch_requests:
-            raise PromiseError("Cannot deliver %s %s except by batch request"
-                % (type(self).__name__, self._location))
+            if hasattr(self, '_origin'):
+                origin = self._origin
+                raise PromiseError("Cannot deliver %s %s created by %s at "
+                    "%s line %d except by batch request"
+                    % (type(self).__name__, self._location, origin[2],
+                       origin[0], origin[1]))
+            else:
+                raise PromiseError("Cannot deliver %s %s except by batch request"
+                    % (type(self).__name__, self._location))
         return super(TypePadObject, self).deliver()
 
 

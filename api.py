@@ -292,6 +292,10 @@ class Favorite(Asset):
 
     object_type = "tag:api.typepad.com,2009:Favorite"
 
+    @classmethod
+    def get_favorite(cls, userid, assetid):
+        return cls.get('/favorites/%s:%s.json' % (assetid, userid))
+
 
 class Post(Asset):
 

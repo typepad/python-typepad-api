@@ -21,6 +21,10 @@ class TestObjects(unittest.TestCase):
     def testRelativeUrls(self):
         raise NotImplementedError()
 
+    @utils.todo
+    def testBatchEnforcement(self):
+        raise NotImplementedError()
+
     def testLinks(self):
 
         replies = {
