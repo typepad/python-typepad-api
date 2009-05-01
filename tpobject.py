@@ -197,7 +197,7 @@ class Link(TypePadObject):
 
     def __repr__(self):
         """Returns a developer-readable representation of this object."""
-        return "<Link %s>" % self.href
+        return "<Link %s>" % self.__dict__.get('href', hex(id(self)))
 
 
 class LinkSet(set, TypePadObject):
