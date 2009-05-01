@@ -101,7 +101,7 @@ class TypePadObject(remoteobjects.RemoteObject):
             except BatchError, ex:
                 # Remember our caller in case we need to complain about
                 # delivery later.
-                ret._origin = inspect.stack()[1][1:3]
+                ret._origin = inspect.stack()[1][1:4]
         return ret
 
     def update_from_dict(self, data):
