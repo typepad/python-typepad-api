@@ -9,8 +9,8 @@ import nose
 from oauth import oauth
 
 import typepad
-from typepad.tests import utils
-from typepad.tests import test_asset
+from tests import utils
+from tests import test_api
 
 
 def gimmeOAuthAccessToken(self, email, password):
@@ -100,7 +100,7 @@ class WithableHttp(object):
         pass
 
 
-class TestAsset(test_asset.TestAsset):
+class TestAsset(test_api.TestAsset):
 
     def setUp(self):
         if not os.getenv('TEST_ASTROPAD'):

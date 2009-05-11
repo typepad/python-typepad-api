@@ -12,7 +12,7 @@ import unittest
 import traceback
 
 import typepad
-from typepad.tests import utils
+from tests import utils
 
 requests = {
     'get_user': (
