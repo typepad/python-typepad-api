@@ -148,7 +148,15 @@ class TypePadObject(remoteobjects.RemoteObject):
                 # Redispatch from the beginning.
                 return self.update_from_dict(data)
 
-        return super(TypePadObject, self).update_from_dict(data)
+        super(TypePadObject, self).update_from_dict(data)
+
+        if self._location is None:
+            try:
+                # attempt to assign the _location of this object
+                # to the 'self' link relation's href
+                self._location = self.links['self'].href
+            except (TypeError, KeyError, AttributeError):
+                pass
 
     def to_dict(self):
         ret = super(TypePadObject, self).to_dict()
@@ -186,14 +194,15 @@ class Link(TypePadObject):
 
     """
 
-    rel      = fields.Field()
-    href     = fields.Field()
-    type     = fields.Field()
-    width    = fields.Field()
-    height   = fields.Field()
-    duration = fields.Field()
-    total    = fields.Field()
-    by_user = fields.Field(api_name="byUser")
+    rel             = fields.Field()
+    href            = fields.Field()
+    type            = fields.Field()
+    width           = fields.Field()
+    height          = fields.Field()
+    duration        = fields.Field()
+    total           = fields.Field()
+    by_user         = fields.Field(api_name="byUser")
+    allowed_methods = fields.List(fields.Field(), api_name='allowedMethods')
 
     def __repr__(self):
         """Returns a developer-readable representation of this object."""
