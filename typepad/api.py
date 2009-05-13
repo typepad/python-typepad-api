@@ -48,7 +48,7 @@ class User(TypePadObject):
         return cls.get('/users/@self.json', **kwargs)
 
     @classmethod
-    def get_user(cls, userid):
+    def get_by_id(cls, userid):
         """Returns a `User` instance by their username or unique identifier."""
         return cls.get('/users/%s.json' % userid)
 
@@ -114,7 +114,7 @@ class Group(TypePadObject):
     audio_assets = fields.Link(ListOf('Audio'), api_name='audio-assets')
 
     @classmethod
-    def get_group(cls, groupid):
+    def get_by_id(cls, groupid):
         """Returns a `Group` instance by the group's unique identifier."""
         return cls.get('/groups/%s.json' % groupid)
 
@@ -171,7 +171,7 @@ class Application(TypePadObject):
         return self.links['user-flyouts-script'].href
 
     @classmethod
-    def get_application(cls, consumer_key):
+    def get_by_consumer_key(cls, consumer_key):
         """Returns an `Application` instance by the consumer key."""
         return cls.get('/applications/%s.json' % consumer_key)
 
@@ -199,17 +199,17 @@ class Event(TypePadObject):
     def __unicode__(self):
         return unicode(self.object)
 
-    @classmethod
-    def get_event(cls, eventid):
-        """Returns an `Event` instance using the given identifier."""
-        return cls.get('/events/%s.json' % eventid)
+    # @classmethod
+    # def get_event(cls, eventid):
+    #     """Returns an `Event` instance using the given identifier."""
+    #     return cls.get('/events/%s.json' % eventid)
 
     ## TODO remove this when event.object has a url _id
     ## this is currently used to delete an object in the entry view
-    def get_asset(self):
-        """Returns the `Asset` instance referenced by the event."""
-        cls = find_by_name('Asset')
-        return cls.get_asset(self.object.id)
+    # def get_asset(self):
+    #     """Returns the `Asset` instance referenced by the event."""
+    #     cls = find_by_name('Asset')
+    #     return cls.get_asset(self.object.id)
 
 
 class Asset(TypePadObject):
@@ -234,7 +234,7 @@ class Asset(TypePadObject):
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
 
     @classmethod
-    def get_asset(cls, assetid):
+    def get_by_id(cls, assetid):
         """Returns a `Asset` instance by the identifier for the asset."""
         a = cls.get('/assets/%s.json' % assetid)
         a.atom_id = 'tag:api.typepad.com,2009:Asset-%s' % assetid
@@ -293,7 +293,7 @@ class Favorite(Asset):
     object_type = "tag:api.typepad.com,2009:Favorite"
 
     @classmethod
-    def get_favorite(cls, userid, assetid):
+    def get_by_user_asset(cls, userid, assetid):
         return cls.get('/favorites/%s:%s.json' % (assetid, userid))
 
 
