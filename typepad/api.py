@@ -344,10 +344,11 @@ class AssetRef(TypePadObject):
     """A structure that refers to an asset without including its full
     content."""
 
-    ref  = fields.Field()
-    id   = fields.Field(api_name='urlId')
-    href = fields.Field()
-    type = fields.Field()
+    ref    = fields.Field()
+    id     = fields.Field(api_name='urlId')
+    href   = fields.Field()
+    type   = fields.Field()
+    author = fields.Object('User')
 
 
 class PublicationStatus(TypePadObject):
