@@ -128,7 +128,7 @@ class Application(TypePadObject):
 
     """
 
-    api_key = fields.Field()
+    api_key = fields.Field(api_name='apiKey')
     # TODO: this can be a User or Group
     owner   = fields.Object('Group')
     links   = fields.Object('LinkSet')
@@ -171,9 +171,9 @@ class Application(TypePadObject):
         return self.links['user-flyouts-script'].href
 
     @classmethod
-    def get_by_consumer_key(cls, consumer_key):
-        """Returns an `Application` instance by the consumer key."""
-        return cls.get('/applications/%s.json' % consumer_key)
+    def get_by_api_key(cls, api_key):
+        """Returns an `Application` instance by the API key."""
+        return cls.get('/applications/%s.json' % api_key)
 
 
 class Event(TypePadObject):
