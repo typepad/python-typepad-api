@@ -451,6 +451,13 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
 
         # Add kwargs into the filters and queryargs as appropriate.
         for k, v in kwargs.iteritems():
+            # handle case where value is a TypePadObject. If it is, check for
+            # 'url_id' and if present, use that. If not, raise an exception
+            if isinstance(v, typepad.api.TypePadObject):
+                if hasattr(v, 'url_id'):
+                    v = v.url_id
+                else:
+                    raise Exception("invalid object filter value for parameter %k; object must have a url_id property to filter by object" % k)
             # Convert by_group to by-group.
             k = k.replace('_', '-')
             # Convert by_group=7 to by_group='7'.

@@ -9,7 +9,15 @@ from remoteobjects.dataobject import find_by_name
 
 from typepad.tpobject import *
 from typepad import fields
+import re
 
+def xid_from_atom_id(atom_id):
+    try:
+        # tag:api.typepad.com,2009:6e01148739c04077bd0119f49c602c9c4b
+        # tag:api.typepad.com,2003:user-6p00000001
+        return re.match('^tag:(?:[\w-]+[.]?)+,\d{4}:(?:\w+-)?(\w+)$', atom_id).groups()[0]
+    except:
+        return None
 
 class User(TypePadObject):
 
@@ -23,8 +31,8 @@ class User(TypePadObject):
 
     object_type = "tag:api.typepad.com,2009:User"
 
-    id                 = fields.Field(api_name='urlId')
-    atom_id            = fields.Field(api_name='id')
+    id                 = fields.Field()
+    url_id             = fields.Field(api_name='urlId')
     display_name       = fields.Field(api_name='displayName')
     preferred_username = fields.Field(api_name='preferredUsername')
     email              = fields.Field()
@@ -48,9 +56,22 @@ class User(TypePadObject):
         return cls.get('/users/@self.json', **kwargs)
 
     @classmethod
-    def get_by_id(cls, userid):
-        """Returns a `User` instance by their username or unique identifier."""
-        return cls.get('/users/%s.json' % userid)
+    def get_by_id(cls, id, **kwargs):
+        """Returns a `User` instance by their unique identifier.
+        
+        Asserts that the url_id parameter matches ^\w+$."""
+        id = xid_from_atom_id(id)
+        assert id, "valid id parameter required"
+        return cls.get_by_url_id(id, **kwargs)
+
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        """Returns a `User` instance by their url identifier.
+        
+        Asserts that the url_id parameter matches ^\w+$."""
+        # FIXME: What chracters are permitted for usernames? is '-' okay?
+        assert re.match('^\w+$', url_id), "invalid url_id parameter given"
+        return cls.get('/users/%s.json' % url_id, **kwargs)
 
 
 class ElsewhereAccount(TypePadObject):
@@ -93,8 +114,8 @@ class Group(TypePadObject):
 
     object_type = "tag:api.typepad.com,2009:Group"
 
-    id           = fields.Field(api_name='urlId')
-    atom_id      = fields.Field(api_name='id')
+    id           = fields.Field()
+    url_id       = fields.Field(api_name='urlId')
     display_name = fields.Field(api_name='displayName')
     tagline      = fields.Field()
     urls         = fields.List(fields.Field())
@@ -114,9 +135,21 @@ class Group(TypePadObject):
     audio_assets = fields.Link(ListOf('Audio'), api_name='audio-assets')
 
     @classmethod
-    def get_by_id(cls, groupid):
-        """Returns a `Group` instance by the group's unique identifier."""
-        return cls.get('/groups/%s.json' % groupid)
+    def get_by_id(cls, id, **kwargs):
+        """Returns a `Group` instance by their unique identifier.
+        
+        Asserts that the url_id parameter matches ^\w+$."""
+        id = xid_from_atom_id(id)
+        assert id, "valid id parameter required"
+        return cls.get_by_url_id(id, **kwargs)
+
+    @classmethod
+    def get_by_url_id(cls, url_id):
+        """Returns a `Group` instance by the group's url identifier.
+        
+        Asserts that the url_id parameter matches ^\w+$."""
+        assert re.match('^\w+$', url_id), "invalid url_id parameter given"
+        return cls.get('/groups/%s.json' % url_id)
 
 
 class Application(TypePadObject):
@@ -170,9 +203,18 @@ class Application(TypePadObject):
         """The URL from which to request typepad user flyout javascript."""
         return self.links['user-flyouts-script'].href
 
+    @property
+    def browser_upload_endpoint(self):
+        """The endpoint to use for uploading file assets directly to
+        TypePad."""
+        return '/browser-upload.json'
+
     @classmethod
     def get_by_api_key(cls, api_key):
-        """Returns an `Application` instance by the API key."""
+        """Returns an `Application` instance by the API key.
+        
+        Asserts that the api_key parameter matches ^\w+$."""
+        assert re.match('^\w+$', api_key), "invalid api_key parameter given"
         return cls.get('/applications/%s.json' % api_key)
 
 
@@ -188,8 +230,8 @@ class Event(TypePadObject):
 
     """
 
-    id        = fields.Field(api_name='urlId')
-    atom_id   = fields.Field(api_name='id')
+    id        = fields.Field()
+    url_id    = fields.Field(api_name='urlId')
     # TODO: vary these based on verb content? oh boy
     actor     = fields.Object('User')
     object    = fields.Object('Asset')
@@ -199,18 +241,6 @@ class Event(TypePadObject):
     def __unicode__(self):
         return unicode(self.object)
 
-    # @classmethod
-    # def get_event(cls, eventid):
-    #     """Returns an `Event` instance using the given identifier."""
-    #     return cls.get('/events/%s.json' % eventid)
-
-    ## TODO remove this when event.object has a url _id
-    ## this is currently used to delete an object in the entry view
-    # def get_asset(self):
-    #     """Returns the `Asset` instance referenced by the event."""
-    #     cls = find_by_name('Asset')
-    #     return cls.get_asset(self.object.id)
-
 
 class Asset(TypePadObject):
 
@@ -219,8 +249,8 @@ class Asset(TypePadObject):
     object_type = "tag:api.typepad.com,2009:Asset"
 
     # documented fields
-    id           = fields.Field(api_name='urlId')
-    atom_id      = fields.Field(api_name='id')
+    id           = fields.Field()
+    url_id       = fields.Field(api_name='urlId')
     title        = fields.Field()
     author       = fields.Object('User')
     published    = fields.Datetime()
@@ -234,10 +264,22 @@ class Asset(TypePadObject):
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
 
     @classmethod
-    def get_by_id(cls, assetid):
-        """Returns a `Asset` instance by the identifier for the asset."""
-        a = cls.get('/assets/%s.json' % assetid)
-        a.atom_id = 'tag:api.typepad.com,2009:Asset-%s' % assetid
+    def get_by_id(cls, id, **kwargs):
+        """Returns an `Asset` instance by the identifier for the asset.
+        
+        Asserts that the url_id parameter matches ^\w+$."""
+        id = xid_from_atom_id(id)
+        assert id, "valid id parameter required"
+        return cls.get_by_url_id(id, **kwargs)
+
+    @classmethod
+    def get_by_url_id(cls, url_id):
+        """Returns an `Asset` instance by the url id for the asset.
+        
+        Asserts that the url_id parameter matches ^\w+$."""
+        assert re.match('^\w+$', url_id), "invalid url_id parameter given"
+        a = cls.get('/assets/%s.json' % url_id)
+        a.id = '%s-%s' % (cls.object_type, url_id)
         return a
 
     @property
@@ -269,9 +311,9 @@ class Asset(TypePadObject):
     def asset_ref(self):
         """An `AssetRef` instance representing this asset."""
         # TODO: "This is also stupid. Why not have in_reply_to just be another asset??"
-        return AssetRef(id=self.id,
-                        ref=self.atom_id,
-                        href='/assets/%s.json' % self.id,
+        return AssetRef(url_id=self.url_id,
+                        ref=self.id,
+                        href='/assets/%s.json' % self.url_id,
                         type='application/json',
                         object_types=self.object_types)
 
@@ -288,13 +330,17 @@ class Comment(Asset):
 
 class Favorite(Asset):
 
-    """A favorite of some other asset."""
+    """A favorite of some other asset.
+    
+    Asserts that the user_id and asset_id parameter match ^\w+$."""
 
     object_type = "tag:api.typepad.com,2009:Favorite"
 
     @classmethod
-    def get_by_user_asset(cls, userid, assetid):
-        return cls.get('/favorites/%s:%s.json' % (assetid, userid))
+    def get_by_user_asset(cls, user_id, asset_id):
+        assert re.match('^\w+$', user_id), "invalid user_id parameter given"
+        assert re.match('^\w+$', asset_id), "invalid asset_id parameter given"
+        return cls.get('/favorites/%s:%s.json' % (asset_id, user_id))
 
 
 class Post(Asset):
@@ -345,7 +391,7 @@ class AssetRef(TypePadObject):
     content."""
 
     ref    = fields.Field()
-    id     = fields.Field(api_name='urlId')
+    url_id = fields.Field(api_name='urlId')
     href   = fields.Field()
     type   = fields.Field()
     author = fields.Object('User')
