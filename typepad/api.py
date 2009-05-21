@@ -258,6 +258,7 @@ class Asset(TypePadObject):
     author       = fields.Object('User')
     published    = fields.Datetime()
     updated      = fields.Datetime()
+    can_delete   = fields.Field('canDelete')
     summary      = fields.Field()
     content      = fields.Field()
     # TODO: categories should be Tags?
