@@ -196,6 +196,7 @@ class Link(TypePadObject):
 
     rel             = fields.Field()
     href            = fields.Field()
+    html            = fields.Field()
     type            = fields.Field()
     width           = fields.Field()
     height          = fields.Field()
