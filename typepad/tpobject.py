@@ -160,7 +160,7 @@ class TypePadObject(remoteobjects.RemoteObject):
 
     def to_dict(self):
         ret = super(TypePadObject, self).to_dict()
-        if 'objectTypes' not in ret:
+        if 'objectTypes' not in ret and self.object_type is not None:
             ret['objectTypes'] = (self.object_type,)
         return ret
 
