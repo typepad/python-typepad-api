@@ -92,19 +92,69 @@ class ElsewhereAccount(TypePadObject):
 
 class Relationship(TypePadObject):
 
-    """The unidirectional relationship between pairs of users and groups."""
+    """The unidirectional relationship between a pair of entities.
+
+    A Relationship can be between a user and a user (a contact relationship),
+    or a user and a group (a membership). In either case, the relationship's
+    status shows *all* the unidirectional relationships between the source and
+    target entities.
+
+    """
 
     source = fields.Object('TypePadObject')
     target = fields.Object('TypePadObject')
     status = fields.Object('RelationshipStatus')
 
 
+class RelationshipType(TypePadObject):
+
+    """The specific relationship "edge" between two entities."""
+
+    uri     = fields.Field()
+    created = fields.Datetime()
+
+
 class RelationshipStatus(TypePadObject):
 
-    """A representation of just the relationship type of a relationship,
+    """A representation of just the relationship types of a relationship,
     without the associated endpoints."""
 
-    types = fields.List(fields.Field())
+    types = fields.List(fields.Object('RelationshipType'))
+
+    def update_from_dict(self, data):
+        """Decodes the remote API data structure into the RelationshipStatus
+        instance.
+
+        The remote data structure may include timestamps for when the
+        relationship was established (the contact was added, the group was
+        joined, etc). This is decoded into the appropriate RelationshipType
+        instance too.
+
+        """
+        types = [{'uri': uri, 'created': data.get('created', {}).get(uri)} for uri in data['types']]
+        data = {'types': types}
+        super(RelationshipStatus, self).update_from_dict(data)
+
+    def to_dict(self):
+        """Encodes this RelationshipStatus instance into an API data structure.
+
+        This implementation encodes the creation timestamps of the
+        RelationshipType instances into a sidecar data structure.
+
+        """
+        data = super(RelationshipStatus, self).to_dict()
+
+        created = {}
+        types = []
+        for t in data['types']:
+            uri = t['uri']
+            types.append(uri)
+            if 'created' in t and t['created'] is not None:
+                created[uri] = t['created']
+
+        if created:
+            return {'types': types, 'created': created}
+        return {'types': types}
 
 
 class Group(TypePadObject):

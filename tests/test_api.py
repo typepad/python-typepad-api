@@ -5,11 +5,12 @@ try:
 except ImportError:
     import simplejson as json
 
+from datetime import datetime
 import logging
 import random
 import sys
-import unittest
 import traceback
+import unittest
 
 import typepad
 from tests import utils
@@ -33,6 +34,10 @@ requests = {
             "start-index":   0,
             "entries": [{
                 'status': {
+                    'created': {
+                        'tag:api.typepad.com,2009:Admin':  '2009-01-03T00:00:00Z',
+                        'tag:api.typepad.com,2009:Member': '2009-01-03T00:00:00Z',
+                    },
                     'types': ('tag:api.typepad.com,2009:Admin',
                               'tag:api.typepad.com,2009:Member'),
                 },
@@ -40,6 +45,9 @@ requests = {
                 'source': {"displayName": "Mike", "objectTypes": ["tag:api.typepad.com,2009:User"]},
             }] + [{
                 'status': {
+                    'created': {
+                        'tag:api.typepad.com,2009:Member': '2009-01-03T00:00:00Z',
+                    },
                     'types': ('tag:api.typepad.com,2009:Member',),
                 },
                 'target': {"objectTypes": ["tag:api.typepad.com,2009:Group"]},
@@ -265,6 +273,32 @@ class TestLocally(unittest.TestCase):
             return k.asset
 
         self.checkClassyAssets(make_asset)
+
+
+    def testGroupMembershipWithTimestamps(self):
+        data = {
+            'created': {
+                'tag:api.typepad.com,2009:Admin':  '2009-01-07T00:00:00Z',
+                'tag:api.typepad.com,2009:Member': '2009-01-03T00:00:00Z',
+            },
+            'types': ('tag:api.typepad.com,2009:Member',
+                      'tag:api.typepad.com,2009:Admin'),
+        }
+
+        r = typepad.RelationshipStatus.from_dict(data)
+        self.assertEquals(len(r.types), 2)
+
+        types = r.types
+        self.assert_(types[0].uri)
+
+        # Put the list in an expected order: Admin first.
+        if types[0].uri != 'tag:api.typepad.com,2009:Admin':
+            types.reverse()
+
+        self.assertEquals(types[0].uri, 'tag:api.typepad.com,2009:Admin')
+        self.assertEquals(types[0].created, datetime(2009, 1, 7, 0, 0, 0))
+        self.assertEquals(types[1].uri, 'tag:api.typepad.com,2009:Member')
+        self.assertEquals(types[1].created, datetime(2009, 1, 3, 0, 0, 0))
 
 
     def testRelationships(self):
