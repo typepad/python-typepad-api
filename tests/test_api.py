@@ -1,5 +1,3 @@
-from __future__ import with_statement
-
 try:
     import json
 except ImportError:
@@ -11,6 +9,8 @@ import random
 import sys
 import traceback
 import unittest
+
+import mox
 
 import typepad
 from tests import utils
@@ -135,34 +135,37 @@ class TestAsset(unittest.TestCase):
         except KeyError:
             raise Exception('No such mock request %s' % (callername,))
 
-        mockhttp = utils.MockedHttp(*req)
-        typepad.client = mockhttp.mock
+        mock = utils.mock_http(*req)
+        typepad.client = mock
 
-        return mockhttp
+        return mock
 
     def setUp(self):
         typepad.TypePadObject.batch_requests = False
 
     def testUser(self):
-        with self.http('get_user') as h:
-            user = typepad.User.get('http://127.0.0.1:8000/users/1.json', http=h)
-            self.assertEquals(user.display_name, 'Deanna Conti')
+        h = self.http('get_user')
+        user = typepad.User.get('http://127.0.0.1:8000/users/1.json', http=h)
+        self.assertEquals(user.display_name, 'Deanna Conti')
+        mox.Verify(h)
 
     def testGroup(self):
-        with self.http('get_group') as h:
-            group = typepad.Group.get('http://127.0.0.1:8000/groups/1.json', http=h)
-            self.assertEquals(group.display_name, 'Augue Tempor')
+        h = self.http('get_group')
+        group = typepad.Group.get('http://127.0.0.1:8000/groups/1.json', http=h)
+        self.assertEquals(group.display_name, 'Augue Tempor')
+        mox.Verify(h)
 
     def testGroupMembers(self):
         g = typepad.Group()
         g._location = 'http://127.0.0.1:8000/groups/1.json'
 
-        with self.http('get_group_members') as h:
-            m = g.memberships
-            m._http = h
-            self.assertEquals(len(m.entries), 7)
-            self.assertEquals([u.source.display_name for u in m.entries],
-                ['Mike', 'Sherry Monaco', 'Francesca Coppola', 'David Rosato', 'Edgar Bach', 'Jarad Mccaw', 'Deanna Conti'])
+        h = self.http('get_group_members')
+        m = g.memberships
+        m._http = h
+        self.assertEquals(len(m.entries), 7)
+        self.assertEquals([u.source.display_name for u in m.entries],
+            ['Mike', 'Sherry Monaco', 'Francesca Coppola', 'David Rosato', 'Edgar Bach', 'Jarad Mccaw', 'Deanna Conti'])
+        mox.Verify(h)
 
         # Test sequence behavior of the API list.
         self.assertEquals(m.entries.__len__(), 7)
@@ -174,10 +177,11 @@ class TestAsset(unittest.TestCase):
             ['Sherry Monaco', 'Francesca Coppola'])
 
         # Test limit/offset parameters.
-        with self.http('get_group_members_offset') as h:
-            m = g.memberships.filter(start_index=0)
-            m._http = h
-            m.deliver()
+        h = self.http('get_group_members_offset')
+        m = g.memberships.filter(start_index=0)
+        m._http = h
+        m.deliver()
+        mox.Verify(h)
 
     def testCreateDeletePost(self):
         g = typepad.Group.get('http://127.0.0.1:8000/groups/1.json')
@@ -187,36 +191,41 @@ class TestAsset(unittest.TestCase):
             content="Hi this post has some content is it not nifty"
         )
 
-        with self.http('create_post', credentials=('mmalone@example.com', 'password')) as h:
-            g.post_assets.post(p, http=h)
+        h = self.http('create_post', credentials=('mmalone@example.com', 'password'))
+        g.post_assets.post(p, http=h)
+        mox.Verify(h)
 
         self.assert_(p._location is not None)
         self.assertEquals(p.title, "New post #47")
         self.assert_(hasattr(p, 'published'))
         self.assert_(p.published is not None)
 
-        with self.http('get_created_post') as h:
-            post_got = typepad.Post.get(p._location, http=h)
-            self.assertEquals(post_got.title, 'New post #47')
-            self.assertEquals(post_got._location, p._location)
+        h = self.http('get_created_post')
+        post_got = typepad.Post.get(p._location, http=h)
+        self.assertEquals(post_got.title, 'New post #47')
+        self.assertEquals(post_got._location, p._location)
+        mox.Verify(h)
 
-        with self.http('delete_created_post', credentials=('mmalone@example.com', 'password')) as h:
-            p.delete(http=h)
+        h = self.http('delete_created_post', credentials=('mmalone@example.com', 'password'))
+        p.delete(http=h)
+        mox.Verify(h)
 
         self.assert_(p._location is None)
 
-        with self.http('get_deleted_post') as h:
-            not_there = typepad.Post.get(post_got._location, http=h)
-            self.assertRaises(typepad.Post.NotFound, lambda: not_there.title)
+        h = self.http('get_deleted_post')
+        not_there = typepad.Post.get(post_got._location, http=h)
+        self.assertRaises(typepad.Post.NotFound, lambda: not_there.title)
+        mox.Verify(h)
 
     def testChangePost(self):
         # Get post #1 directly from group #1?
         g = typepad.Group.get('http://127.0.0.1:8000/groups/1.json')
 
-        with self.http('get_mutable_post') as h:
-            e = typepad.Post.get('http://127.0.0.1:8000/assets/1.json', http=h)
-            self.assertEquals(e.title, 'Fames Vivamus Placerat at Condimentum at Primis Consectetuer Nonummy Inceptos Porta dis')
-            self.assertEquals(e.content, 'Posuere felis vestibulum nibh justo vitae elementum.')
+        h = self.http('get_mutable_post')
+        e = typepad.Post.get('http://127.0.0.1:8000/assets/1.json', http=h)
+        self.assertEquals(e.title, 'Fames Vivamus Placerat at Condimentum at Primis Consectetuer Nonummy Inceptos Porta dis')
+        self.assertEquals(e.content, 'Posuere felis vestibulum nibh justo vitae elementum.')
+        mox.Verify(h)
         old_etag = e._etag
 
         # Modify the existing post.
@@ -224,8 +233,9 @@ class TestAsset(unittest.TestCase):
         e.content = 'Yay this is my post'
 
         # Save the modified post.
-        with self.http('put_mutated_post', credentials=('dconti@beli.com', 'password')) as h:
-            e.put(http=h)
+        h = self.http('put_mutated_post', credentials=('dconti@beli.com', 'password'))
+        e.put(http=h)
+        mox.Verify(h)
         self.assertEquals(e.title, 'Omg hai')
         self.assertNotEqual(e._etag, old_etag)
 
