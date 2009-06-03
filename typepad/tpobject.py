@@ -228,7 +228,7 @@ class LinkSet(set, TypePadObject):
     def to_dict(self):
         """Returns a list of dictionary-ized representations of the `Link`
         instances contained in this `LinkSet`."""
-        return [x.to_dict() for x in self]
+        return sorted([x.to_dict() for x in self])
 
     def __getitem__(self, key):
         """Returns the `Link` or `LinkSet` described by the given key.
@@ -412,7 +412,13 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
 
     filterorder = ['following', 'follower', 'friend', 'nonreciprocal',
         'published', 'unpublished', 'spam', 'admin', 'member',
-        'by-group', 'by-user', 'photo', 'post', 'video', 'audio', 'comment', 'link']
+        'by-group', 'by-user', 'photo', 'post', 'video', 'audio', 'comment',
+        'link']
+
+    def to_dict(self):
+        d = super(ListObject, self).to_dict()
+        d['entries'] = [x.to_dict() for x in self.entries]
+        return d
 
     def count(self):
         return int(self.total_results)
