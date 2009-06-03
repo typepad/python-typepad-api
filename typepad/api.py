@@ -5,11 +5,15 @@ content objects provided in the TypePad API.
 
 """
 
+from urlparse import urljoin
+import re
+
 from remoteobjects.dataobject import find_by_name
 
 from typepad.tpobject import *
 from typepad import fields
-import re
+import typepad
+
 
 def xid_from_atom_id(atom_id):
     try:
@@ -18,6 +22,7 @@ def xid_from_atom_id(atom_id):
         return re.match('^tag:(?:[\w-]+[.]?)+,\d{4}:(?:\w+-)?(\w+)$', atom_id).groups()[0]
     except:
         return None
+
 
 class User(TypePadObject):
 
@@ -52,6 +57,10 @@ class User(TypePadObject):
     memberships        = fields.Link(ListOf('Relationship'))
     elsewhere_accounts = fields.Link(ListOf('ElsewhereAccount'), api_name='elsewhere-accounts')
 
+    @property
+    def xid(self):
+        return xid_from_atom_id(self.id)
+
     @classmethod
     def get_self(cls, **kwargs):
         """Returns a `User` instance representing the account as whom the
@@ -62,7 +71,7 @@ class User(TypePadObject):
     def get_by_id(cls, id, **kwargs):
         """Returns a `User` instance by their unique identifier.
         
-        Asserts that the url_id parameter matches ^\w+$."""
+        Asserts that the id parameter is valid."""
         id = xid_from_atom_id(id)
         assert id, "valid id parameter required"
         return cls.get_by_url_id(id, **kwargs)
@@ -131,7 +140,7 @@ class RelationshipStatus(TypePadObject):
         instance too.
 
         """
-        types = [{'uri': uri, 'created': data.get('created', {}).get(uri)} for uri in data['types']]
+        types = [{'uri': uri, 'created': (data.get('created', {}) or {}).get(uri)} for uri in data['types']]
         data = {'types': types}
         super(RelationshipStatus, self).update_from_dict(data)
 
@@ -187,11 +196,15 @@ class Group(TypePadObject):
     video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
     audio_assets = fields.Link(ListOf('Audio'), api_name='audio-assets')
 
+    @property
+    def xid(self):
+        return xid_from_atom_id(self.id)
+
     @classmethod
     def get_by_id(cls, id, **kwargs):
         """Returns a `Group` instance by their unique identifier.
         
-        Asserts that the url_id parameter matches ^\w+$."""
+        Asserts that the id parameter is valid."""
         id = xid_from_atom_id(id)
         assert id, "valid id parameter required"
         return cls.get_by_url_id(id, **kwargs)
@@ -221,7 +234,7 @@ class Application(TypePadObject):
 
     @property
     def oauth_request_token(self):
-        """The URL from which to request the OAuth request token."""
+        """The service URL from which to request the OAuth request token."""
         return self.links['oauth-request-token-endpoint'].href
 
     @property
@@ -232,7 +245,7 @@ class Application(TypePadObject):
 
     @property
     def oauth_access_token_endpoint(self):
-        """The URL from which to request the OAuth access token."""
+        """The service URL from which to request the OAuth access token."""
         return self.links['oauth-access-token-endpoint'].href
 
     @property
@@ -250,7 +263,12 @@ class Application(TypePadObject):
     def signout_page(self):
         """The URL at which end users can sign out of TypePad."""
         return self.links['signout-page'].href
-    
+
+    @property
+    def membership_management_page(self):
+        """The URL at which end users can manage their group memberships."""
+        return self.links['membership-management-page'].href
+
     @property
     def user_flyouts_script(self):
         """The URL from which to request typepad user flyout javascript."""
@@ -260,7 +278,7 @@ class Application(TypePadObject):
     def browser_upload_endpoint(self):
         """The endpoint to use for uploading file assets directly to
         TypePad."""
-        return '/browser-upload.json'
+        return urljoin(typepad.client.endpoint, '/browser-upload.json')
 
     @classmethod
     def get_by_api_key(cls, api_key):
@@ -293,6 +311,10 @@ class Event(TypePadObject):
 
     def __unicode__(self):
         return unicode(self.object)
+
+    @property
+    def xid(self):
+        return xid_from_atom_id(self.id)
 
 
 class Source(TypePadObject):
@@ -329,6 +351,10 @@ class Asset(TypePadObject):
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
 
     source = fields.Object('Source')
+
+    @property
+    def xid(self):
+        return xid_from_atom_id(self.id)
 
     @classmethod
     def get_by_id(cls, id, **kwargs):
