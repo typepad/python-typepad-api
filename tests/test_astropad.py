@@ -1,10 +1,10 @@
-import httplib2
 import logging
 import os
 import unittest
 from urllib import urlencode, unquote
 from urlparse import urlsplit, urlunsplit
 
+import httplib2
 import nose
 from oauth import oauth
 
