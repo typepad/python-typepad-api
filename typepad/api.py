@@ -341,7 +341,6 @@ class Asset(TypePadObject):
     author       = fields.Object('User')
     published    = fields.Datetime()
     updated      = fields.Datetime()
-    can_delete   = fields.Field('canDelete')
     summary      = fields.Field()
     content      = fields.Field()
     # TODO: categories should be Tags?
@@ -349,8 +348,15 @@ class Asset(TypePadObject):
     status       = fields.Object('PublicationStatus')
     links        = fields.Object('LinkSet')
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
+    source       = fields.Object('Source')
+    text_format  = fields.Field()
 
-    source = fields.Object('Source')
+    @property
+    def can_delete(self):
+        try:
+            return 'DELETE' in self.links['self'].allowed_methods
+        except:
+            return False
 
     @property
     def xid(self):
