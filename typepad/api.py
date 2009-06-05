@@ -350,6 +350,7 @@ class Asset(TypePadObject):
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
     source       = fields.Object('Source')
     text_format  = fields.Field()
+    groups       = fields.List(fields.Field())
 
     @property
     def can_delete(self):
