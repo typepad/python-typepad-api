@@ -24,6 +24,22 @@ def xid_from_atom_id(atom_id):
         return None
 
 
+class ListOfRelationships(ListOf('Relationship')):
+
+    def _rel_type_checker(uri):
+        def has_edge_with_uri(self):
+            for relat in self:
+                for edge in relat.status.types:
+                    if edge.uri == uri:
+                        return True
+            return False
+        return has_edge_with_uri
+
+    has_membership = _rel_type_checker("tag:api.typepad.com,2009:Member")
+    has_admin      = _rel_type_checker("tag:api.typepad.com,2009:Admin")
+    has_blocked    = _rel_type_checker("tag:api.typepad.com,2009:Blocked")
+
+
 class User(TypePadObject):
 
     """A TypePad user.
@@ -49,12 +65,12 @@ class User(TypePadObject):
     urls               = fields.List(fields.Field())
     accounts           = fields.List(fields.Field())
     links              = fields.Object('LinkSet')
-    relationships      = fields.Link(ListOf('Relationship'))
+    relationships      = fields.Link(ListOfRelationships)
     events             = fields.Link(ListOf('Event'))
     comments           = fields.Link(ListOf('Comment'), api_name='comments-sent')
     favorites          = fields.Link(ListOf('Favorite'))
     notifications      = fields.Link(ListOf('Event'))
-    memberships        = fields.Link(ListOf('Relationship'))
+    memberships        = fields.Link(ListOfRelationships)
     elsewhere_accounts = fields.Link(ListOf('ElsewhereAccount'), api_name='elsewhere-accounts')
 
     @property
@@ -184,7 +200,7 @@ class Group(TypePadObject):
     links        = fields.Object('LinkSet')
 
     # TODO: these aren't really Relationships because the target is really a group
-    memberships  = fields.Link(ListOf('Relationship'))
+    memberships  = fields.Link(ListOfRelationships)
     assets       = fields.Link(ListOf('Asset'))
     events       = fields.Link(ListOf('Event'))
     comments     = fields.Link(ListOf('Asset'))
