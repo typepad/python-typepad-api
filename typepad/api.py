@@ -323,6 +323,7 @@ class Source(TypePadObject):
     links    = fields.Object('LinkSet')
     provider = fields.Field()
     source   = fields.Field()
+    by_user  = fields.Field(api_name='byUser')
 
     def original_link(self):
         return list(self.links['rel__alternate'])[0]
