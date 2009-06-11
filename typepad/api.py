@@ -6,6 +6,7 @@ content objects provided in the TypePad API.
 """
 
 from urlparse import urljoin
+from datetime import datetime
 import re
 
 from remoteobjects.dataobject import find_by_name
@@ -27,6 +28,8 @@ def xid_from_atom_id(atom_id):
 class ListOfRelationships(ListOf('Relationship')):
 
     def _rel_type_checker(uri):
+        ## TODO this method should probably be in Relationship
+        # since the list could contain several groups (in theory).
         def has_edge_with_uri(self):
             for relat in self:
                 for edge in relat.status.types:
@@ -129,6 +132,27 @@ class Relationship(TypePadObject):
     source = fields.Object('TypePadObject')
     target = fields.Object('TypePadObject')
     status = fields.Object('RelationshipStatus')
+    links  = fields.Object('LinkSet')
+    
+    def _rel_type_updater(uri):
+        def update(self):
+            rel_status = RelationshipStatus.get(self.status_url())
+            if uri:
+                rel = RelationshipType(uri=uri, create=datetime.now())
+                rel_status.types = [rel]
+            else:
+                rel_status.types = []
+            ## TODO include an If-Match header containing the ETag of the original result
+            # to prevent issues if another client has edited the resource since it was retrieved?
+            rel_status.put()
+        return update
+    
+    block   = _rel_type_updater("tag:api.typepad.com,2009:Blocked")
+    unblock = _rel_type_updater(None)
+    leave   = _rel_type_updater(None)
+    
+    def status_url(self):
+        return self.links['status'].href
 
 
 class RelationshipType(TypePadObject):
