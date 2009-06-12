@@ -267,8 +267,7 @@ class Application(TypePadObject):
     """
 
     api_key = fields.Field(api_name='apiKey')
-    # TODO: this can be a User or Group
-    owner   = fields.Object('Group')
+    owner   = fields.Object('TypePadObject')
     links   = fields.Object('LinkSet')
 
     @property
