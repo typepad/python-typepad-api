@@ -223,7 +223,6 @@ class Group(TypePadObject):
     urls         = fields.List(fields.Field())
     links        = fields.Object('LinkSet')
 
-    # TODO: these aren't really Relationships because the target is really a group
     memberships  = fields.Link(ListOfRelationships)
     assets       = fields.Link(ListOf('Asset'))
     events       = fields.Link(ListOf('Event'))
@@ -343,9 +342,8 @@ class Event(TypePadObject):
 
     id        = fields.Field()
     url_id    = fields.Field(api_name='urlId')
-    # TODO: vary these based on verb content? oh boy
-    actor     = fields.Object('User')
-    object    = fields.Object('Asset')
+    actor     = fields.Object('TypePadObject')
+    object    = fields.Object('TypePadObject')
     published = fields.Datetime()
     verbs     = fields.List(fields.Field())
 
