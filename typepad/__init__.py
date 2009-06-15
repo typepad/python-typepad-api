@@ -23,6 +23,8 @@ from typepad.oauthclient import *
 
 class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
 
+    endpoint = 'http://api.typepad.com/'
+
     def __init__(self, *args, **kwargs):
         self.cookies = dict()
         super(TypePadClient, self).__init__(*args, **kwargs)

@@ -98,10 +98,17 @@ class User(TypePadObject):
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
         """Returns a `User` instance by their url identifier.
-        
-        Asserts that the url_id parameter matches ^\w+$."""
-        # FIXME: What chracters are permitted for usernames? is '-' okay?
-        assert re.match('^\w+$', url_id), "invalid url_id parameter given"
+
+        Profile URL identifiers must contain only letters, numbers, and
+        underscores.
+
+        """
+        if len(url_id) == 0:
+            raise ValueError('URL identifiers must contain some characters')
+        mo = re.search('\W', url_id)
+        if mo:
+            raise ValueError('URL identifiers cannot contain "%s" characters'
+                             % mo.group(0))
         return cls.get('/users/%s.json' % url_id, **kwargs)
 
 

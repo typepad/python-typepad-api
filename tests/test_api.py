@@ -141,7 +141,12 @@ class TestAsset(unittest.TestCase):
         return mock
 
     def setUp(self):
+        self.typepad_client = typepad.client
         typepad.TypePadObject.batch_requests = False
+
+    def tearDown(self):
+        typepad.client = self.typepad_client
+        del self.typepad_client
 
     def testUser(self):
         h = self.http('get_user')
@@ -355,6 +360,29 @@ class TestLocally(unittest.TestCase):
         r = typepad.Relationship.from_dict(data)
         self.assert_(isinstance(r.source, typepad.Group))
         self.assert_(isinstance(r.target, typepad.User))
+
+    def testUserUrlId(self):
+        def valid(v):
+            self.assert_(typepad.User.get_by_url_id(v))
+
+        def invalid(i):
+            self.assertRaises(ValueError,
+                              lambda: typepad.User.get_by_url_id(i))
+
+        valid('asfdasf')
+        valid('OHHAI')
+        valid('thx1138')
+        valid('url_id')
+        valid('1138')
+        valid('____')
+        valid('_')
+        valid('7')
+
+        invalid('url id')
+        invalid('url-id')
+        invalid('')
+        invalid('Why?')
+        invalid('^hat^hat^')
 
 
 if __name__ == '__main__':
