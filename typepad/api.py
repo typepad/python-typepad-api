@@ -149,8 +149,6 @@ class Relationship(TypePadObject):
                 rel_status.types = [rel]
             else:
                 rel_status.types = []
-            ## TODO include an If-Match header containing the ETag of the original result
-            # to prevent issues if another client has edited the resource since it was retrieved?
             rel_status.put()
         return update
     
