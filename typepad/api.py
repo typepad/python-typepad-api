@@ -453,7 +453,6 @@ class Asset(TypePadObject):
     @property
     def asset_ref(self):
         """An `AssetRef` instance representing this asset."""
-        # TODO: "This is also stupid. Why not have in_reply_to just be another asset??"
         return AssetRef(url_id=self.url_id,
                         ref=self.id,
                         href='/assets/%s.json' % self.url_id,
