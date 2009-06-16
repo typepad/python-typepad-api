@@ -372,10 +372,12 @@ class ListOf(TypePadObjectMetaclass, remoteobjects.ListObject.__metaclass__):
                 name = cls.__name__ + entryclass
             bases = (ListObject,)
             attr = {'entryclass': entryclass}
+        else:
+            # Make sure classes we create conventionally are SequenceProxies.
+            # As that includes ListObject, classes that are created directly
+            # inherit SequenceProxy behavior through ListObject.
+            bases = bases + (SequenceProxy,)
 
-        # TODO: Doesn't this mean ListObject is already a SequenceProxy, so
-        # we needn't make every ListOf instance a SequenceProxy subclass too?
-        bases = bases + (SequenceProxy,)
         return super(ListOf, cls).__new__(cls, name, bases, attr)
 
 
