@@ -386,8 +386,7 @@ class Asset(TypePadObject):
     updated      = fields.Datetime()
     summary      = fields.Field()
     content      = fields.Field()
-    # TODO: categories should be Tags?
-    categories   = fields.List(fields.Field())
+    categories   = fields.List(fields.Object('Tag'))
     status       = fields.Object('PublicationStatus')
     links        = fields.Object('LinkSet')
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
@@ -555,6 +554,11 @@ class PublicationStatus(TypePadObject):
     spam      = fields.Field()
 
 
-# TODO: write this class
 class Tag(TypePadObject):
-    pass
+
+    """A textual tag applied to an asset by its author."""
+
+    term  = fields.Field()
+    count = fields.Field()
+
+    object_types = None
