@@ -89,7 +89,7 @@ class User(TypePadObject):
     @classmethod
     def get_by_id(cls, id, **kwargs):
         """Returns a `User` instance by their unique identifier.
-        
+
         Asserts that the id parameter is valid."""
         id = xid_from_atom_id(id)
         assert id, "valid id parameter required"
@@ -140,7 +140,7 @@ class Relationship(TypePadObject):
     target = fields.Object('TypePadObject')
     status = fields.Object('RelationshipStatus')
     links  = fields.Object('LinkSet')
-    
+
     def _rel_type_updater(uri):
         def update(self):
             rel_status = RelationshipStatus.get(self.status_url())
@@ -151,11 +151,11 @@ class Relationship(TypePadObject):
                 rel_status.types = []
             rel_status.put()
         return update
-    
+
     block   = _rel_type_updater("tag:api.typepad.com,2009:Blocked")
     unblock = _rel_type_updater(None)
     leave   = _rel_type_updater(None)
-    
+
     def status_url(self):
         return self.links['status'].href
 
@@ -247,7 +247,7 @@ class Group(TypePadObject):
     @classmethod
     def get_by_id(cls, id, **kwargs):
         """Returns a `Group` instance by their unique identifier.
-        
+
         Asserts that the id parameter is valid."""
         id = xid_from_atom_id(id)
         assert id, "valid id parameter required"
@@ -256,7 +256,7 @@ class Group(TypePadObject):
     @classmethod
     def get_by_url_id(cls, url_id):
         """Returns a `Group` instance by the group's url identifier.
-        
+
         Asserts that the url_id parameter matches ^\w+$."""
         assert re.match('^\w+$', url_id), "invalid url_id parameter given"
         return cls.get('/groups/%s.json' % url_id)
@@ -298,7 +298,7 @@ class Application(TypePadObject):
 
     @property
     def oauth_identification_page(self):
-        """The URL at which end users can identify themselves to sign into 
+        """The URL at which end users can identify themselves to sign into
         typepad, thereby signing into this site."""
         return self.links['oauth-identification-page'].href
 
@@ -326,7 +326,7 @@ class Application(TypePadObject):
     @classmethod
     def get_by_api_key(cls, api_key):
         """Returns an `Application` instance by the API key.
-        
+
         Asserts that the api_key parameter matches ^\w+$."""
         assert re.match('^\w+$', api_key), "invalid api_key parameter given"
         return cls.get('/applications/%s.json' % api_key)
@@ -409,7 +409,7 @@ class Asset(TypePadObject):
     @classmethod
     def get_by_id(cls, id, **kwargs):
         """Returns an `Asset` instance by the identifier for the asset.
-        
+
         Asserts that the url_id parameter matches ^\w+$."""
         id = xid_from_atom_id(id)
         assert id, "valid id parameter required"
@@ -418,7 +418,7 @@ class Asset(TypePadObject):
     @classmethod
     def get_by_url_id(cls, url_id):
         """Returns an `Asset` instance by the url id for the asset.
-        
+
         Asserts that the url_id parameter matches ^\w+$."""
         assert re.match('^\w+$', url_id), "invalid url_id parameter given"
         a = cls.get('/assets/%s.json' % url_id)
@@ -474,7 +474,7 @@ class Comment(Asset):
 class Favorite(Asset):
 
     """A favorite of some other asset.
-    
+
     Asserts that the user_id and asset_id parameter match ^\w+$."""
 
     object_type = "tag:api.typepad.com,2009:Favorite"
