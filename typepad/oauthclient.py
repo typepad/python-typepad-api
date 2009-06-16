@@ -32,7 +32,8 @@ class OAuthAuthentication(httplib2.Authentication):
         signing information and signature.
 
         """
-        # TODO: wtf, have to rebuild uri from partial uri and host?
+        # httplib2 only gives us the URI in parts, so rebuild it from the
+        # partial uri and host.
         partial_uri = urlparse.urlsplit(request_uri)
         uri = urlparse.urlunsplit((self.http.default_scheme, self.host) + partial_uri[2:])
 
