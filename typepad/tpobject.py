@@ -317,7 +317,6 @@ class SequenceProxy(object):
         def seqmethod(self, *args, **kwargs):
             # Proxy these methods to self.entries.
             return getattr(self.entries, methodname)(*args, **kwargs)
-        # TODO: use functools.update_wrapper here
         seqmethod.__name__ = methodname
         return seqmethod
 
