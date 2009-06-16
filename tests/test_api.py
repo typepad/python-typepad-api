@@ -15,6 +15,16 @@ import mox
 import typepad
 from tests import utils
 
+
+def json_equals(data):
+    def confirm_equals_data(text):
+        otherdata = json.loads(text)
+        if data == otherdata:
+            return True
+        return False
+    return confirm_equals_data
+
+
 requests = {
     'get_user': (
         { 'uri': 'http://127.0.0.1:8000/users/1.json',
@@ -119,7 +129,7 @@ requests = {
             'if-match': '7',
             'accept': 'application/json',
           },
-          'body': """{"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"}""",
+          'body': mox.Func(json_equals({"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"})),
           'method': 'PUT' },
         { 'content': """{"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"}""",
           'etag': 'xyz' },
