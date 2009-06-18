@@ -25,24 +25,6 @@ def xid_from_atom_id(atom_id):
         return None
 
 
-class ListOfRelationships(ListOf('Relationship')):
-
-    def _rel_type_checker(uri):
-        ## TODO this method should probably be in Relationship
-        # since the list could contain several groups (in theory).
-        def has_edge_with_uri(self):
-            for relat in self:
-                for edge in relat.status.types:
-                    if edge.uri == uri:
-                        return True
-            return False
-        return has_edge_with_uri
-
-    has_membership = _rel_type_checker("tag:api.typepad.com,2009:Member")
-    has_admin      = _rel_type_checker("tag:api.typepad.com,2009:Admin")
-    has_blocked    = _rel_type_checker("tag:api.typepad.com,2009:Blocked")
-
-
 class User(TypePadObject):
 
     """A TypePad user.
@@ -68,12 +50,12 @@ class User(TypePadObject):
     urls               = fields.List(fields.Field())
     accounts           = fields.List(fields.Field())
     links              = fields.Object('LinkSet')
-    relationships      = fields.Link(ListOfRelationships)
+    relationships      = fields.Link(ListOf('Relationship'))
     events             = fields.Link(ListOf('Event'))
     comments           = fields.Link(ListOf('Comment'), api_name='comments-sent')
     favorites          = fields.Link(ListOf('Favorite'))
     notifications      = fields.Link(ListOf('Event'))
-    memberships        = fields.Link(ListOfRelationships)
+    memberships        = fields.Link(ListOf('Relationship'))
     elsewhere_accounts = fields.Link(ListOf('ElsewhereAccount'), api_name='elsewhere-accounts')
 
     @property
@@ -156,6 +138,18 @@ class Relationship(TypePadObject):
     unblock = _rel_type_updater(None)
     leave   = _rel_type_updater(None)
 
+    def _rel_type_checker(uri):
+        def has_edge_with_uri(self):
+            for edge in self.status.types:
+                if edge.uri == uri:
+                    return True
+            return False
+        return has_edge_with_uri
+
+    is_member  = _rel_type_checker("tag:api.typepad.com,2009:Member")
+    is_admin   = _rel_type_checker("tag:api.typepad.com,2009:Admin")
+    is_blocked = _rel_type_checker("tag:api.typepad.com,2009:Blocked")
+
     def status_url(self):
         return self.links['status'].href
 
@@ -228,7 +222,7 @@ class Group(TypePadObject):
     urls         = fields.List(fields.Field())
     links        = fields.Object('LinkSet')
 
-    memberships  = fields.Link(ListOfRelationships)
+    memberships  = fields.Link(ListOf('Relationship'))
     assets       = fields.Link(ListOf('Asset'))
     events       = fields.Link(ListOf('Event'))
     comments     = fields.Link(ListOf('Asset'))
