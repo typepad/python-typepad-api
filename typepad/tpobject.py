@@ -369,7 +369,7 @@ class ListOf(TypePadObjectMetaclass, remoteobjects.ListObject.__metaclass__):
         if direct:
             # Don't bother making a new subclass if we already made one for
             # this target.
-            if name in cls.subclasses:
+            if name in cls._subclasses:
                 return cls._subclasses[name]
 
             entryclass = name
