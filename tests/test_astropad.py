@@ -34,8 +34,7 @@ def gimmeOAuthAccessToken(self, email, password):
     req = oauth.OAuthRequest.from_token_and_callback(token,
         callback='http://finefi.ne/', http_method='POST',
         http_url='http://127.0.0.1:8000/oauth/authorize/')
-    # TODO: why does the oauth module double encode the callback url?
-    req.set_parameter('oauth_callback', unquote(req.get_parameter('oauth_callback')))
+    req.set_parameter('oauth_callback', req.get_parameter('oauth_callback'))
     req.sign_request(oauth.OAuthSignatureMethod_HMAC_SHA1(), csr, token)
     resp, content = h.request(req.to_url(), method='GET')     # click through
     self.assertEquals(resp.status, 302)
