@@ -23,6 +23,18 @@ class TestObjects(unittest.TestCase):
     def testBatchEnforcement(self):
         raise NotImplementedError()
 
+    def testListOf(self):
+        x = typepad.ListOf('User')
+        self.assert_(isinstance(x, type))
+        self.assert_(issubclass(x, typepad.ListObject))
+        self.assert_(issubclass(x, typepad.SequenceProxy))
+        self.assertEquals(x.__name__, 'ListOfUser')
+
+        y = typepad.ListOf('User')
+        logging.critical('%r %s is %r %s?', x, id(x), y, id(y))
+        self.assert_(x is y, "two ListOf's the same thing are not only "
+                             "equivalent but the same instance")
+
     def testLinks(self):
 
         replies = {

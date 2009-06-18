@@ -349,6 +349,8 @@ class ListOf(TypePadObjectMetaclass, remoteobjects.ListObject.__metaclass__):
 
     """
 
+    _subclasses = {}
+
     def __new__(cls, name, bases=None, attr=None):
         """Creates a new `ListObject` subclass.
 
@@ -363,8 +365,13 @@ class ListOf(TypePadObjectMetaclass, remoteobjects.ListObject.__metaclass__):
         as when declaring a `fields.Object` on a class.
 
         """
-        if attr is None:
-            # TODO: memoize me
+        direct = attr is None
+        if direct:
+            # Don't bother making a new subclass if we already made one for
+            # this target.
+            if name in cls.subclasses:
+                return cls._subclasses[name]
+
             entryclass = name
             if callable(entryclass):
                 name = cls.__name__ + entryclass.__name__
@@ -378,7 +385,12 @@ class ListOf(TypePadObjectMetaclass, remoteobjects.ListObject.__metaclass__):
             # inherit SequenceProxy behavior through ListObject.
             bases = bases + (SequenceProxy,)
 
-        return super(ListOf, cls).__new__(cls, name, bases, attr)
+        newcls = super(ListOf, cls).__new__(cls, name, bases, attr)
+        # Save the result for later direct invocations.
+        if direct:
+            orig_name = attr['entryclass']
+            cls._subclasses[orig_name] = newcls
+        return newcls
 
 
 class ListObject(TypePadObject, remoteobjects.ListObject):
