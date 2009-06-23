@@ -260,6 +260,10 @@ class LinkSet(set, TypePadObject):
         elif key.startswith('width__'):
             width = int(key[7:])
             return self.link_by_width(width)
+        elif key.startswith('maxwidth__'):
+            width = int(key[10:])
+            links_by_width = dict([(x.width, x) for x in self if x.width <= width])
+            return links_by_width.get(max(links_by_width.keys()))
 
         # Gimme the first matching link.
         for x in self:
