@@ -124,6 +124,15 @@ class TestObjects(unittest.TestCase):
         self.assertEquals(ls['rel__avatar']['width__25'], smallest)
         self.assertEquals(ls['rel__avatar']['width__1'], smallest)
 
+        # testing maxwidth link relation
+        self.assertEquals(ls['rel__avatar']['maxwidth__1000'], largest)
+        self.assertEquals(ls['rel__avatar']['maxwidth__500'], largest)
+        self.assertEquals(ls['rel__avatar']['maxwidth__499'], medium)
+        self.assertEquals(ls['rel__avatar']['maxwidth__101'], medium)
+        self.assertEquals(ls['rel__avatar']['maxwidth__100'], medium)
+        self.assertEquals(ls['rel__avatar']['maxwidth__99'], smallest)
+        self.assertEquals(ls['rel__avatar']['maxwidth__25'], smallest)
+
         links_list = list(ls)
         self.assertEquals(len(links_list), 6)
         self.assert_(replies     in links_list)
