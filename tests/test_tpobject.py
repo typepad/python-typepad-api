@@ -132,6 +132,10 @@ class TestObjects(unittest.TestCase):
         self.assertEquals(ls['rel__avatar']['maxwidth__100'], medium)
         self.assertEquals(ls['rel__avatar']['maxwidth__99'], smallest)
         self.assertEquals(ls['rel__avatar']['maxwidth__25'], smallest)
+        self.assert_(ls['rel__avatar']['maxwidth__24'] is None)
+        self.assert_(ls['rel__avatar']['maxwidth__20'] is None)
+        self.assert_(ls['rel__avatar']['maxwidth__1'] is None)
+        self.assert_(ls['rel__avatar']['maxwidth__0'] is None)
 
         links_list = list(ls)
         self.assertEquals(len(links_list), 6)
