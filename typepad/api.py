@@ -385,7 +385,7 @@ class Asset(TypePadObject):
     links        = fields.Object('LinkSet')
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
     source       = fields.Object('Source')
-    text_format  = fields.Field()
+    text_format  = fields.Field(api_name='textFormat')
     groups       = fields.List(fields.Field())
 
     @property
