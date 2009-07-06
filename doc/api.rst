@@ -184,7 +184,7 @@ TypePad Content Objects
 
       .. attribute:: id
 
-         A URI that uniquely identifiers this `Event`.
+         A URI that uniquely identifies this `Event`.
 
       .. attribute:: url_id
 
@@ -217,17 +217,59 @@ TypePad Content Objects
       :members:
 
       .. attribute:: id
+
+         A URI that uniquely identifies this `Asset`.
+
       .. attribute:: url_id
+
+         An identifier for this `Asset` that can be used in URLs.
+
       .. attribute:: title
+
+         The title of the asset as provided by its author.
+
+         For some types of asset, the title may be an empty string. This
+         indicates the asset has no title.
+
       .. attribute:: author
+
+         The `User` who created the `Asset`.
+
       .. attribute:: published
+
+         A `datetime.datetime` indicating when the `Asset` was created.
+
       .. attribute:: updated
+
+         A `datetime.datetime` indicating when the `Asset` was last modified.
+
       .. attribute:: summary
+
+         For a media type of `Asset`, the HTML description or caption given by
+         its author.
+
       .. attribute:: content
+
+         For a text type of `Asset`, the HTML content of the `Asset`.
+
       .. attribute:: categories
+
+         A list of `Tag` instances associated with the `Asset`.
+
       .. attribute:: status
+
+         The `PublicationStatus` describing the state of the `Asset`.
+
       .. attribute:: links
+
+         A `LinkSet` containing various URLs and API endpoints related to this
+         `User`.
+
       .. attribute:: in_reply_to
+
+         For comment `Asset` instances, an `AssetRef` describing the asset on
+         which this instance is a comment.
+
       .. attribute:: source
       .. attribute:: text_format
 
@@ -258,8 +300,62 @@ TypePad Content Objects
    .. autoclass:: AssetRef
       :members:
 
+      .. attribute:: ref
+
+         A URI that uniquely identifies the referenced `Asset`.
+
+         The URI matches the one in the referenced `Asset` instance's ``id``
+         field.
+
+      .. attribute:: url_id
+
+         An identifier for this `Asset` that can be used in URLs.
+
+         The identifier matches the one in the referenced `Asset` instance's
+         ``url_id``.
+
+      .. attribute:: href
+
+         The URL at which a representation of the corresponding asset can be
+         retrieved.
+
+      .. attribute:: type
+
+         The MIME type of the representation available from the ``href`` URL.
+
+      .. attribute:: author
+
+         The `User` who created the referenced asset.
+
    .. autoclass:: PublicationStatus
       :members:
 
+      .. attribute:: published
+
+         A boolean flag indicating whether the `Asset` with this
+         `PublicationStatus` is available for public viewing (``True``) or
+         held for moderation (``False``).
+
+      .. attribute:: spam
+
+         A boolean flag indicating whether the `Asset` with this
+         `PublicationStatus` has been marked as spam by the automated filter
+         or a site moderator (``True``) or not (``False``).
+
    .. autoclass:: Tag
       :members:
+
+      .. attribute:: term
+
+         The word or phrase that constitutes the tag.
+
+      .. attribute:: count
+
+         The number of times the `Tag` has been used in the requested context.
+
+         When returned in the list of tags for a group, the count is the
+         number of times the `Tag` has been used for assets in that group.
+         When returned in the list of tags for a `User`, the count is the
+         number of times the tag has been used on that author's assets. When
+         returned in the list of tags for an `Asset`, the count is ``1`` if
+         the tag has been applied to that asset.
