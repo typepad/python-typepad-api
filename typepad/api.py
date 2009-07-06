@@ -473,6 +473,7 @@ class Favorite(Asset):
 
     @classmethod
     def get_by_user_asset(cls, user_id, asset_id):
+        ## TODO this url is broken! - bug id 86429
         assert re.match('^\w+$', user_id), "invalid user_id parameter given"
         assert re.match('^\w+$', asset_id), "invalid asset_id parameter given"
         return cls.get('/favorites/%s:%s.json' % (asset_id, user_id))
