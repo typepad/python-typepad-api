@@ -1,13 +1,10 @@
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
 import logging
 import random
 import sys
 import unittest
 import traceback
+
+import simplejson as json
 
 import typepad
 from tests import utils

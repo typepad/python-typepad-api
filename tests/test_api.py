@@ -1,8 +1,3 @@
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
 from datetime import datetime
 import logging
 import random
@@ -11,6 +6,7 @@ import traceback
 import unittest
 
 import mox
+import simplejson as json
 
 import typepad
 from tests import utils
