@@ -371,6 +371,15 @@ class Asset(TypePadObject):
 
     object_type = "tag:api.typepad.com,2009:Asset"
 
+    known_object_types = [
+        "tag:api.typepad.com,2009:Post",
+        "tag:api.typepad.com,2009:Photo",
+        "tag:api.typepad.com,2009:Video",
+        "tag:api.typepad.com,2009:Link",
+        "tag:api.typepad.com,2009:Comment",
+        "tag:api.typepad.com,2009:Document"
+    ]
+
     # documented fields
     id           = fields.Field()
     url_id       = fields.Field(api_name='urlId')
@@ -455,6 +464,11 @@ class Asset(TypePadObject):
     def __unicode__(self):
         return self.title or self.summary or self.content
 
+    def primary_object_type(self):
+        if not self.object_types: return None
+        for object_type in self.object_types:
+            if object_type in self.known_object_types: return object_type
+        return None
 
 class Comment(Asset):
 
