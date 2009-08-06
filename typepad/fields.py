@@ -38,7 +38,6 @@ class Link(remoteobjects.fields.Link):
             newurl += '.json'
 
             ret = self.cls.get(newurl)
-            ret.of_cls = self.of_cls
             return ret
         except Exception, e:
             logging.error(str(e))

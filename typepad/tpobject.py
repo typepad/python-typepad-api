@@ -20,6 +20,7 @@ The module contains:
 from urlparse import urljoin, urlparse, urlunparse
 import cgi
 import inspect
+import sys
 import urllib
 
 from batchhttp.client import BatchError
@@ -128,11 +129,10 @@ class TypePadObject(remoteobjects.RemoteObject):
         """
         # What should I be?
         objtypes = ()
-        if not hasattr(self, '_originaldata'):
-            try:
-                objtypes = data['objectTypes']
-            except (TypeError, KeyError):
-                pass
+        try:
+            objtypes = data['objectTypes']
+        except (TypeError, KeyError):
+            pass
 
         for objtype in objtypes:
             try:
@@ -335,6 +335,14 @@ class SequenceProxy(object):
     __contains__ = make_sequence_method('__contains__')
 
 
+class _ListsModule(object):
+    pass
+
+lists_module_name = 'typepad.tpobject._lists'
+lists_module = _ListsModule()
+sys.modules[lists_module_name] = lists_module
+
+
 class ListOf(TypePadObjectMetaclass, remoteobjects.ListObject.__metaclass__):
 
     """Metaclass defining a `ListObject` containing a list of some other
@@ -384,7 +392,10 @@ class ListOf(TypePadObjectMetaclass, remoteobjects.ListObject.__metaclass__):
             else:
                 name = cls.__name__ + entryclass
             bases = (ListObject,)
-            attr = {'entryclass': entryclass}
+            attr = {
+                'entryclass': entryclass,
+                'entries': fields.List(fields.Object(entryclass)),
+            }
         else:
             # Make sure classes we create conventionally are SequenceProxies.
             # As that includes ListObject, classes that are created directly
@@ -392,10 +403,13 @@ class ListOf(TypePadObjectMetaclass, remoteobjects.ListObject.__metaclass__):
             bases = bases + (SequenceProxy,)
 
         newcls = super(ListOf, cls).__new__(cls, name, bases, attr)
+
         # Save the result for later direct invocations.
         if direct:
             orig_name = attr['entryclass']
             cls._subclasses[orig_name] = newcls
+            newcls.__module__ = lists_module_name
+            setattr(lists_module, name, newcls)
         return newcls
 
 
@@ -433,11 +447,6 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         'published', 'unpublished', 'spam', 'admin', 'member',
         'by-group', 'by-user', 'photo', 'post', 'video', 'audio', 'comment',
         'link']
-
-    def to_dict(self):
-        d = super(ListObject, self).to_dict()
-        d['entries'] = [x.to_dict() for x in self.entries]
-        return d
 
     def count(self):
         return int(self.total_results)
@@ -483,7 +492,7 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
                 if hasattr(v, 'url_id'):
                     v = v.url_id
                 else:
-                    raise Exception("invalid object filter value for parameter %k; object must have a url_id property to filter by object" % k)
+                    raise ValueError("invalid object filter value for parameter %k; object must have a url_id property to filter by object" % k)
             # Convert by_group to by-group.
             k = k.replace('_', '-')
             # Convert by_group=7 to by_group='7'.
@@ -509,7 +518,6 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         newurl = urlunparse(parts)
 
         ret = self.get(newurl)
-        ret.of_cls = self.of_cls
         return ret
 
     def __getitem__(self, key):
@@ -526,18 +534,3 @@ class ListObject(TypePadObject, remoteobjects.ListObject):
         elif key.stop is not None:
             args['max_results'] = key.stop
         return self.filter(**args)
-
-    def update_from_dict(self, data):
-        """Fills this `ListObject` instance with the data from the given
-        dictionary.
-
-        The contents of the dictionary's `entries` member will be decoded into
-        instances of this `ListObject` instance's entry class.
-
-        """
-        super(ListObject, self).update_from_dict(data)
-        # Post-convert all the "entries" list items to our entry class.
-        entryclass = self.entryclass
-        if not callable(entryclass):
-            entryclass = find_by_name(entryclass)
-        self.entries = [entryclass.from_dict(d) for d in self.entries if d is not None]
