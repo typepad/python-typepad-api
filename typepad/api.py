@@ -205,7 +205,16 @@ class RelationshipStatus(TypePadObject):
         return {'types': types}
 
 
-class Collection(TypePadObject):
+class Group(TypePadObject):
+
+    """A group that users can join, and to which users can post assets.
+
+    TypePad API social applications are represented as groups.
+
+    """
+
+    object_type = "tag:api.typepad.com,2009:Group"
+
     id           = fields.Field()
     url_id       = fields.Field(api_name='urlId')
     display_name = fields.Field(api_name='displayName')
@@ -213,7 +222,17 @@ class Collection(TypePadObject):
     urls         = fields.List(fields.Field())
     links        = fields.Object('LinkSet')
 
+    memberships  = fields.Link(ListOf('Relationship'))
+    assets       = fields.Link(ListOf('Asset'))
+    events       = fields.Link(ListOf('Event'))
     comments     = fields.Link(ListOf('Asset'))
+
+    # comments     = fields.Link(ListOf(Asset), api_name='comment-assets')
+    post_assets  = fields.Link(ListOf('Post'), api_name='post-assets')
+    photo_assets = fields.Link(ListOf('Photo'), api_name='photo-assets')
+    link_assets  = fields.Link(ListOf('LinkAsset'), api_name='link-assets')
+    video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
+    audio_assets = fields.Link(ListOf('Audio'), api_name='audio-assets')
 
     @property
     def xid(self):
@@ -227,42 +246,6 @@ class Collection(TypePadObject):
         id = xid_from_atom_id(id)
         assert id, "valid id parameter required"
         return cls.get_by_url_id(id, **kwargs)
-
-
-class Blog(Collection):
-
-    object_type = "tag:api.typepad.com,2009:Blog"
-
-    posts       = fields.Link(ListOf('Post'))
-
-    @classmethod
-    def get_by_url_id(cls, url_id):
-        """Returns a `Blog` instance by the group's url identifier.
-
-        Asserts that the url_id parameter matches ^\w+$."""
-        assert re.match('^\w+$', url_id), "invalid url_id parameter given"
-        return cls.get('/blogs/%s.json' % url_id)
-
-
-class Group(Collection):
-
-    """A group that users can join, and to which users can post assets.
-
-    TypePad API social applications are represented as groups.
-
-    """
-
-    object_type = "tag:api.typepad.com,2009:Group"
-
-    memberships  = fields.Link(ListOf('Relationship'))
-    events       = fields.Link(ListOf('Event'))
-    assets       = fields.Link(ListOf('Asset'))
-
-    post_assets  = fields.Link(ListOf('Post'), api_name='post-assets')
-    photo_assets = fields.Link(ListOf('Photo'), api_name='photo-assets')
-    link_assets  = fields.Link(ListOf('LinkAsset'), api_name='link-assets')
-    video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
-    audio_assets = fields.Link(ListOf('Audio'), api_name='audio-assets')
 
     @classmethod
     def get_by_url_id(cls, url_id):
@@ -486,11 +469,6 @@ class Asset(TypePadObject):
         for object_type in self.object_types:
             if object_type in self.known_object_types: return object_type
         return None
-
-class Post(Asset):
-
-    object_type = "tag:api.typepad.com,2009:Post"
-
 
 class Comment(Asset):
 
