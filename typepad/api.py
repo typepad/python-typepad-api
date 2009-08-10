@@ -38,18 +38,58 @@ class User(TypePadObject):
     object_type = "tag:api.typepad.com,2009:User"
 
     id                 = fields.Field()
+    """A URI that uniquely identifies this `User`.
+
+    A user's `id` URI is unique across groups, TypePad environments, and
+    time. When associating local content to a user, use this identifier
+    as the "foreign key" to an API user.
+
+    """
     url_id             = fields.Field(api_name='urlId')
+    """An identifier for this `User` that can be used in URLs.
+
+    A user's `url_id` is unique only across groups in one TypePad
+    environment, so you should use `id`, not `url_id`, to associate data
+    with a `User`. When constructing URLs to API resources in a given
+    TypePad environment, however, use `url_id`.
+
+    """
     display_name       = fields.Field(api_name='displayName')
+    """The name chosen by the `User` for display purposes.
+
+    Use this name when displaying the `User`'s name in link text or other
+    text for human viewing.
+
+    """
     preferred_username = fields.Field(api_name='preferredUsername')
+    """The identifying part of the `User`'s chosen TypePad Profile URL.
+
+    This identifier is unique across groups, but not across TypePad
+    environments. TypePad users can change their Profile URLs, so this
+    identifier can also change over time for a given user. Use this name
+    when constructing a link to the user's profile on your local site.
+    (Use the appropriate `Link` from the `User` instance's `links` for
+    the full TypePad Profile URL.)
+
+    """
     email              = fields.Field()
     location           = fields.Field()
     gender             = fields.Field()
     homepage           = fields.Field()
     about_me           = fields.Field(api_name='aboutMe')
+    """The biographical text provided by the `User`.
+
+    This text is displayed on the user's TypePad Profile page. The string
+    may contain multiple lines of text separated by newline characters.
+
+    """
     interests          = fields.List(fields.Field())
+    """A list of strings identifying interests, provided by the `User`."""
     urls               = fields.List(fields.Field())
     accounts           = fields.List(fields.Field())
     links              = fields.Object('LinkSet')
+    """A `LinkSet` containing various URLs and API endpoints related to this
+    `User`."""
     relationships      = fields.Link(ListOf('Relationship'))
     events             = fields.Link(ListOf('Event'))
     comments           = fields.Link(ListOf('Comment'), api_name='comments-sent')
@@ -99,12 +139,27 @@ class ElsewhereAccount(TypePadObject):
     """A user account on an external website."""
 
     domain            = fields.Field()
+    """The DNS domain of the site to which the account belongs."""
     username          = fields.Field()
+    """The username of the account, if known and appropriate.
+
+    Some services don't have `username` attributes, only `user_id`
+    attributes.
+
+    """
     user_id           = fields.Field(api_name='userId')
+    """The primary identifier of the account, if known."""
     url               = fields.Field()
+    """The URL of the corresponding profile page on the service's web site,
+    if known."""
     provider_name     = fields.Field(api_name='providerName')
+    """The name of the service providing this account, suitable for
+    presentation to human viewers."""
     provider_url      = fields.Field(api_name='providerURL')
+    """The URL of the home page of the service providing this account."""
     provider_icon_url = fields.Field(api_name='providerIconURL')
+    """The URL of a 16 by 16 pixel icon representing the service providing
+    this account."""
 
 
 class Relationship(TypePadObject):
@@ -119,9 +174,16 @@ class Relationship(TypePadObject):
     """
 
     source = fields.Object('TypePadObject')
+    """The entity (`User` or `Group`) from which this `Relationship` arises."""
     target = fields.Object('TypePadObject')
+    """The entity (`User` or `Group`) that is the object of this
+    `Relationship`."""
     status = fields.Object('RelationshipStatus')
+    """A `RelationshipStatus` describing the types of relationship this
+    `Relationship` instance represents."""
     links  = fields.Object('LinkSet')
+    """A `LinkSet` containing other URLs and API endpoints related to this
+    relationship."""
 
     def _rel_type_updater(uri):
         def update(self):
@@ -168,6 +230,8 @@ class RelationshipStatus(TypePadObject):
     without the associated endpoints."""
 
     types = fields.List(fields.Object('RelationshipType'))
+    """A list of `RelationshipType` instances that describe all the
+    relationship edges included in this `RelationshipStatus`."""
 
     def update_from_dict(self, data):
         """Decodes the remote API data structure into the RelationshipStatus
@@ -216,11 +280,36 @@ class Group(TypePadObject):
     object_type = "tag:api.typepad.com,2009:Group"
 
     id           = fields.Field()
+    """A URI that uniquely identifies this `Group`.
+
+    A group's `id` URI is unique across groups, TypePad environments, and
+    time. When associating local content with a group, use this
+    identifier as the "foreign key" to an API group.
+
+    """
     url_id       = fields.Field(api_name='urlId')
+    """An identifier for this `Group` that can be used in URLs.
+
+    A group's `url_id` is unique in only one TypePad environment, so you
+    should use `id`, not `url_id`, to associate data with a `Group`. When
+    constructing URLs to API resources in a given TypePad environment,
+    however, use `url_id`.
+
+    """
     display_name = fields.Field(api_name='displayName')
+    """
+    The name chosen for the `Group` for display purposes.
+
+    Use this name when displaying the `Group`'s name in link text or
+    other text for human viewing.
+
+    """
     tagline      = fields.Field()
+    """The tagline or subtitle of this `Group`."""
     urls         = fields.List(fields.Field())
     links        = fields.Object('LinkSet')
+    """A `LinkSet` containing URLs and API endpoints related to this
+    `Group`."""
 
     memberships  = fields.Link(ListOf('Relationship'))
     assets       = fields.Link(ListOf('Asset'))
@@ -266,8 +355,12 @@ class Application(TypePadObject):
     """
 
     api_key = fields.Field(api_name='apiKey')
+    """The consumer key for this `Application`."""
     owner   = fields.Object('TypePadObject')
+    """The entity (`Group` or `User`) that owns this `Application`."""
     links   = fields.Object('LinkSet')
+    """A `LinkSet` containing the API endpoints associated with this
+    `Application`."""
 
     @property
     def oauth_request_token(self):
@@ -339,11 +432,33 @@ class Event(TypePadObject):
     """
 
     id        = fields.Field()
+    """A URI that uniquely identifies this `Event`."""
     url_id    = fields.Field(api_name='urlId')
+    """An identifier for this `Event` that can be used in URLs."""
     actor     = fields.Object('TypePadObject')
+    """The entity (`User` or `Group`) that performed the described `Event`.
+
+    For example, if the `Event` represents someone joining a group,
+    `actor` would be the `User` who joined the group.
+
+    """
     object    = fields.Object('TypePadObject')
+    """The object (a `User`, `Group`, or `Asset`) that is the target of the
+    described `Event`.
+
+    For example, if the `Event` represents someone joining a group,
+    `object` would be the group the `User` joined.
+
+    """
     published = fields.Datetime()
     verbs     = fields.List(fields.Field())
+    """A list of URIs describing what this `Event` describes.
+
+    For example, if the `Event` represents someone joining a group,
+    `verbs` would contain the one URI
+    ``tag:api.typepad.com,2009:JoinedGroup``.
+
+    """
 
     def __unicode__(self):
         return unicode(self.object)
@@ -380,19 +495,39 @@ class Asset(TypePadObject):
         "tag:api.typepad.com,2009:Document"
     ]
 
-    # documented fields
     id           = fields.Field()
+    """A URI that uniquely identifies this `Asset`."""
     url_id       = fields.Field(api_name='urlId')
+    """An identifier for this `Asset` that can be used in URLs."""
     title        = fields.Field()
+    """The title of the asset as provided by its author.
+
+    For some types of asset, the title may be an empty string. This
+    indicates the asset has no title.
+
+    """
     author       = fields.Object('User')
+    """The `User` who created the `Asset`."""
     published    = fields.Datetime()
+    """A `datetime.datetime` indicating when the `Asset` was created."""
     updated      = fields.Datetime()
+    """A `datetime.datetime` indicating when the `Asset` was last modified."""
     summary      = fields.Field()
+    """For a media type of `Asset`, the HTML description or caption given by
+    its author."""
     content      = fields.Field()
+    """For a text type of `Asset`, the HTML content of the `Asset`."""
     categories   = fields.List(fields.Object('Tag'))
+    """A list of `Tag` instances associated with the `Asset`."""
     status       = fields.Object('PublicationStatus')
+    """The `PublicationStatus` describing the state of the `Asset`."""
     links        = fields.Object('LinkSet')
+    """A `LinkSet` containing various URLs and API endpoints related to this
+    `Asset`."""
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
+    """For comment `Asset` instances, an `AssetRef` describing the asset on
+    which this instance is a comment."""
+
     source       = fields.Object('Source')
     text_format  = fields.Field(api_name='textFormat')
     groups       = fields.List(fields.Field())
@@ -541,10 +676,26 @@ class AssetRef(TypePadObject):
     content."""
 
     ref    = fields.Field()
+    """A URI that uniquely identifies the referenced `Asset`.
+
+    The URI matches the one in the referenced `Asset` instance's ``id``
+    field.
+
+    """
     url_id = fields.Field(api_name='urlId')
+    """An identifier for this `Asset` that can be used in URLs.
+
+    The identifier matches the one in the referenced `Asset` instance's
+    ``url_id``.
+
+    """
     href   = fields.Field()
+    """The URL at which a representation of the corresponding asset can be
+    retrieved."""
     type   = fields.Field()
+    """The MIME type of the representation available from the ``href`` URL."""
     author = fields.Object('User')
+    """The `User` who created the referenced asset."""
 
 
 class PublicationStatus(TypePadObject):
@@ -560,7 +711,13 @@ class PublicationStatus(TypePadObject):
     """
 
     published = fields.Field()
+    """A boolean flag indicating whether the `Asset` with this
+    `PublicationStatus` is available for public viewing (``True``) or
+    held for moderation (``False``)."""
     spam      = fields.Field()
+    """A boolean flag indicating whether the `Asset` with this
+    `PublicationStatus` has been marked as spam by the automated filter
+    or a site moderator (``True``) or not (``False``)."""
 
 
 class Tag(TypePadObject):
@@ -568,6 +725,17 @@ class Tag(TypePadObject):
     """A textual tag applied to an asset by its author."""
 
     term  = fields.Field()
+    """The word or phrase that constitutes the tag."""
     count = fields.Field()
+    """The number of times the `Tag` has been used in the requested context.
+
+    When returned in the list of tags for a group, the count is the
+    number of times the `Tag` has been used for assets in that group.
+    When returned in the list of tags for a `User`, the count is the
+    number of times the tag has been used on that author's assets. When
+    returned in the list of tags for an `Asset`, the count is ``1`` if
+    the tag has been applied to that asset.
+
+    """
 
     object_types = None
