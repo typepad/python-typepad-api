@@ -44,15 +44,78 @@ class TestObjects(unittest.TestCase):
             'href':   'http://127.0.0.1:8000/uploads/1/1.gif',
             'type':   'image/jpeg',
             'rel':    'enclosure',
-            'width':  480,
-            'height': 320
+            'width':  459,
+            'height': 459
         }
         enclosure_2 = {
-            'href':   'http://127.0.0.1:8000/uploads/1/170.gif',
+            'href':   'http://127.0.0.1:8000/uploads/1/2.gif',
             'type':   'image/jpeg',
             'rel':    'enclosure',
-            'width':  480,
-            'height': 320
+            'width':  460,
+            'height': 460
+        }
+        enclosure_3 = {
+            'href':   'http://127.0.0.1:8000/uploads/1/3.gif',
+            'type':   'image/jpeg',
+            'rel':    'enclosure',
+            'width':  460,
+            'height': 459
+        }
+        enclosure_4 = {
+            'href':   'http://127.0.0.1:8000/uploads/1/4.gif',
+            'type':   'image/jpeg',
+            'rel':    'enclosure',
+            'width':  459,
+            'height': 460
+        }
+        enclosure_5 = {
+            'href':   'http://127.0.0.1:8000/uploads/1/5.gif',
+            'type':   'image/jpeg',
+            'rel':    'enclosure',
+            'width':  459,
+            'height': 461
+        }
+        enclosure_6 = {
+            'href':   'http://127.0.0.1:8000/uploads/1/6.gif',
+            'type':   'image/jpeg',
+            'rel':    'enclosure',
+            'width':  460,
+            'height': 461
+        }
+        enclosure_7 = {
+            'href':   'http://127.0.0.1:8000/uploads/1/7.gif',
+            'type':   'image/jpeg',
+            'rel':    'enclosure',
+            'width':  461,
+            'height': 460
+        }
+        enclosure_8 = {
+            'href':   'http://127.0.0.1:8000/uploads/1/8.gif',
+            'type':   'image/jpeg',
+            'rel':    'enclosure',
+            'width':  461,
+            'height': 459
+        }
+        enclosure_9 = {
+            'href':   'http://127.0.0.1:8000/uploads/1/9.gif',
+            'type':   'image/jpeg',
+            'rel':    'enclosure',
+            'width':  461,
+            'height': 461
+        }
+        enclosure_10 = {
+            'href':   'http://127.0.0.1:8000/uploads/1/10.gif',
+            'type':   'image/jpeg',
+            'rel':    'enclosure',
+            'width':  465,
+            'height': 480
+        }
+        enclosure_11 = {
+            'href':   'http://127.0.0.1:8000/uploads/1/11.gif',
+            'type':   'image/jpeg',
+            'rel':    'enclosure',
+            'width':  10000,
+            'height': 10000
         }
         largest = {
             'rel':    'avatar',
@@ -77,23 +140,39 @@ class TestObjects(unittest.TestCase):
         }
 
         ls = typepad.LinkSet.from_dict([ replies, enclosure, enclosure_2,
+            enclosure_3, enclosure_4, enclosure_5, enclosure_6, enclosure_7,
+            enclosure_8, enclosure_9, enclosure_10, enclosure_11,
             largest, smallest, medium ])
+        ls1 = typepad.LinkSet.from_dict([ enclosure, enclosure_10, enclosure_11 ])
 
-        replies     = typepad.Link.from_dict(replies)
-        enclosure   = typepad.Link.from_dict(enclosure)
-        enclosure_2 = typepad.Link.from_dict(enclosure_2)
-        largest     = typepad.Link.from_dict(largest)
-        smallest    = typepad.Link.from_dict(smallest)
-        medium      = typepad.Link.from_dict(medium)
+        replies      = typepad.Link.from_dict(replies)
+        enclosure    = typepad.Link.from_dict(enclosure)
+        enclosure_2  = typepad.Link.from_dict(enclosure_2)
+        enclosure_3  = typepad.Link.from_dict(enclosure_3)
+        enclosure_4  = typepad.Link.from_dict(enclosure_4)
+        enclosure_5  = typepad.Link.from_dict(enclosure_5)
+        enclosure_6  = typepad.Link.from_dict(enclosure_6)
+        enclosure_7  = typepad.Link.from_dict(enclosure_7)
+        enclosure_8  = typepad.Link.from_dict(enclosure_8)
+        enclosure_9  = typepad.Link.from_dict(enclosure_9)
+        enclosure_10 = typepad.Link.from_dict(enclosure_10)
+        enclosure_11 = typepad.Link.from_dict(enclosure_11)
+        largest      = typepad.Link.from_dict(largest)
+        smallest     = typepad.Link.from_dict(smallest)
+        medium       = typepad.Link.from_dict(medium)
 
         self.assert_(isinstance(ls, typepad.LinkSet))
-        self.assertEquals(len(ls), 6)
+        self.assertEquals(len(ls), 15)
 
         self.assertEquals(ls['replies'], replies)
-        self.assert_(ls['enclosure'] in (enclosure, enclosure_2))
+        self.assert_(ls['enclosure'] in (enclosure, enclosure_2, enclosure_3,
+            enclosure_4, enclosure_5, enclosure_6, enclosure_7, enclosure_8,
+            enclosure_9, enclosure_10, enclosure_11))
         self.assertEquals(list(ls['rel__replies']), [ replies ])
         enclosures = sorted(list(ls['rel__enclosure']), key=lambda x: x.href)
-        self.assertEquals(enclosures, [ enclosure, enclosure_2 ])
+        self.assertEquals(enclosures, [ enclosure, enclosure_10, enclosure_11,
+            enclosure_2, enclosure_3, enclosure_4, enclosure_5, enclosure_6,
+            enclosure_7, enclosure_8, enclosure_9 ])
         avatars = sorted(list(ls['rel__avatar']), key=lambda x: x.href)
         self.assertEquals(avatars, [ largest, medium, smallest ])
 
@@ -134,14 +213,47 @@ class TestObjects(unittest.TestCase):
         self.assert_(ls['rel__avatar']['maxwidth__1'] is None)
         self.assert_(ls['rel__avatar']['maxwidth__0'] is None)
 
+        # testing enclosure selection for width of 458px
+        # enclosure is the best pick here (459x459)
+        self.assertEquals(ls1['rel__enclosure'].link_by_size(458), enclosure)
+        self.assertEquals(ls1['rel__enclosure'].link_by_size(460), enclosure)
+        self.assertEquals(ls1['rel__enclosure'].link_by_size(470), enclosure)
+        self.assertEquals(ls1['rel__enclosure'].link_by_size(480), enclosure_10)
+        self.assertEquals(ls1['rel__enclosure'].link_by_size(500), enclosure_10)
+
+        # testing enclosure selection for width of 459px
+        # enclosure is the best pick here (459x459)
+        self.assertEquals(ls['rel__enclosure'].link_by_size(459), enclosure)
+
+        # testing enclosure selection for width of 460px
+        # enclosure_2 is the best pick here (460x460)
+        self.assertEquals(ls['rel__enclosure'].link_by_size(460), enclosure_2)
+
+        # testing enclosure selection for width of 461px
+        # enclosure_9 is the best pick here (461x461)
+        self.assertEquals(ls['rel__enclosure'].link_by_size(461), enclosure_9)
+
+        # testing enclosure selection for width of 480px
+        # should NOT select 10000^2 image; best choice is enclosure_10
+        self.assertEquals(ls['rel__enclosure'].link_by_size(480), enclosure_10)
+
         links_list = list(ls)
-        self.assertEquals(len(links_list), 6)
-        self.assert_(replies     in links_list)
-        self.assert_(enclosure   in links_list)
-        self.assert_(enclosure_2 in links_list)
-        self.assert_(largest     in links_list)
-        self.assert_(smallest    in links_list)
-        self.assert_(medium      in links_list)
+        self.assertEquals(len(links_list), 15)
+        self.assert_(replies      in links_list)
+        self.assert_(enclosure    in links_list)
+        self.assert_(enclosure_2  in links_list)
+        self.assert_(enclosure_3  in links_list)
+        self.assert_(enclosure_4  in links_list)
+        self.assert_(enclosure_5  in links_list)
+        self.assert_(enclosure_6  in links_list)
+        self.assert_(enclosure_7  in links_list)
+        self.assert_(enclosure_8  in links_list)
+        self.assert_(enclosure_9  in links_list)
+        self.assert_(enclosure_10 in links_list)
+        self.assert_(enclosure_11 in links_list)
+        self.assert_(largest      in links_list)
+        self.assert_(smallest     in links_list)
+        self.assert_(medium       in links_list)
 
         self.assertRaises(KeyError, lambda: ls['asfdasf'])
 
