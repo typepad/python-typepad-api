@@ -260,6 +260,9 @@ class LinkSet(set, TypePadObject):
         elif key.startswith('width__'):
             width = int(key[7:])
             return self.link_by_width(width)
+        elif key.startswith('size__'):
+            size = int(key[7:])
+            return self.link_by_size(size)
         elif key.startswith('maxwidth__'):
             width = int(key[10:])
             links_by_width = dict([(x.width, x) for x in self if x.width <= width])
@@ -286,6 +289,7 @@ class LinkSet(set, TypePadObject):
         If there are no images in this `LinkSet`, returns `None`.
 
         """
+
         if width == 0:
             # Select the widest link
             better = lambda x: best is None or best.width < x.width
@@ -303,6 +307,43 @@ class LinkSet(set, TypePadObject):
             return self.link_by_width()
 
         return best
+
+    def link_by_size(self, size=0):
+        """Returns the `Link` instance from this `LinkSet` that best matches
+        the requested display size.
+
+        If optional parameter `size` is specified, the `Link` instance
+        representing the smallest image bigger or matching the `size`
+        specified is returned. If there is no such image, or if `size` is
+        not specified, the `Link` for the biggest image is returned.
+
+        If there are no images in this `LinkSet`, returns `None`.
+
+        """
+
+        # highest resolution image that still fits in bounding box
+        fits = None
+        # smallest resolution image that is bigger than bounding box
+        oversize = None
+        # highest resolution image
+        original = None
+
+        for image in self:
+            # logic for assigning 'oversize'
+            if image.width > size or image.height > size:
+                if oversize is None or (oversize.width > image.width or oversize.height > image.height):
+                    oversize = image
+            else:
+                # logic for assigning 'fits'
+                if fits is None or (fits.width < image.width or fits.height < image.height):
+                    fits = image
+            if original is None or (original.width < image.width or original.height < image.height):
+                original = image
+
+        if size == 0:
+            return original
+        else:
+            return fits or oversize or original
 
 
 class SequenceProxy(object):
