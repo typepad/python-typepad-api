@@ -185,6 +185,25 @@ class Relationship(TypePadObject):
     """A `LinkSet` containing other URLs and API endpoints related to this
     relationship."""
 
+    def update_from_dict(self, data):
+        """Decodes the remote API data structure into the Relationship
+        instance.
+
+        The remote data structure may include timestamps for when the
+        relationship was established (the contact was added, the group was
+        joined, etc). This is translated into a form appropriate for the
+        RelationshipType class.
+
+        """
+        if 'created' in data and 'status' in data and 'types' in data['status']:
+            types = data['status']['types']
+            new_types = []
+            for uri in types:
+                if uri in data['created']:
+                    new_types.append({'uri': uri, 'created': data['created'][uri]})
+            data['status']['types'] = new_types
+        super(Relationship, self).update_from_dict(data)
+
     def _rel_type_updater(uri):
         def update(self):
             rel_status = RelationshipStatus.get(self.status_url(), batch=False)
@@ -232,20 +251,6 @@ class RelationshipStatus(TypePadObject):
     types = fields.List(fields.Object('RelationshipType'))
     """A list of `RelationshipType` instances that describe all the
     relationship edges included in this `RelationshipStatus`."""
-
-    def update_from_dict(self, data):
-        """Decodes the remote API data structure into the RelationshipStatus
-        instance.
-
-        The remote data structure may include timestamps for when the
-        relationship was established (the contact was added, the group was
-        joined, etc). This is decoded into the appropriate RelationshipType
-        instance too.
-
-        """
-        types = [{'uri': uri, 'created': (data.get('created', {}) or {}).get(uri)} for uri in data['types']]
-        data = {'types': types}
-        super(RelationshipStatus, self).update_from_dict(data)
 
     def to_dict(self):
         """Encodes this RelationshipStatus instance into an API data structure.
