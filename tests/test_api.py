@@ -309,24 +309,29 @@ class TestLocally(unittest.TestCase):
                 'tag:api.typepad.com,2009:Admin':  '2009-01-07T00:00:00Z',
                 'tag:api.typepad.com,2009:Member': '2009-01-03T00:00:00Z',
             },
-            'types': ('tag:api.typepad.com,2009:Member',
-                      'tag:api.typepad.com,2009:Admin'),
+            'status': {
+                'types': ('tag:api.typepad.com,2009:Member',
+                          'tag:api.typepad.com,2009:Admin')
+            }
         }
 
-        r = typepad.RelationshipStatus.from_dict(data)
-        self.assertEquals(len(r.types), 2)
+        r = typepad.Relationship.from_dict(data)
+        self.assertEquals(len(r.status.types), 2)
 
-        types = r.types
-        self.assert_(types[0].uri)
+        types = r.status.types
+        self.assert_(types[0])
+
+        created = r.created
+        self.assert_(created['tag:api.typepad.com,2009:Member'])
 
         # Put the list in an expected order: Admin first.
-        if types[0].uri != 'tag:api.typepad.com,2009:Admin':
+        if types[0] != 'tag:api.typepad.com,2009:Admin':
             types.reverse()
 
-        self.assertEquals(types[0].uri, 'tag:api.typepad.com,2009:Admin')
-        self.assertEquals(types[0].created, datetime(2009, 1, 7, 0, 0, 0))
-        self.assertEquals(types[1].uri, 'tag:api.typepad.com,2009:Member')
-        self.assertEquals(types[1].created, datetime(2009, 1, 3, 0, 0, 0))
+        self.assertEquals(types[0], 'tag:api.typepad.com,2009:Admin')
+        self.assertEquals(created[types[0]], datetime(2009, 1, 7, 0, 0, 0))
+        self.assertEquals(types[1], 'tag:api.typepad.com,2009:Member')
+        self.assertEquals(created[types[1]], datetime(2009, 1, 3, 0, 0, 0))
 
 
     def testRelationships(self):

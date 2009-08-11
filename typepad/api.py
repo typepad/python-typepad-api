@@ -173,43 +173,24 @@ class Relationship(TypePadObject):
 
     """
 
-    source = fields.Object('TypePadObject')
+    source  = fields.Object('TypePadObject')
     """The entity (`User` or `Group`) from which this `Relationship` arises."""
-    target = fields.Object('TypePadObject')
+    target  = fields.Object('TypePadObject')
     """The entity (`User` or `Group`) that is the object of this
     `Relationship`."""
-    status = fields.Object('RelationshipStatus')
+    status  = fields.Object('RelationshipStatus')
     """A `RelationshipStatus` describing the types of relationship this
     `Relationship` instance represents."""
-    links  = fields.Object('LinkSet')
+    links   = fields.Object('LinkSet')
     """A `LinkSet` containing other URLs and API endpoints related to this
     relationship."""
-
-    def update_from_dict(self, data):
-        """Decodes the remote API data structure into the Relationship
-        instance.
-
-        The remote data structure may include timestamps for when the
-        relationship was established (the contact was added, the group was
-        joined, etc). This is translated into a form appropriate for the
-        RelationshipType class.
-
-        """
-        if 'created' in data and 'status' in data and 'types' in data['status']:
-            types = data['status']['types']
-            new_types = []
-            for uri in types:
-                if uri in data['created']:
-                    new_types.append({'uri': uri, 'created': data['created'][uri]})
-            data['status']['types'] = new_types
-        super(Relationship, self).update_from_dict(data)
+    created = fields.Dict(fields.Datetime())
 
     def _rel_type_updater(uri):
         def update(self):
             rel_status = RelationshipStatus.get(self.status_url(), batch=False)
             if uri:
-                rel = RelationshipType(uri=uri, create=datetime.now())
-                rel_status.types = [rel]
+                rel_status.types = [uri]
             else:
                 rel_status.types = []
             rel_status.put()
@@ -221,10 +202,7 @@ class Relationship(TypePadObject):
 
     def _rel_type_checker(uri):
         def has_edge_with_uri(self):
-            for edge in self.status.types:
-                if edge.uri == uri:
-                    return True
-            return False
+            return uri in self.status.types
         return has_edge_with_uri
 
     is_member  = _rel_type_checker("tag:api.typepad.com,2009:Member")
@@ -235,43 +213,14 @@ class Relationship(TypePadObject):
         return self.links['status'].href
 
 
-class RelationshipType(TypePadObject):
-
-    """The specific relationship "edge" between two entities."""
-
-    uri     = fields.Field()
-    created = fields.Datetime()
-
-
 class RelationshipStatus(TypePadObject):
 
     """A representation of just the relationship types of a relationship,
     without the associated endpoints."""
 
-    types = fields.List(fields.Object('RelationshipType'))
-    """A list of `RelationshipType` instances that describe all the
+    types = fields.List(fields.Field())
+    """A list of URIs instances that describe all the
     relationship edges included in this `RelationshipStatus`."""
-
-    def to_dict(self):
-        """Encodes this RelationshipStatus instance into an API data structure.
-
-        This implementation encodes the creation timestamps of the
-        RelationshipType instances into a sidecar data structure.
-
-        """
-        data = super(RelationshipStatus, self).to_dict()
-
-        created = {}
-        types = []
-        for t in data['types']:
-            uri = t['uri']
-            types.append(uri)
-            if 'created' in t and t['created'] is not None:
-                created[uri] = t['created']
-
-        if created:
-            return {'types': types, 'created': created}
-        return {'types': types}
 
 
 class Group(TypePadObject):
