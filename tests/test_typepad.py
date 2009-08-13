@@ -1267,7 +1267,7 @@ class TestTypePad(unittest.TestCase):
 
     @attr(user='group')
     def test_0_GET_users_id_relationships_follower_by_group_id(self):
-        """GET /users/<id>/relationships/@follower/@by-group/<id>.json
+        """GET /users/<id>/relationships/@follower/@by-group/<id>.json (group)
 
         Tests the endpoint for selecting the user's followers within a group.
         """
@@ -1411,38 +1411,38 @@ class TestTypePad(unittest.TestCase):
         self.assert_(object_type)
         self.assert_(asset.published)
         self.assert_(len(asset.links) > 0)
-        self.assert_(asset.links['self'])
+        self.assert_('self' in asset.links)
         self.assert_(asset.links['self'].href)
         self.assertEquals(asset.links['self'].type, 'application/json')
-        self.assert_(asset.links['favorites'])
+        self.assert_('favorites' in asset.links)
         self.assert_(asset.links['favorites'].href)
         self.assert_(asset.links['favorites'].type, 'application/json')
         self.assert_(asset.links['replies'])
         self.assert_(asset.links['replies'].href)
         self.assert_(asset.links['replies'].type, 'application/json')
         if 'alternate' in asset.links:
-            self.assert_(asset.links['alternate'])
+            self.assert_('alternate' in asset.links)
             self.assert_(asset.links['alternate'].href)
             self.assertEquals(asset.links['alternate'].type, 'text/html')
         self.assert_(object_type.startswith('tag:api.typepad.com'))
         if object_type == 'tag:api.typepad.com,2009:Link':
             # additional properties we expect for link assets
-            self.assert_(asset.links['target'])
+            self.assert_('target' in asset.links)
             self.assert_(asset.links['target'].href)
         elif object_type == 'tag:api.typepad.com,2009:Photo':
             # additional properties we expect for photo assets
-            self.assert_(asset.links['enclosure'])
+            self.assert_('enclosure' in asset.links)
             self.assert_(asset.links['enclosure'].href)
             self.assert_(asset.links['enclosure'].height)
             self.assert_(asset.links['enclosure'].width)
             self.assert_(asset.links['enclosure'].type.startswith("image/"))
-            self.assert_(asset.links['preview'])
+            self.assert_('preview' in asset.links)
             self.assert_(asset.links['preview'].href)
             self.assert_(asset.links['preview'].height)
             self.assert_(asset.links['preview'].width)
             self.assert_(asset.links['preview'].type.startswith("image/"))
         elif object_type == 'tag:api.typepad.com,2009:Audio':
-            self.assert_(asset.links['enclosure'])
+            self.assert_('enclosure' in asset.links)
             self.assert_(asset.links['enclosure'].href)
             self.assert_(asset.links['enclosure'].type.startswith('audio/'))
         elif object_type == 'tag:api.typepad.com,2009:Post':
@@ -1451,7 +1451,7 @@ class TestTypePad(unittest.TestCase):
             self.assert_(asset.in_reply_to)
             self.assertValidAssetRef(asset.in_reply_to)
         elif object_type == 'tag:api.typepad.com,2009:Video':
-            self.assert_(asset.links['enclosure'])
+            self.assert_('enclosure' in asset.links)
             self.assert_(asset.links['enclosure'].html)
             self.assert_(asset.links['enclosure'].height)
             self.assert_(asset.links['enclosure'].width)
@@ -1461,6 +1461,7 @@ class TestTypePad(unittest.TestCase):
                 object_type)
         if asset.source:
             self.assert_(asset.source.links)
+            self.assert_('alternate' in asset.source.links)
             self.assert_(asset.source.links['alternate'].href)
             self.assertEquals(asset.source.links['alternate'].type,
                 'text/html')
@@ -1485,10 +1486,11 @@ class TestTypePad(unittest.TestCase):
 
         self.assert_(len(user.links) > 0)
 
-        self.assert_(user.links['self'])
+        self.assert_('self' in user.links)
         self.assert_(user.links['self'].href)
         self.assertEquals(user.links['self'].type, 'application/json')
 
+        self.assert_('elsewhere-accounts' in user.links)
         self.assert_(user.links['elsewhere-accounts'].href)
         self.assertEquals(user.links['elsewhere-accounts'].type,
             'application/json')
@@ -1499,11 +1501,11 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(user.links['follow-frame-content'].type,
             'text/html')
 
-        self.assert_(user.links['alternate'])
+        self.assert_('alternate' in user.links)
         self.assert_(user.links['alternate'].href)
         self.assertEquals(user.links['alternate'].type, 'text/html')
 
-        self.assert_(user.links['avatar'])
+        self.assert_('avatar' in user.links)
         self.assert_(user.links['avatar'].href)
         self.assert_(user.links['avatar'].height)
         self.assert_(user.links['avatar'].width)
@@ -1516,7 +1518,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(event.url_id)
         self.assert_(event.published)
         self.assert_(len(event.links) > 0)
-        self.assert_(event.links['self'])
+        self.assert_('self' in event.links)
         self.assert_(event.links['self'].href)
         self.assertEquals(event.links['self'].type, 'application/json')
         self.assert_(len(event.verbs) > 0)
@@ -1537,7 +1539,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(group.url_id)
         self.assert_(group.display_name)
         self.assert_(len(group.links) > 0)
-        self.assert_(group.links['self'])
+        self.assert_('self' in group.links)
         self.assert_(group.links['self'].href)
         self.assertEquals(group.links['self'].type, 'application/json')
         self.assert_(len(group.object_types) > 0)
@@ -1553,7 +1555,7 @@ class TestTypePad(unittest.TestCase):
             'session-sync-script', 'oauth-access-token-endpoint',
             'user-flyouts-script', 'self')
         for link in links:
-            self.assert_(app.links[link], "no %s link present" % link)
+            self.assert_(link in app.links, "no %s link present" % link)
             self.assert_(app.links[link].href, "no href on %s link" % link)
             if link.endswith('-script'):
                 self.assertEquals(app.links[link].type, 'text/javascript',
@@ -1595,7 +1597,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(isinstance(rel, typepad.Relationship),
             "object %r is not a typepad.Relationship" % rel)
         self.assert_(rel.links)
-        self.assert_(rel.links['self'])
+        self.assert_('self' in rel.links)
         self.assert_(rel.links['self'].href)
         self.assertEquals(rel.links['self'].type, 'application/json')
         self.assert_(rel.status)
@@ -1652,7 +1654,8 @@ class TestTypePad(unittest.TestCase):
         self.assert_(full.total_results, len(full.entries))
         # regardless of start-index/max-results parameters, the total-results
         # parameter should be the same as the full selection
-        self.assert_(full.total_results > 1, "list must have more than 1 item to test start-index query parameter")
+        self.assert_(full.total_results > 1,
+            "list must have more than 1 item to test start-index query parameter")
         if full.total_results < 50:
             self.assertEquals(len(slice1.entries), slice1.total_results - 1)
         # lets not require this for now
