@@ -13,14 +13,14 @@ from tests import utils
 class TestObjects(unittest.TestCase):
 
     @utils.todo
-    def testRelativeUrls(self):
+    def test_relative_urls(self):
         raise NotImplementedError()
 
     @utils.todo
-    def testBatchEnforcement(self):
+    def test_batch_enforcement(self):
         raise NotImplementedError()
 
-    def testListOf(self):
+    def test_listof(self):
         x = typepad.ListOf('User')
         self.assert_(isinstance(x, type))
         self.assert_(issubclass(x, typepad.ListObject))
@@ -32,7 +32,7 @@ class TestObjects(unittest.TestCase):
         self.assert_(x is y, "two ListOf's the same thing are not only "
                              "equivalent but the same instance")
 
-    def testLinks(self):
+    def test_links(self):
 
         replies = {
             'href':  'http://127.0.0.1:8000/assets/1/comments.json',

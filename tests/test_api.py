@@ -156,19 +156,19 @@ class TestAsset(unittest.TestCase):
         typepad.client = self.typepad_client
         del self.typepad_client
 
-    def testUser(self):
+    def test_user(self):
         h = self.http('get_user')
         user = typepad.User.get('http://127.0.0.1:8000/users/1.json', http=h)
         self.assertEquals(user.display_name, 'Deanna Conti')
         mox.Verify(h)
 
-    def testGroup(self):
+    def test_group(self):
         h = self.http('get_group')
         group = typepad.Group.get('http://127.0.0.1:8000/groups/1.json', http=h)
         self.assertEquals(group.display_name, 'Augue Tempor')
         mox.Verify(h)
 
-    def testGroupMembers(self):
+    def test_group_members(self):
         g = typepad.Group()
         g._location = 'http://127.0.0.1:8000/groups/1.json'
 
@@ -196,7 +196,7 @@ class TestAsset(unittest.TestCase):
         m.deliver()
         mox.Verify(h)
 
-    def testCreateDeletePost(self):
+    def test_create_delete_post(self):
         g = typepad.Group.get('http://127.0.0.1:8000/groups/1.json')
 
         p = typepad.Post(
@@ -235,7 +235,7 @@ class TestAsset(unittest.TestCase):
         self.assertRaises(typepad.Post.NotFound, lambda: not_there.title)
         mox.Verify(h)
 
-    def testChangePost(self):
+    def test_change_post(self):
         # Get post #1 directly from group #1?
         g = typepad.Group.get('http://127.0.0.1:8000/groups/1.json')
 
@@ -260,7 +260,7 @@ class TestAsset(unittest.TestCase):
 
 class TestLocally(unittest.TestCase):
 
-    def checkClassyAssets(self, make_asset):
+    def check_classy_assets(self, make_asset):
         data = {
             'id':          '7',
             'urlId':       '7',
@@ -287,12 +287,10 @@ class TestLocally(unittest.TestCase):
         a = make_asset(data)
         self.assertEquals(type(a), typepad.Post)
 
+    def test_classy_assets_from_dict(self):
+        self.check_classy_assets(make_asset=typepad.Asset.from_dict)
 
-    def testClassyAssetsFromDict(self):
-        self.checkClassyAssets(make_asset=typepad.Asset.from_dict)
-
-
-    def testClassyAssetObjectFields(self):
+    def test_classy_asset_object_fields(self):
         class AssetKeeper(typepad.TypePadObject):
             asset = typepad.fields.Object('Asset')
 
@@ -300,10 +298,9 @@ class TestLocally(unittest.TestCase):
             k = AssetKeeper.from_dict({'asset': data})
             return k.asset
 
-        self.checkClassyAssets(make_asset)
+        self.check_classy_assets(make_asset)
 
-
-    def testUnclassyAssetRefs(self):
+    def test_unclassy_assetrefs(self):
         data = {
             'id':          '7',
             'urlId':       '7',
@@ -327,8 +324,7 @@ class TestLocally(unittest.TestCase):
         ar = AssetRefKeeper.from_dict({'assetref': data}).assetref
         self.assert_(isinstance(ar, typepad.AssetRef))
 
-
-    def testGroupMembershipWithTimestamps(self):
+    def test_group_membership_with_timestamps(self):
         data = {
             'created': {
                 'tag:api.typepad.com,2009:Admin':  '2009-01-07T00:00:00Z',
@@ -358,8 +354,7 @@ class TestLocally(unittest.TestCase):
         self.assertEquals(types[1], 'tag:api.typepad.com,2009:Member')
         self.assertEquals(created[types[1]], datetime(2009, 1, 3, 0, 0, 0))
 
-
-    def testRelationships(self):
+    def test_relationships(self):
         data = {
             'source': {
                 'displayName': 'Nikola',
@@ -404,7 +399,7 @@ class TestLocally(unittest.TestCase):
         self.assert_(isinstance(r.source, typepad.Group))
         self.assert_(isinstance(r.target, typepad.User))
 
-    def testUserUrlId(self):
+    def test_user_url_id(self):
         def valid(v):
             self.assert_(typepad.User.get_by_url_id(v))
 

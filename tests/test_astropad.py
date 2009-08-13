@@ -13,7 +13,7 @@ from tests import utils
 from tests import test_api
 
 
-def gimmeOAuthAccessToken(self, email, password):
+def gimme_oauth_access_token(self, email, password):
     key, secret = 'key', 'secret'
 
     # get a request token
@@ -110,7 +110,7 @@ class TestAsset(test_api.TestAsset):
         wh = WithableHttp()
 
         if 'credentials' in kwargs:
-            csr, access_token = gimmeOAuthAccessToken(self, *kwargs['credentials'])
+            csr, access_token = gimme_oauth_access_token(self, *kwargs['credentials'])
             wh.http.add_credentials(csr, access_token)
 
         return wh
@@ -122,13 +122,13 @@ class TestAstropad(unittest.TestCase):
         if not os.getenv('TEST_ASTROPAD'):
             raise nose.SkipTest('no astropad tests without TEST_ASTROPAD=1')
 
-    def testOAuthSetup(self):
+    def test_oauth_setup(self):
         self.assertEquals(httplib2.AUTH_SCHEME_ORDER[0], 'oauth')
         self.assert_('oauth' in httplib2.AUTH_SCHEME_CLASSES)
         self.assert_(issubclass(httplib2.AUTH_SCHEME_CLASSES['oauth'], typepad.OAuthAuthentication))
 
-    def testWholeOAuthShebang(self):
-        csr, access_token = gimmeOAuthAccessToken(self, 'dconti@beli.com', 'password')
+    def test_whole_oauth_shebang(self):
+        csr, access_token = gimme_oauth_access_token(self, 'dconti@beli.com', 'password')
 
         # finally, test that we can actually auth with the access token
         h = httplib2.Http()  # all new client
@@ -139,7 +139,7 @@ class TestAstropad(unittest.TestCase):
         self.assertEquals(resp.status, 302)
         self.assert_(resp['location'].startswith('http://127.0.0.1:8000/users/'))
 
-    def testConditionalHttp(self):
+    def test_conditional_http(self):
         class Cache(object):
             def get(self, key):
                 return self.__dict__.get(key, None)

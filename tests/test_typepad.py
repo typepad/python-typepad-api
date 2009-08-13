@@ -72,28 +72,26 @@ is through the test method name, as tests are run in alphabetic order.
 
 """
 
-import httplib2
+
 from httplib import HTTPException
 import logging
 import os
+from pprint import pprint
 import re
 import unittest
 from urllib import urlencode, unquote
 from urlparse import urlsplit, urlunsplit, urlparse
 
+import httplib2
 import nose
 import nose.plugins.attrib
 from oauth import oauth
-
-import typepad
-from remoteobjects.http import HttpObject
-
-from tests import utils
-from tests import test_api
-
 import simplejson as json
 
-from pprint import pprint
+from remoteobjects.http import HttpObject
+from tests import utils
+from tests import test_api
+import typepad
 
 
 def load_test_data():
@@ -105,6 +103,7 @@ def load_test_data():
     f.close()
     return json.loads(s)
 
+
 def setUpModule():
     global testdata
     testdata = load_test_data()
@@ -114,6 +113,7 @@ def setUpModule():
     testdata['comments_created'] = []
     if 'coookies' in testdata['configuration']:
         typepad.client.cookies.update(testdata['configuration']['cookies'])
+
 
 def attr(*args, **kwargs):
     """Decorator wrapper for the nose 'attrib' attr decorator.
