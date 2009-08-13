@@ -1626,9 +1626,9 @@ class TestTypePad(unittest.TestCase):
 
     def assertValidAssetRef(self, ref):
         self.assert_(ref.url_id)
-        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87912
-        # self.assert_(isinstance(ref, typepad.AssetRef),
-        #     "object %r is not a typepad.AssetRef" % ref)
+        self.assert_(isinstance(ref, typepad.AssetRef),
+            "object %r is not a typepad.AssetRef" % ref)
+        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87953
         # self.assert_(ref.href)
         # self.assertEquals(ref.type, "application/json")
         self.assertValidUser(ref.author)
