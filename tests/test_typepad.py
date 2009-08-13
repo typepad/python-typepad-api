@@ -882,7 +882,6 @@ class TestTypePad(unittest.TestCase):
         self.assertForbidden(
             typepad.Group.get_by_url_id(group_id).video_assets.post, video)
 
-    @utils.todo
     @attr(user='group')
     def test_0_GET_relationships_id(self):
         """GET /relationships/<id>.json (group)
@@ -890,9 +889,26 @@ class TestTypePad(unittest.TestCase):
         Tests the selection of a single relationship object.
         """
 
-        raise NotImplementedError()
+        member_id = self.testdata['member']['xid']
 
-    @utils.todo
+        typepad.client.batch_request()
+        user = typepad.User.get_by_url_id(member_id)
+        followers = user.relationships.filter(follower=True, max_results=1)
+        typepad.client.complete_batch()
+
+        self.assertValidUser(user)
+
+        rel = followers[0]
+        self.assertValidRelationship(rel)
+
+        rel_link = rel.links['self'].href
+
+        typepad.client.batch_request()
+        rel2 = typepad.Relationship.get(rel_link)
+        typepad.client.complete_batch()
+
+        self.assertValidRelationship(rel2)
+
     @attr(user='group')
     def test_0_GET_relationship_id_status(self):
         """GET /relationships/<id>/status.json (group)
@@ -900,7 +916,25 @@ class TestTypePad(unittest.TestCase):
         Tests the selection of a relationship's status.
         """
 
-        raise NotImplementedError()
+        member_id = self.testdata['member']['xid']
+
+        typepad.client.batch_request()
+        user = typepad.User.get_by_url_id(member_id)
+        followers = user.relationships.filter(follower=True, max_results=1)
+        typepad.client.complete_batch()
+
+        self.assertValidUser(user)
+
+        rel = followers[0]
+        self.assertValidRelationship(rel)
+
+        rel_status = rel.links['status'].href
+
+        typepad.client.batch_request()
+        status = typepad.RelationshipStatus.get(rel_status)
+        typepad.client.complete_batch()
+
+        self.assertValidRelationshipStatus(status)
 
     @utils.todo
     @attr(user='member')
@@ -1531,6 +1565,20 @@ class TestTypePad(unittest.TestCase):
         # self.assert_(fav.published)
         self.assertValidUser(fav.author)
         self.assertValidAssetRef(fav.in_reply_to)
+
+    def assertValidRelationshipStatus(self, rel):
+        self.assert_(isinstance(rel, typepad.RelationshipStatus),
+            "object %r is not a typepad.Relationship" % rel)
+        self.assert_(rel.types)
+        self.assert_(len(rel.types) > 0)
+        for type_ in rel.types:
+            self.assert_(type_ in (
+                "tag:api.typepad.com,2009:Contact",
+                "tag:api.typepad.com,2009:Admin",
+                "tag:api.typepad.com,2009:Blocked",
+                "tag:api.typepad.com,2009:Member"),
+                "type '%s' is unrecognized" % type_
+            )
 
     def assertValidRelationship(self, rel):
         self.assert_(isinstance(rel, typepad.Relationship),
