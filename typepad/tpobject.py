@@ -261,6 +261,19 @@ class LinkSet(set, TypePadObject):
         instances contained in this `LinkSet`."""
         return sorted([x.to_dict() for x in self])
 
+    def __contains__(self, key):
+        """Returns a boolean result for whether the `LinkSet` contains
+        a `Link` matching the key, as compared to the 'rel' member of
+        each `Link`.
+
+        """
+
+        for x in self:
+            if x.rel == key:
+                return True
+
+        return False
+
     def __getitem__(self, key):
         """Returns the `Link` or `LinkSet` described by the given key.
 
