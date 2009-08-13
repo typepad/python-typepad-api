@@ -612,14 +612,15 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(group.url_id, group_id)
         self.assertValidFilter(listset)
 
-        events = listset[0]
+        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87911
+        events = [x for x in listset[0] if x.object]
         for event in events:
             self.assertValidEvent(event)
 
-        self.assertEquals(events.entries[0].actor.url_id, member_id)
-        self.assertEquals(events.entries[0].object.url_id, asset_id)
-        self.assertEquals(events.entries[0].object.author.url_id, member_id)
-        self.assertTrue(events.entries[0].object.groups[0].endswith(group_id))
+        self.assertEquals(events[0].actor.url_id, member_id)
+        self.assertEquals(events[0].object.url_id, asset_id)
+        self.assertEquals(events[0].object.author.url_id, member_id)
+        self.assertTrue(events[0].object.groups[0].endswith(group_id))
 
     @attr(user='member')
     def test_5_POST_groups_id_link_assets(self):
@@ -1007,8 +1008,20 @@ class TestTypePad(unittest.TestCase):
 
         typepad.client.batch_request()
         user = typepad.User.get_by_url_id(member_id)
-        events = user.events.filter(by_group=group_id)
+        listset = self.filterEndpoint(user.events, by_group=group_id)
         typepad.client.complete_batch()
+
+        self.assertValidUser(user)
+        self.assertValidFilter(listset)
+
+        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87911
+        events = [x for x in listset[0] if x.object]
+        for event in events:
+            self.assertValidEvent(event)
+
+        self.assertEquals(events[0].actor.url_id, member_id)
+        self.assertEquals(events[0].object.author.url_id, member_id)
+        self.assertTrue(events[0].object.groups[0].endswith(group_id))
 
     @utils.skip
     @attr(user='group')
@@ -1455,10 +1468,8 @@ class TestTypePad(unittest.TestCase):
 
             # FIXME: https://intranet.sixapart.com/bugs/default.asp?85409
             # self.assert_(asset.source.provider.icon)
-
-            # FIXME: https://intranet.sixapart.com/bugs/default.asp?87910
-            self.assert_(asset.source.provider['name'])
-            self.assert_(asset.source.provider['uri'])
+            self.assert_(asset.source.provider.name)
+            self.assert_(asset.source.provider.uri)
 
     def assertValidUser(self, user):
         "Checks given asset for properties that should be present on all assets."
