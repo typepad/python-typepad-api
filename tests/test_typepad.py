@@ -734,7 +734,7 @@ class TestTypePad(unittest.TestCase):
     # POST /groups/<id>/photo-assets.json
 
     @utils.skip
-    # FIXME: not implemented in api - needs case
+    # FIXME: https://intranet.sixapart.com/bugs/default.asp?87928
     @by_member
     def test_5_POST_groups_id_photo_assets(self):
         "Tests posting a photo asset."
@@ -746,7 +746,7 @@ class TestTypePad(unittest.TestCase):
     # POST /groups/<id>/audio-assets.json
 
     @utils.skip
-    # FIXME: not implemented in api - needs case
+    # FIXME: https://intranet.sixapart.com/bugs/default.asp?87928
     @by_member
     def test_5_POST_groups_id_audio_assets(self):
         "Tests posting an audio asset."
@@ -1368,7 +1368,7 @@ class TestTypePad(unittest.TestCase):
         if 'alternate' in asset.links:
             self.assert_(asset.links['alternate'])
             self.assert_(asset.links['alternate'].href)
-            self.assert_(asset.links['alternate'].type, 'text/html')
+            self.assertEquals(asset.links['alternate'].type, 'text/html')
         self.assert_(object_type.startswith('tag:api.typepad.com'))
         if object_type == 'tag:api.typepad.com,2009:Link':
             # additional properties we expect for link assets
@@ -1532,8 +1532,9 @@ class TestTypePad(unittest.TestCase):
         self.assert_(rel.links['self'].href)
         self.assertEquals(rel.links['self'].type, 'application/json')
         self.assert_(rel.status)
-        # FIXME: user-to-user relationships don't have created? - needs case
-        # FIXME: user-to-user relationships don't have status.types? - needs case
+        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87929
+        # Most user-to-user relationships have created and status.types,
+        # but there are some odd cases that don't.
         if isinstance(rel.source, typepad.Group) or \
             isinstance(rel.target, typepad.Group):
             self.assert_(rel.created)
