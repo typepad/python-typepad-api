@@ -413,6 +413,9 @@ class Event(TypePadObject):
     ``tag:api.typepad.com,2009:JoinedGroup``.
 
     """
+    links        = fields.Object('LinkSet')
+    """A `LinkSet` containing various URLs and API endpoints related to this
+    `Event`."""
 
     def __unicode__(self):
         return unicode(self.object)
@@ -539,7 +542,7 @@ class Asset(TypePadObject):
         except (TypeError, KeyError):
             return 0
 
-    favorites = fields.Link(ListOf('Asset'))
+    favorites = fields.Link(ListOf('Favorite'))
 
     @property
     def asset_ref(self):
