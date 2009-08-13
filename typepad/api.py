@@ -425,11 +425,18 @@ class Event(TypePadObject):
         return xid_from_atom_id(self.id)
 
 
+class Provider(TypePadObject):
+
+    name = fields.Field()
+    uri  = fields.Field()
+    icon = fields.Field()
+
+
 class Source(TypePadObject):
 
     id       = fields.Field()
     links    = fields.Object('LinkSet')
-    provider = fields.Field()
+    provider = fields.Object('Provider')
     source   = fields.Field()
     by_user  = fields.Field(api_name='byUser')
 
