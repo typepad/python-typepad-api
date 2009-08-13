@@ -238,10 +238,9 @@ class TestTypePad(unittest.TestCase):
         Tests deletion of an asset using group credentials. This should
         result in a 403 error (FORBIDDEN)."""
 
-        global testdata
-        self.assert_(len(testdata['assets_created']))
+        self.assert_(len(self.testdata['assets_created']))
 
-        asset_id = testdata['assets_created'][0]
+        asset_id = self.testdata['assets_created'][0]
 
         self.assertForbidden(typepad.Asset.get_by_url_id(asset_id).delete)
 
@@ -254,10 +253,9 @@ class TestTypePad(unittest.TestCase):
         FIXME: https://intranet.sixapart.com/bugs/default.asp?87922
         """
 
-        global testdata
-        self.assert_(len(testdata['assets_created']))
+        self.assert_(len(self.testdata['assets_created']))
 
-        asset_id = testdata['assets_created'].pop()
+        asset_id = self.testdata['assets_created'].pop()
 
         typepad.Asset.get_by_url_id(asset_id).delete()
 
@@ -278,10 +276,9 @@ class TestTypePad(unittest.TestCase):
 
         Tests deletion of an asset using member credentials."""
 
-        global testdata
-        self.assert_(len(testdata['assets_created']))
+        self.assert_(len(self.testdata['assets_created']))
 
-        for asset_id in testdata['assets_created']:
+        for asset_id in self.testdata['assets_created']:
             typepad.Asset.get_by_url_id(asset_id).delete()
 
             # now, see if we can select it. hopefully this fails.
@@ -295,7 +292,7 @@ class TestTypePad(unittest.TestCase):
             except:
                 pass
 
-        testdata['assets_created'] = []
+        self.testdata['assets_created'] = []
 
     @attr(user='group')
     def test_4_PUT_assets_id__by_group(self):
@@ -334,12 +331,13 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(asset2.title, orig_title)
 
     @utils.skip
-    # FIXME: https://intranet.sixapart.com/bugs/default.asp?87900
     @attr(user='member')
     def test_4_PUT_assets_id__by_member(self):
         """PUT /assets/<id>.json (member)
 
-        Tests updating an asset using member credentials."""
+        Tests updating an asset using member credentials.
+        FIXME: https://intranet.sixapart.com/bugs/default.asp?87900
+        """
 
         asset_id = self.testdata['assets'][1]
 
@@ -425,8 +423,7 @@ class TestTypePad(unittest.TestCase):
         
         Tests posting a comment to an asset."""
 
-        global testdata
-        asset_id = testdata['assets_created'][0]
+        asset_id = self.testdata['assets_created'][0]
 
         typepad.client.batch_request()
         asset = typepad.Asset.get_by_url_id(asset_id)
@@ -444,7 +441,7 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(comment.in_reply_to.url_id, asset.url_id)
         self.assertEquals(comment.content, content)
 
-        testdata['comments_created'].append(comment.xid)
+        self.testdata['comments_created'].append(comment.xid)
 
     @attr(user='group')
     def test_0_GET_assets_id_favorites(self):
@@ -531,11 +528,10 @@ class TestTypePad(unittest.TestCase):
         FIXME: https://intranet.sixapart.com/bugs/default.asp?87864
         """
 
-        global testdata
-        self.assert_(len(testdata['assets_created']))
+        self.assert_(len(self.testdata['assets_created']))
 
         member_id = self.testdata['member']['xid']
-        asset_id = testdata['assets_created'][0]
+        asset_id = self.testdata['assets_created'][0]
 
         self.assertForbidden(
             typepad.Favorite.get_by_user_asset(member_id, asset_id).delete)
@@ -546,11 +542,10 @@ class TestTypePad(unittest.TestCase):
         
         Tests deletion of a favorite object using member credentials."""
 
-        global testdata
-        self.assert_(len(testdata['assets_created']))
+        self.assert_(len(self.testdata['assets_created']))
 
         member_id = self.testdata['member']['xid']
-        asset_id = testdata['assets_created'][0]
+        asset_id = self.testdata['assets_created'][0]
 
         typepad.Favorite.get_by_user_asset(member_id, asset_id).delete()
 
@@ -567,11 +562,10 @@ class TestTypePad(unittest.TestCase):
         FIXME: https://intranet.sixapart.com/bugs/default.asp?87902
         """
 
-        global testdata
-        self.assert_(len(testdata['assets_created']))
+        self.assert_(len(self.testdata['assets_created']))
 
         member_id = self.testdata['member']['xid']
-        asset_id = testdata['assets_created'][1]
+        asset_id = self.testdata['assets_created'][1]
 
         typepad.Favorite.get_by_user_asset(member_id, asset_id).delete()
 
@@ -651,8 +645,7 @@ class TestTypePad(unittest.TestCase):
         pprint(link.api_data)
         self.assertValidAsset(link)
 
-        global testdata
-        testdata['assets_created'].append(link.xid)
+        self.testdata['assets_created'].append(link.xid)
 
     @attr(user='group')
     def test_0_GET_groups_id_memberships(self):
@@ -787,8 +780,7 @@ class TestTypePad(unittest.TestCase):
         typepad.Group.get_by_url_id(group_id).post_assets.post(post)
         self.assertValidAsset(post)
 
-        global testdata
-        testdata['assets_created'].append(post.xid)
+        self.testdata['assets_created'].append(post.xid)
 
     @attr(user='group')
     def test_5_POST_groups_id_post_assets__by_group(self):
@@ -846,8 +838,7 @@ class TestTypePad(unittest.TestCase):
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87916
         # we can't delete video assets, so don't put it in the
         # list to delete yet.
-        # global testdata
-        # testdata['assets_created'].append(video.xid)
+        # self.testdata['assets_created'].append(video.xid)
 
     @attr(user='group')
     def test_5_POST_groups_id_video_assets__by_group(self):
@@ -1015,11 +1006,10 @@ class TestTypePad(unittest.TestCase):
 
         # we wind up deleting two favorites (one by member, one by admin),
         # so lets make sure we created at least 2
-        global testdata
-        self.assert_(len(testdata['assets_created']) >= 2)
+        self.assert_(len(self.testdata['assets_created']) >= 2)
 
-        for asset_id in testdata['assets_created']:
-            member_id = testdata['member']['xid']
+        for asset_id in self.testdata['assets_created']:
+            member_id = self.testdata['member']['xid']
 
             typepad.client.batch_request()
             user = typepad.User.get_by_url_id(member_id)
@@ -1318,13 +1308,12 @@ class TestTypePad(unittest.TestCase):
             raise nose.SkipTest('no TypePad tests without TEST_TYPEPAD_JSON')
 
         global testdata
-
         if 'configuration' not in testdata:
             raise nose.SkipTest('cannot run tests without configuration in test data')
 
         self.testdata = testdata
 
-        if not len(testdata['assets']):
+        if not len(self.testdata['assets']):
             self.credentials_for('group')
 
             typepad.client.batch_request()
@@ -1334,7 +1323,7 @@ class TestTypePad(unittest.TestCase):
 
             for event in events:
                 if event.object:
-                    testdata['assets'].append(event.object.xid)
+                    self.testdata['assets'].append(event.object.xid)
 
             self.clear_credentials()
 
