@@ -661,6 +661,17 @@ class AssetRef(TypePadObject):
     author = fields.Object('User')
     """The `User` who created the referenced asset."""
 
+    def reclass_for_data(self, data):
+        """Returns ``False``.
+
+        This method prevents `AssetRef` instances from being reclassed when
+        updated from a data dictionary based on the dictionary's
+        ``objectTypes`` member.
+
+        """
+        # AssetRefs are for any object type, so don't reclass them.
+        return False
+
 
 class PublicationStatus(TypePadObject):
 

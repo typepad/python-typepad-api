@@ -303,6 +303,31 @@ class TestLocally(unittest.TestCase):
         self.checkClassyAssets(make_asset)
 
 
+    def testUnclassyAssetRefs(self):
+        data = {
+            'id':          '7',
+            'urlId':       '7',
+            'title':       'some asset',
+            'objectTypes': ('http://example.com/internet/',),
+        }
+
+        class AssetRefKeeper(typepad.TypePadObject):
+            assetref = typepad.fields.Object('AssetRef')
+
+        ar = typepad.AssetRef.from_dict(data)
+        self.assert_(isinstance(ar, typepad.AssetRef))
+        ar = AssetRefKeeper.from_dict({'assetref': data}).assetref
+        self.assert_(isinstance(ar, typepad.AssetRef))
+
+        data['objectTypes'] = ('tag:api.typepad.com,2009:Post',)
+
+        # Even with a known object type, AssetRefs stay AssetRefs.
+        ar = typepad.AssetRef.from_dict(data)
+        self.assert_(isinstance(ar, typepad.AssetRef))
+        ar = AssetRefKeeper.from_dict({'assetref': data}).assetref
+        self.assert_(isinstance(ar, typepad.AssetRef))
+
+
     def testGroupMembershipWithTimestamps(self):
         data = {
             'created': {

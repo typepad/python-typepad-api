@@ -105,6 +105,51 @@ class TypePadObject(remoteobjects.RemoteObject):
                 ret._origin = inspect.stack()[1][1:4]
         return ret
 
+    def reclass_for_data(self, data):
+        """Modifies this `TypePadObject` instance to be an instance of the
+        specific `TypePadObject` subclass specified in `data`.
+
+        If the data specify a different `TypePadObject` subclass than the one
+        of which `self` is an instance, `self` will be modified to be an
+        instance of the described class. That is, if:
+
+        * the `data` parameter is a dictionary containing an ``objectTypes``
+          item,
+        * that ``objectTypes`` item is a list of object type identifiers, and
+        * the object type identifiers describe a different `TypePadObject`
+          subclass besides the one `self` belongs to,
+
+        `self` will be turned into an instance of the class specified in the
+        `data` parameter's ``objectTypes`` list.
+
+        This method returns ``True`` if the instance was changed to be a
+        different class, or ``False`` if it was not modified.
+
+        """
+        # What should I be?
+        objtypes = ()
+        try:
+            objtypes = data['objectTypes']
+        except (TypeError, KeyError):
+            pass
+
+        for objtype in objtypes:
+            try:
+                objclsname = classes_by_object_type[objtype]
+                objcls = find_by_name(objclsname)  # KeyError
+            except KeyError:
+                continue
+
+            # Is that a change?
+            if objcls is not self.__class__:
+                self.__class__ = objcls
+
+                # Have update_from_dict() start over.
+                return True
+
+        # We're already that class, so go ahead.
+        return False
+
     def update_from_dict(self, data):
         """Updates this object with the given data, transforming it into an
         instance of a different `TypePadObject` subclass if necessary.
@@ -126,27 +171,13 @@ class TypePadObject(remoteobjects.RemoteObject):
         `self` will be turned into an instance of the class specified in the
         `data` parameter's ``objectTypes`` list.
 
+        Override the `reclass_for_data()` method to change when an instance is
+        modified to be of a different subclass.
+
         """
-        # What should I be?
-        objtypes = ()
-        try:
-            objtypes = data['objectTypes']
-        except (TypeError, KeyError):
-            pass
-
-        for objtype in objtypes:
-            try:
-                objclsname = classes_by_object_type[objtype]
-                objcls = find_by_name(objclsname)  # KeyError
-            except KeyError:
-                continue
-
-            # Is that a change?
-            if objcls is not self.__class__:
-                self.__class__ = objcls
-
-                # Redispatch from the beginning.
-                return self.update_from_dict(data)
+        if self.reclass_for_data(data):
+            # Redispatch from the beginning.
+            return self.update_from_dict(data)
 
         super(TypePadObject, self).update_from_dict(data)
 
