@@ -7,7 +7,7 @@ Tests drawn from https://intranet.sixapart.com/wiki/index.php/TPX:API_Endpoints_
     # - featured members (i don't think we have filters for them yet)
     #   - that we cannot block a featured member
     # - test for failure of post by non-member / blocked user
-    # - comment deletion (by regular user, by admin)
+    # - asset deletion failure by a non-creator, non-admin user
     # - comment deletion failure by non-commenter user
 
 Input test data should have this form:
@@ -98,7 +98,7 @@ def load_test_data():
     filename = os.getenv('TEST_TYPEPAD_JSON')
     if filename is None:
         raise nose.SkipTest('no test data provided')
-    f = open(filename, "r")
+    f = open(filename, 'r')
     s = f.read()
     f.close()
     return json.loads(s)
@@ -118,13 +118,12 @@ def setUpModule():
 def attr(*args, **kwargs):
     """Decorator wrapper for the nose 'attrib' attr decorator.
     
-    This attr decorator recognizes the 'user' attribute when assigned
-    and calls the `credentials_for` method of the TestTypePad class
-    to apply the appropriate OAuth credentials.
+    This attr decorator recognizes the 'user' attribute when assigned and
+    calls the `credentials_for` method of the TestTypePad class to apply the
+    appropriate OAuth credentials.
 
-    This wrapper also attempts to derive the HTTP method from the
-    docstring of the wrapped function and assigns a 'method' attribute
-    if found.
+    This wrapper also attempts to derive the HTTP method from the docstring of
+    the wrapped function and assigns a 'method' attribute if found.
     """
     def wrap(fn):
         user = kwargs.get('user', None)
@@ -148,10 +147,10 @@ class TestTypePad(unittest.TestCase):
     def test_0_GET_applications_id(self):
         """GET /applications/<id>.json (group)
         
-        Tests the application endpoint using the configured OAuth
-        consumer key (which is the application id). Also tests that the
-        application's "owner" object is the group that has been
-        identified in the test configuration.
+        Tests the application endpoint using the configured OAuth consumer key
+        (which is the application id). Also tests that the application's
+        "owner" object is the group that has been identified in the test
+        configuration.
         """
 
         api_key = self.testdata['configuration']['oauth_consumer_key']
@@ -180,7 +179,7 @@ class TestTypePad(unittest.TestCase):
         """
 
         typepad.client.batch_request()
-        bad_app = typepad.Application.get_by_api_key("invalid")
+        bad_app = typepad.Application.get_by_api_key('invalid')
         self.assertNotFound(typepad.client.complete_batch)
 
     @attr(user='group')
@@ -188,10 +187,11 @@ class TestTypePad(unittest.TestCase):
         """GET /assets/<id>.json (group)
         
         Tests the /assets endpoint using the first 18 assets found in the
-        group event stream (loaded during the test setup method)."""
+        group event stream (loaded during the test setup method).
+        """
 
         self.assert_(len(self.testdata['assets']) >= 2,
-            "Must have 2 or more assets to test")
+            'Must have 2 or more assets to test')
 
         member_id = self.testdata['member']['xid']
         group_id = self.testdata['group']['xid']
@@ -216,18 +216,18 @@ class TestTypePad(unittest.TestCase):
     def test_0_GET_assets_id__invalid(self):
         """GET /assets/invalid.json (group)
         
-        Tests the /assets endpoint using an invalid asset id. This
-        should result in a 404 error.
+        Tests the /assets endpoint using an invalid asset id. This should
+        result in a 404 error.
         """
 
         typepad.client.batch_request()
 
-        asset = typepad.Asset.get_by_url_id("invalid")
+        asset = typepad.Asset.get_by_url_id('invalid')
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87858
         # self.assertNotFound(typepad.client.complete_batch)
         try:
             typepad.client.complete_batch()
-            self.fail("invalid post should not yield an asset")
+            self.fail('invalid post should not yield an asset')
         except:
             pass
 
@@ -235,8 +235,9 @@ class TestTypePad(unittest.TestCase):
     def test_9_DELETE_assets_id__by_group(self):
         """DELETE /assets/<id>.json (group)
 
-        Tests deletion of an asset using group credentials. This should
-        result in a 403 error (FORBIDDEN)."""
+        Tests deletion of an asset using group credentials. This should result
+        in a 403 error (FORBIDDEN).
+        """
 
         self.assert_(len(self.testdata['assets_created']))
 
@@ -244,14 +245,29 @@ class TestTypePad(unittest.TestCase):
 
         self.assertForbidden(typepad.Asset.get_by_url_id(asset_id).delete)
 
-    @utils.skip
+    @attr(user='group')
+    def test_9_DELETE_assets_id__comment__by_group(self):
+        """DELETE /assets/<id>.json (comment asset; group)
+
+        Tests deletion of a comment using group credentials. This should
+        result in a 403 error (FORBIDDEN).
+        """
+
+        self.assert_(len(self.testdata['comments_created']))
+
+        asset_id = self.testdata['comments_created'][0]
+
+        self.assertForbidden(typepad.Asset.get_by_url_id(asset_id).delete)
+
     @attr(user='admin')
     def test_9_DELETE_assets_id__by_admin(self):
         """DELETE /assets/<id>.json (admin)
 
         Tests deletion of an asset using admin credentials.
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87922
         """
+
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87922')
 
         self.assert_(len(self.testdata['assets_created']))
 
@@ -266,7 +282,34 @@ class TestTypePad(unittest.TestCase):
         # self.assertNotFound(typepad.client.complete_batch)
         try:
             typepad.client.complete_batch()
-            self.fail("oops; deleted post still accessible?")
+            self.fail('oops; deleted post still accessible?')
+        except:
+            pass
+
+    @attr(user='admin')
+    def test_9_DELETE_assets_id__comment__by_admin(self):
+        """DELETE /assets/<id>.json (comment asset; admin)
+
+        Tests deletion of a comment using admin credentials.
+        """
+
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87922')
+
+        self.assert_(len(self.testdata['comments_created']))
+
+        asset_id = self.testdata['comments_created'].pop()
+
+        typepad.Asset.get_by_url_id(asset_id).delete()
+
+        # now, see if we can select it. hopefully this fails.
+        typepad.client.batch_request()
+        asset = typepad.Asset.get_by_url_id(asset_id)
+        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87858
+        # self.assertNotFound(typepad.client.complete_batch)
+        try:
+            typepad.client.complete_batch()
+            self.fail('oops; deleted comment still accessible?')
         except:
             pass
 
@@ -274,7 +317,8 @@ class TestTypePad(unittest.TestCase):
     def test_A_DELETE_assets_id__by_member(self):
         """DELETE /assets/<id>.json (member)
 
-        Tests deletion of an asset using member credentials."""
+        Tests deletion of an asset using member credentials.
+        """
 
         self.assert_(len(self.testdata['assets_created']))
 
@@ -288,18 +332,44 @@ class TestTypePad(unittest.TestCase):
             # self.assertNotFound(typepad.client.complete_batch)
             try:
                 typepad.client.complete_batch()
-                self.fail("oops; deleted post still accessible?")
+                self.fail('oops; deleted post still accessible?')
             except:
                 pass
 
         self.testdata['assets_created'] = []
+
+    @attr(user='member')
+    def test_A_DELETE_assets_id__comment__by_member(self):
+        """DELETE /assets/<id>.json (comment asset; member)
+
+        Tests deletion of a comment using member credentials.
+        """
+
+        self.assert_(len(self.testdata['comments_created']))
+
+        for asset_id in self.testdata['comments_created']:
+            typepad.Asset.get_by_url_id(asset_id).delete()
+
+            # now, see if we can select it. hopefully this fails.
+            typepad.client.batch_request()
+            asset = typepad.Asset.get_by_url_id(asset_id)
+            # FIXME: https://intranet.sixapart.com/bugs/default.asp?87858
+            # self.assertNotFound(typepad.client.complete_batch)
+            try:
+                typepad.client.complete_batch()
+                self.fail('oops; deleted comment still accessible?')
+            except:
+                pass
+
+        self.testdata['comments_created'] = []
 
     @attr(user='group')
     def test_4_PUT_assets_id__by_group(self):
         """PUT /assets/<id>.json (group)
         
         Tests updating an asset using group's credentials. This should
-        result in a 403 error (FORBIDDEN)."""
+        result in a 403 error (FORBIDDEN).
+        """
 
         asset_id = self.testdata['assets'][1]
 
@@ -311,12 +381,12 @@ class TestTypePad(unittest.TestCase):
 
         # Lets change this asset and put it back and see what happens
         orig_title = asset.title
-        asset.title = "Changed by test suite by group"
+        asset.title = 'Changed by test suite by group'
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87859
         # self.assertForbidden(asset.put)
         try:
             asset.put
-            self.fail("group credentials allowed an update to an asset")
+            self.fail('group credentials allowed an update to an asset')
         except:
             pass
 
@@ -330,14 +400,15 @@ class TestTypePad(unittest.TestCase):
 
         self.assertEquals(asset2.title, orig_title)
 
-    @utils.skip
     @attr(user='member')
     def test_4_PUT_assets_id__by_member(self):
         """PUT /assets/<id>.json (member)
 
         Tests updating an asset using member credentials.
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87900
         """
+
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87900')
 
         asset_id = self.testdata['assets'][1]
 
@@ -348,7 +419,7 @@ class TestTypePad(unittest.TestCase):
         self.assertValidAsset(asset)
 
         # Lets change this asset and put it back and see what happens
-        asset.title = "Changed by test suite by creator"
+        asset.title = 'Changed by test suite by creator'
         asset.put()
 
         # Re-select this asset to verify it has been updated.
@@ -359,19 +430,20 @@ class TestTypePad(unittest.TestCase):
 
         self.assertValidAsset(asset2)
 
-        self.assertEquals(asset2.title, "Changed by test suite by creator")
+        self.assertEquals(asset2.title, 'Changed by test suite by creator')
 
-        asset.title = ""
+        asset.title = ''
         asset.put()
 
-    @utils.skip
     @attr(user='admin')
     def test_4_PUT_assets_id__by_admin(self):
         """PUT /assets/<id>.json (admin)
         
         Tests updating an asset using admin credentials.
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87900
         """
+
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87900')
 
         asset_id = self.testdata['assets'][1]
 
@@ -380,7 +452,7 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
         # Lets change this asset and put it back and see what happens
-        asset.title = "Changed by test suite by admin"
+        asset.title = 'Changed by test suite by admin'
         asset.put()
 
         # Re-select this asset to verify it has been updated.
@@ -389,19 +461,20 @@ class TestTypePad(unittest.TestCase):
         asset2 = typepad.Asset.get_by_url_id(asset_id)
         typepad.client.complete_batch()
 
-        self.assertEquals(asset2.title, "Changed by test suite by admin")
+        self.assertEquals(asset2.title, 'Changed by test suite by admin')
 
-        asset.title = ""
+        asset.title = ''
         asset.put()
 
     @attr(user='group')
     def test_0_GET_assets_id_comments(self):
         """GET /assets/<id>/comments.json (group)
         
-        Tests selection of comments for a specific asset."""
+        Tests selection of comments for a specific asset.
+        """
 
         self.assert_(len(self.testdata['assets']) >= 2,
-            "Must have 2 or more assets to test")
+            'Must have 2 or more assets to test')
 
         asset_id = self.testdata['assets'][0]
 
@@ -421,9 +494,10 @@ class TestTypePad(unittest.TestCase):
     def test_6_POST_assets_id_comments(self):
         """POST /assets/<id>/comments.json (member)
         
-        Tests posting a comment to an asset."""
+        Tests posting a comment to an asset.
+        """
 
-        asset_id = self.testdata['assets_created'][0]
+        asset_id = self.testdata['assets'][0]
 
         typepad.client.batch_request()
         asset = typepad.Asset.get_by_url_id(asset_id)
@@ -447,10 +521,11 @@ class TestTypePad(unittest.TestCase):
     def test_0_GET_assets_id_favorites(self):
         """GET /assets/<id>/favorites.json (group)
         
-        Tests selecting favorites for a specific asset."""
+        Tests selecting favorites for a specific asset.
+        """
 
         self.assert_(len(self.testdata['assets']) >= 2,
-            "Must have 2 or more assets to test")
+            'Must have 2 or more assets to test')
 
         asset_id = self.testdata['assets'][0]
         member_id = self.testdata['member']['xid']
@@ -471,31 +546,30 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(favs.entries[0].author.url_id, member_id)
         self.assertEquals(favs.entries[0].in_reply_to.url_id, asset_id)
 
-    @utils.skip
     def test_5_POST_batch_processor(self):
         """POST /batch-processor.json
-        
-        We test this through our other tests
         """
-        raise NotImplementedError()
 
-    @utils.skip
+        raise nose.SkipTest(
+            'We test this endpoint through our other tests.')
+
+    @utils.todo
     def test_5_POST_browser_upload(self):
         """POST /browser-upload.json
         
         POST data required: oauth_nonce, oauth_timestamp, oauth_consumer_key,
         oauth_signature_method, oauth_version, oauth_token, oauth_signature
         """
+
         raise NotImplementedError()
 
-    @utils.skip
     @attr(user='group')
     def test_0_GET_events_id(self):
         """GET /events/<id>.json (group)
-
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87901
         """
-        pass
+
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87901')
 
     @attr(user='group')
     def test_0_GET_favorites_id(self):
@@ -505,7 +579,7 @@ class TestTypePad(unittest.TestCase):
         """
 
         self.assert_(len(self.testdata['assets']) >= 2,
-            "Must have 2 or more assets to test")
+            'Must have 2 or more assets to test')
 
         # asset:user
         member_id = self.testdata['member']['xid']
@@ -519,14 +593,15 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(fav.in_reply_to.url_id, asset_id)
         self.assertEquals(fav.author.url_id, member_id)
 
-    @utils.skip
     @attr(user='group')
     def test_8_DELETE_favorites_id__by_group(self):
         """DELETE /favorites/<id>.json (group)
         
         Tests deletion of a favorite object using group credentials.
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87864
         """
+
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87864')
 
         self.assert_(len(self.testdata['assets_created']))
 
@@ -540,7 +615,8 @@ class TestTypePad(unittest.TestCase):
     def test_8_DELETE_favorites_id__by_member(self):
         """DELETE /favorites/<id>.json (member)
         
-        Tests deletion of a favorite object using member credentials."""
+        Tests deletion of a favorite object using member credentials.
+        """
 
         self.assert_(len(self.testdata['assets_created']))
 
@@ -553,14 +629,15 @@ class TestTypePad(unittest.TestCase):
         fav = typepad.Favorite.get_by_user_asset(member_id, asset_id)
         self.assertNotFound(typepad.client.complete_batch)
 
-    @utils.skip
     @attr(user='admin')
     def test_8_DELETE_favorites_id__by_admin(self):
         """DELETE /favorites/<id>.json (admin)
         
         Tests deletion of a favorite object using admin credentials.
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87902
         """
+
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87902')
 
         self.assert_(len(self.testdata['assets_created']))
 
@@ -598,7 +675,7 @@ class TestTypePad(unittest.TestCase):
         """
 
         self.assert_(len(self.testdata['assets']) >= 2,
-            "Must have 2 or more assets to test")
+            'Must have 2 or more assets to test')
 
         group_id = self.testdata['group']['xid']
         member_id = self.testdata['member']['xid']
@@ -633,17 +710,14 @@ class TestTypePad(unittest.TestCase):
 
         link = typepad.LinkAsset()
         rel = typepad.Link()
-        rel.href = "http://www.typepad.com/"
+        rel.href = 'http://www.typepad.com/'
         rel.rel = 'target'
         link.title = ''
         link.links = typepad.LinkSet()
         link.links.add(rel)
-        link.content = "Test link post"
+        link.content = 'Test link post'
 
         typepad.Group.get_by_url_id(group_id).link_assets.post(link)
-        print "api_data is:"
-        from pprint import pprint
-        pprint(link.api_data)
         self.assertValidAsset(link)
 
         self.testdata['assets_created'].append(link.xid)
@@ -669,11 +743,11 @@ class TestTypePad(unittest.TestCase):
             self.assertValidRelationship(rel)
 
         # yes, we have one or more admins!
-        self.assert_(len(everyone) > 0, "memberships should be non-zero")
+        self.assert_(len(everyone) > 0, 'memberships should be non-zero')
         self.assert_(admin_id in [a.target.xid for a in everyone],
-            "configured admin should exist in memberships")
+            'configured admin should exist in memberships')
         self.assert_(member_id in [a.target.xid for a in everyone],
-            "configured member should exist in memberships")
+            'configured member should exist in memberships')
 
     @attr(user='group')
     def test_0_GET_groups_id_memberships_admin(self):
@@ -698,13 +772,13 @@ class TestTypePad(unittest.TestCase):
             self.assertValidRelationship(rel)
 
         # yes, we have one or more admins!
-        self.assert_(len(admins) > 0, "admin membership should be non-zero")
+        self.assert_(len(admins) > 0, 'admin membership should be non-zero')
         self.assert_(admin_id in [a.target.xid for a in admins],
-            "configured admin should exist in admin memberships")
+            'configured admin should exist in admin memberships')
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?84133
         # Restore this test once the above bug is resolved.
         # self.assertNotEqual(admins.total_results, everyone.total_results,
-        #     "Filtered member list size should be less than unfiltered list: %d != %d" %
+        #     'Filtered member list size should be less than unfiltered list: %d != %d' %
         #     ( admins.total_results, everyone.total_results ))
 
     @attr(user='group')
@@ -730,40 +804,35 @@ class TestTypePad(unittest.TestCase):
             self.assertValidRelationship(member)
 
         self.assert_(member_id in [a.target.xid for a in members],
-            "configured admin should exist in admin memberships")
+            'configured admin should exist in admin memberships')
 
-    @utils.skip
     @attr(user='group')
     def test_0_GET_groups_id_notifications(self):
         """GET /groups/<id>/notifications.json (group)
-
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87903
         """
-        raise NotImplementedError()
 
-    @utils.skip
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87903')
+
     @attr(user='member')
     def test_5_POST_groups_id_photo_assets(self):
         """POST /groups/<id>/photo-assets.json (member)
         
         Tests posting a photo asset.
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87928
         """
 
-        # Does this work? This is a file based asset
-        raise NotImplementedError()
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87928')
 
-    @utils.skip
     @attr(user='member')
     def test_5_POST_groups_id_audio_assets(self):
         """POST /groups/<id>/audio-assets.json (member)
         
         Tests posting an audio asset.
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87928
         """
 
-        # Does this work? This is a file based asset
-        raise NotImplementedError()
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87928')
 
     @attr(user='member')
     def test_5_POST_groups_id_post_assets__by_member(self):
@@ -776,7 +845,7 @@ class TestTypePad(unittest.TestCase):
 
         post = typepad.Post()
         post.title = ''
-        post.content = "Test post asset"
+        post.content = 'Test post asset'
 
         typepad.Group.get_by_url_id(group_id).post_assets.post(post)
         self.assertValidAsset(post)
@@ -794,7 +863,7 @@ class TestTypePad(unittest.TestCase):
 
         post = typepad.Post()
         post.title = ''
-        post.content = "Test post asset by group"
+        post.content = 'Test post asset by group'
 
         self.assertUnauthorized(
             typepad.Group.get_by_url_id(group_id).post_assets.post, post)
@@ -810,7 +879,7 @@ class TestTypePad(unittest.TestCase):
 
         post = typepad.Post()
         post.title = ''
-        post.content = "Test post asset by blocked user"
+        post.content = 'Test post asset by blocked user'
 
         self.assertForbidden(
             typepad.Group.get_by_url_id(group_id).post_assets.post, post)
@@ -826,12 +895,12 @@ class TestTypePad(unittest.TestCase):
 
         video = typepad.Video()
         rel = typepad.Link()
-        rel.href = "http://www.youtube.com/watch?v=pWdZTqHtJ3U"
+        rel.href = 'http://www.youtube.com/watch?v=pWdZTqHtJ3U'
         rel.rel = 'enclosure'
         video.title = ''
         video.links = typepad.LinkSet()
         video.links.add(rel)
-        video.content = "Test video post"
+        video.content = 'Test video post'
 
         typepad.Group.get_by_url_id(group_id).video_assets.post(video)
         self.assertValidAsset(video)
@@ -852,12 +921,12 @@ class TestTypePad(unittest.TestCase):
 
         video = typepad.Video()
         rel = typepad.Link()
-        rel.href = "http://www.youtube.com/watch?v=pWdZTqHtJ3U"
+        rel.href = 'http://www.youtube.com/watch?v=pWdZTqHtJ3U'
         rel.rel = 'enclosure'
         video.title = ''
         video.links = typepad.LinkSet()
         video.links.add(rel)
-        video.content = "Test video post by group"
+        video.content = 'Test video post by group'
 
         self.assertUnauthorized(
             typepad.Group.get_by_url_id(group_id).video_assets.post, video)
@@ -873,12 +942,12 @@ class TestTypePad(unittest.TestCase):
 
         video = typepad.Video()
         rel = typepad.Link()
-        rel.href = "http://www.youtube.com/watch?v=pWdZTqHtJ3U"
+        rel.href = 'http://www.youtube.com/watch?v=pWdZTqHtJ3U'
         rel.rel = 'enclosure'
         video.title = ''
         video.links = typepad.LinkSet()
         video.links.add(rel)
-        video.content = "Test video post by blocked user"
+        video.content = 'Test video post by blocked user'
 
         self.assertForbidden(
             typepad.Group.get_by_url_id(group_id).video_assets.post, video)
@@ -985,15 +1054,15 @@ class TestTypePad(unittest.TestCase):
         self.assert_(elsewhere is not None)
         self.assert_(len(elsewhere) > 0)
 
-    @utils.skip
     @attr(user='group')
     def test_0_GET_users_id_events(self):
         """GET /users/<id>/events.json (group)
         
         Tests the selection of an event stream for a specific user.
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87756
         """
-        pass
+
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87756')
 
     @attr(user='group')
     def test_0_GET_users_id_events_by_group_id(self):
@@ -1023,14 +1092,15 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(events[0].object.author.url_id, member_id)
         self.assertTrue(events[0].object.groups[0].endswith(group_id))
 
-    @utils.skip
     @attr(user='group')
     def test_0_GET_users_id_favorites(self):
         """GET /users/<id>/favorites.json (group)
         
         Tests the selection of the favorites for a specific user.
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87904
         """
+
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87904')
 
         member_id = self.testdata['member']['xid']
 
@@ -1098,15 +1168,16 @@ class TestTypePad(unittest.TestCase):
         memberships = listset[0]
         self.assert_(group_id in [x.source.xid for x in memberships])
 
-    @utils.skip
     @attr(user='group')
     def test_0_GET_users_id_memberships_admin(self):
         """GET /users/<id>/memberships/@admin.json (group)
         
-        Tests the endpoint for selecting a user's relationships for
-        groups they administer.
-        FIXME: https://intranet.sixapart.com/bugs/default.asp?87906
+        Tests the endpoint for selecting a user's relationships for groups
+        they administer.
         """
+
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87906')
 
         admin_id = self.testdata['admin']['xid']
         group_id = self.testdata['group']['xid']
@@ -1126,7 +1197,8 @@ class TestTypePad(unittest.TestCase):
         """GET /users/<id>/memberships/@by-group/<id>.json (group)
 
         Tests the endpoint for selecting a group membership for a specific
-        user."""
+        user.
+        """
 
         member_id = self.testdata['member']['xid']
         group_id = self.testdata['group']['xid']
@@ -1175,7 +1247,7 @@ class TestTypePad(unittest.TestCase):
         """
 
         self.assert_(len(self.testdata['assets']) >= 2,
-            "Must have 2 or more assets to test")
+            'Must have 2 or more assets to test')
 
         admin_id = self.testdata['admin']['xid']
         asset_id = self.testdata['assets'][0]
@@ -1198,7 +1270,8 @@ class TestTypePad(unittest.TestCase):
     def test_0_GET_users_id_relationships(self):
         """GET /users/<id>/relationships.json (group)
 
-        Tests the endpoint for selecting all of a user's relationships."""
+        Tests the endpoint for selecting all of a user's relationships.
+        """
 
         member_id = self.testdata['member']['xid']
 
@@ -1220,7 +1293,8 @@ class TestTypePad(unittest.TestCase):
     def test_0_GET_users_id_relationships_by_group_id(self):
         """GET /users/<id>/relationships/@by-group/<id>.json (group)
 
-        Selects user relationships within a specific group."""
+        Selects user relationships within a specific group.
+        """
 
         member_id = self.testdata['member']['xid']
         admin_id = self.testdata['admin']['xid']
@@ -1347,7 +1421,8 @@ class TestTypePad(unittest.TestCase):
     ### Supporting functions for this test suite
 
     def setUp(self):
-        "Configures the test class prior to each test method."
+        """Configures the test class prior to each test method.
+        """
 
         if not os.getenv('TEST_TYPEPAD'):
             raise nose.SkipTest('no TypePad tests without TEST_TYPEPAD=1')
@@ -1376,7 +1451,7 @@ class TestTypePad(unittest.TestCase):
 
     def credentials_for(self, ident):
         if ident not in self.testdata:
-            raise nose.SkipTest("no credentials for %s tests" % ident)
+            raise nose.SkipTest('no credentials for %s tests' % ident)
         consumer = oauth.OAuthConsumer(
             self.testdata['configuration']['oauth_consumer_key'],
             self.testdata['configuration']['oauth_consumer_secret'],
@@ -1393,9 +1468,11 @@ class TestTypePad(unittest.TestCase):
         typepad.client.clear_credentials()
 
     def assertValidAsset(self, asset):
-        "Checks given asset for properties that should be present on all assets."
+        """Checks given asset for properties that should be present on all assets.
+        """
+
         self.assert_(isinstance(asset, typepad.Asset),
-            "object %r is not a typepad.Asset" % asset)
+            'object %r is not a typepad.Asset' % asset)
         self.assert_(asset.author)
         self.assertValidUser(asset.author)
         # asset.content is not required for some asset types
@@ -1417,7 +1494,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_('favorites' in asset.links)
         self.assert_(asset.links['favorites'].href)
         self.assert_(asset.links['favorites'].type, 'application/json')
-        self.assert_(asset.links['replies'])
+        self.assert_('replies' in asset.links)
         self.assert_(asset.links['replies'].href)
         self.assert_(asset.links['replies'].type, 'application/json')
         if 'alternate' in asset.links:
@@ -1435,12 +1512,12 @@ class TestTypePad(unittest.TestCase):
             self.assert_(asset.links['enclosure'].href)
             self.assert_(asset.links['enclosure'].height)
             self.assert_(asset.links['enclosure'].width)
-            self.assert_(asset.links['enclosure'].type.startswith("image/"))
+            self.assert_(asset.links['enclosure'].type.startswith('image/'))
             self.assert_('preview' in asset.links)
             self.assert_(asset.links['preview'].href)
             self.assert_(asset.links['preview'].height)
             self.assert_(asset.links['preview'].width)
-            self.assert_(asset.links['preview'].type.startswith("image/"))
+            self.assert_(asset.links['preview'].type.startswith('image/'))
         elif object_type == 'tag:api.typepad.com,2009:Audio':
             self.assert_('enclosure' in asset.links)
             self.assert_(asset.links['enclosure'].href)
@@ -1457,7 +1534,7 @@ class TestTypePad(unittest.TestCase):
             self.assert_(asset.links['enclosure'].width)
             # self.assertEquals(asset.links['enclosure'].type, 'text/html')
         else:
-            self.fail("asset has an unexpected objectType: %s" % \
+            self.fail('asset has an unexpected objectType: %s' % \
                 object_type)
         if asset.source:
             self.assert_(asset.source.links)
@@ -1473,9 +1550,11 @@ class TestTypePad(unittest.TestCase):
             self.assert_(asset.source.provider.uri)
 
     def assertValidUser(self, user):
-        "Checks given asset for properties that should be present on all assets."
+        """Checks given asset for properties that should be present on all assets.
+        """
+
         self.assert_(isinstance(user, typepad.User),
-            "object %r is not a typepad.User" % user)
+            'object %r is not a typepad.User' % user)
         self.assert_(user.id)
         self.assert_(user.url_id)
         self.assert_(len(user.object_types) > 0)
@@ -1511,9 +1590,10 @@ class TestTypePad(unittest.TestCase):
         self.assert_(user.links['avatar'].width)
 
     def assertValidEvent(self, event):
-        "Checks given asset for properties that should be present on all assets."
+        """Checks given asset for properties that should be present on all assets."""
+
         self.assert_(isinstance(event, typepad.Event),
-            "object %r is not a typepad.Event" % event)
+            'object %r is not a typepad.Event' % event)
         self.assert_(event.id)
         self.assert_(event.url_id)
         self.assert_(event.published)
@@ -1532,9 +1612,11 @@ class TestTypePad(unittest.TestCase):
             self.assertValidAsset(event.object)
 
     def assertValidGroup(self, group):
-        "Checks given asset for properties that should be present on all assets."
+        """Checks given asset for properties that should be present on all assets.
+        """
+
         self.assert_(isinstance(group, typepad.Group),
-            "object %r is not a typepad.Group" % group)
+            'object %r is not a typepad.Group' % group)
         self.assert_(group.id)
         self.assert_(group.url_id)
         self.assert_(group.display_name)
@@ -1548,22 +1630,22 @@ class TestTypePad(unittest.TestCase):
 
     def assertValidApplication(self, app):
         self.assert_(isinstance(app, typepad.Application),
-            "object %r is not a typepad.Application" % app)
+            'object %r is not a typepad.Application' % app)
         self.assert_(app.links)
         links = ('oauth-request-token-endpoint', 'oauth-authorization-page',
             'oauth-identification-page', 'signout-page',
             'session-sync-script', 'oauth-access-token-endpoint',
             'user-flyouts-script', 'self')
         for link in links:
-            self.assert_(link in app.links, "no %s link present" % link)
-            self.assert_(app.links[link].href, "no href on %s link" % link)
+            self.assert_(link in app.links, 'no %s link present' % link)
+            self.assert_(app.links[link].href, 'no href on %s link' % link)
             if link.endswith('-script'):
                 self.assertEquals(app.links[link].type, 'text/javascript',
-                    "type %s is invalid for %s link" % \
+                    'type %s is invalid for %s link' % \
                     (app.links[link].type, link))
             elif link.endswith('-page'):
                 self.assertEquals(app.links[link].type, 'text/html',
-                    "type %s is invalid for %s link" % \
+                    'type %s is invalid for %s link' % \
                     (app.links[link].type, link))
         self.assertEquals(app.links['self'].type, 'application/json')
         self.assert_(app.owner)
@@ -1571,7 +1653,7 @@ class TestTypePad(unittest.TestCase):
 
     def assertValidFavorite(self, fav):
         self.assert_(isinstance(fav, typepad.Favorite),
-            "object %r is not a typepad.Favorite" % fav)
+            'object %r is not a typepad.Favorite' % fav)
         self.assert_(fav.id)
         self.assert_(fav.url_id)
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87913
@@ -1581,21 +1663,21 @@ class TestTypePad(unittest.TestCase):
 
     def assertValidRelationshipStatus(self, rel):
         self.assert_(isinstance(rel, typepad.RelationshipStatus),
-            "object %r is not a typepad.Relationship" % rel)
+            'object %r is not a typepad.Relationship' % rel)
         self.assert_(rel.types)
         self.assert_(len(rel.types) > 0)
         for type_ in rel.types:
             self.assert_(type_ in (
-                "tag:api.typepad.com,2009:Contact",
-                "tag:api.typepad.com,2009:Admin",
-                "tag:api.typepad.com,2009:Blocked",
-                "tag:api.typepad.com,2009:Member"),
+                'tag:api.typepad.com,2009:Contact',
+                'tag:api.typepad.com,2009:Admin',
+                'tag:api.typepad.com,2009:Blocked',
+                'tag:api.typepad.com,2009:Member'),
                 "type '%s' is unrecognized" % type_
             )
 
     def assertValidRelationship(self, rel):
         self.assert_(isinstance(rel, typepad.Relationship),
-            "object %r is not a typepad.Relationship" % rel)
+            'object %r is not a typepad.Relationship' % rel)
         self.assert_(rel.links)
         self.assert_('self' in rel.links)
         self.assert_(rel.links['self'].href)
@@ -1615,7 +1697,7 @@ class TestTypePad(unittest.TestCase):
         elif rel.source.object_types[0] == 'tag:api.typepad.com,2009:User':
             self.assertValidUser(rel.source)
         else:
-            self.fail("unexpected object type %s for relationship source" % \
+            self.fail('unexpected object type %s for relationship source' % \
                 rel.source.object_types[0])
         self.assert_(rel.target)
         if rel.target.object_types[0] == 'tag:api.typepad.com,2009:Group':
@@ -1623,20 +1705,20 @@ class TestTypePad(unittest.TestCase):
         elif rel.target.object_types[0] == 'tag:api.typepad.com,2009:User':
             self.assertValidUser(rel.target)
         else:
-            self.fail("unexpected object type %s for relationship target" % \
+            self.fail('unexpected object type %s for relationship target' % \
                 rel.target.object_types[0])
 
     def assertValidAssetRef(self, ref):
         self.assert_(ref.url_id)
         self.assert_(isinstance(ref, typepad.AssetRef),
-            "object %r is not a typepad.AssetRef" % ref)
+            'object %r is not a typepad.AssetRef' % ref)
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87953
         # self.assert_(ref.href)
-        # self.assertEquals(ref.type, "application/json")
+        # self.assertEquals(ref.type, 'application/json')
         self.assertValidUser(ref.author)
         self.assert_(ref.object_types)
         self.assert_(len(ref.object_types) > 0)
-        self.assert_(ref.object_types[0].startswith("tag:api.typepad.com"))
+        self.assert_(ref.object_types[0].startswith('tag:api.typepad.com'))
 
     def filterEndpoint(self, endpoint, *args, **kwargs):
         full = endpoint.filter(**kwargs)
@@ -1649,17 +1731,17 @@ class TestTypePad(unittest.TestCase):
     def assertValidFilter(self, listset):
         (full, slice1, slice2, slice3, slice4) = listset
         self.assert_(isinstance(full, typepad.ListObject),
-            "object %r is not a typepad.ListObject" % full)
+            'object %r is not a typepad.ListObject' % full)
         # all our test views should have a smallish set; certainly < 50 items
         self.assert_(full.total_results, len(full.entries))
         # regardless of start-index/max-results parameters, the total-results
         # parameter should be the same as the full selection
         self.assert_(full.total_results > 1,
-            "list must have more than 1 item to test start-index query parameter")
+            'list must have more than 1 item to test start-index query parameter')
         if full.total_results < 50:
             self.assertEquals(len(slice1.entries), slice1.total_results - 1)
         # lets not require this for now
-        # self.assert_(full.total_results < 50, "list must have fewer than 50 items to test properly")
+        # self.assert_(full.total_results < 50, 'list must have fewer than 50 items to test properly')
         self.assertEquals(len(slice2.entries), 1)
         self.assertEquals(len(slice3.entries), 1)
         self.assertEquals(len(slice4.entries), 0)
@@ -1676,3 +1758,8 @@ class TestTypePad(unittest.TestCase):
 
     def assertNotFound(self, *args, **kwargs):
         self.assertRaises(HttpObject.NotFound, *args, **kwargs)
+
+
+if __name__ == '__main__':
+    utils.log()
+    unittest.main()
