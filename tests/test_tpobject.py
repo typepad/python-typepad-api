@@ -6,6 +6,7 @@ import traceback
 
 import simplejson as json
 
+import remoteobjects
 import typepad
 from tests import utils
 
@@ -24,11 +25,10 @@ class TestObjects(unittest.TestCase):
         x = typepad.ListOf('User')
         self.assert_(isinstance(x, type))
         self.assert_(issubclass(x, typepad.ListObject))
-        self.assert_(issubclass(x, typepad.SequenceProxy))
+        self.assert_(issubclass(x, remoteobjects.PageObject))
         self.assertEquals(x.__name__, 'ListOfUser')
 
         y = typepad.ListOf('User')
-        logging.critical('%r %s is %r %s?', x, id(x), y, id(y))
         self.assert_(x is y, "two ListOf's the same thing are not only "
                              "equivalent but the same instance")
 
