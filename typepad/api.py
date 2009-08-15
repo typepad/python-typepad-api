@@ -556,6 +556,7 @@ class Asset(TypePadObject):
         """An `AssetRef` instance representing this asset."""
         return AssetRef(url_id=self.url_id,
                         ref=self.id,
+                        author=self.author,
                         href='/assets/%s.json' % self.url_id,
                         type='application/json',
                         object_types=self.object_types)
