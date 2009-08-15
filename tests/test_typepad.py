@@ -127,10 +127,11 @@ def attr(*args, **kwargs):
     """
     def wrap(fn):
         user = kwargs.get('user', None)
-        m = re.match(r'^(GET|DELETE|PUT|POST) ', fn.__doc__)
-        if m is not None:
-            verb = m.groups()[0]
-            kwargs['method'] = verb
+        if fn.__doc__ is not None:
+            m = re.match(r'^(GET|DELETE|PUT|POST) ', fn.__doc__)
+            if m is not None:
+                verb = m.groups()[0]
+                kwargs['method'] = verb
         @nose.plugins.attrib.attr(*args, **kwargs)
         def test_user(self, *args, **kwargs):
             if user is not None:
@@ -243,7 +244,12 @@ class TestTypePad(unittest.TestCase):
 
         asset_id = self.testdata['assets_created'][0]
 
-        self.assertForbidden(typepad.Asset.get_by_url_id(asset_id).delete)
+        typepad.client.batch_request()
+        asset = typepad.Asset.get_by_url_id(asset_id)
+        typepad.client.complete_batch()
+
+        self.assert_(not asset.can_delete)
+        self.assertForbidden(asset.delete)
 
     @attr(user='group')
     def test_9_DELETE_assets_id__comment__by_group(self):
@@ -257,7 +263,12 @@ class TestTypePad(unittest.TestCase):
 
         asset_id = self.testdata['comments_created'][0]
 
-        self.assertForbidden(typepad.Asset.get_by_url_id(asset_id).delete)
+        typepad.client.batch_request()
+        asset = typepad.Asset.get_by_url_id(asset_id)
+        typepad.client.complete_batch()
+
+        self.assert_(not asset.can_delete)
+        self.assertForbidden(asset.delete)
 
     @attr(user='admin')
     def test_9_DELETE_assets_id__by_admin(self):
@@ -273,7 +284,12 @@ class TestTypePad(unittest.TestCase):
 
         asset_id = self.testdata['assets_created'].pop()
 
-        typepad.Asset.get_by_url_id(asset_id).delete()
+        typepad.client.batch_request()
+        asset = typepad.Asset.get_by_url_id(asset_id)
+        typepad.client.complete_batch()
+
+        self.assert_(asset.can_delete)
+        asset.delete()
 
         # now, see if we can select it. hopefully this fails.
         typepad.client.batch_request()
@@ -300,7 +316,12 @@ class TestTypePad(unittest.TestCase):
 
         asset_id = self.testdata['comments_created'].pop()
 
-        typepad.Asset.get_by_url_id(asset_id).delete()
+        typepad.client.batch_request()
+        asset = typepad.Asset.get_by_url_id(asset_id)
+        typepad.client.complete_batch()
+
+        self.assert_(asset.can_delete)
+        asset.delete()
 
         # now, see if we can select it. hopefully this fails.
         typepad.client.batch_request()
@@ -323,7 +344,12 @@ class TestTypePad(unittest.TestCase):
         self.assert_(len(self.testdata['assets_created']))
 
         for asset_id in self.testdata['assets_created']:
-            typepad.Asset.get_by_url_id(asset_id).delete()
+            typepad.client.batch_request()
+            asset = typepad.Asset.get_by_url_id(asset_id)
+            typepad.client.complete_batch()
+
+            self.assert_(asset.can_delete)
+            asset.delete()
 
             # now, see if we can select it. hopefully this fails.
             typepad.client.batch_request()
@@ -348,7 +374,12 @@ class TestTypePad(unittest.TestCase):
         self.assert_(len(self.testdata['comments_created']))
 
         for asset_id in self.testdata['comments_created']:
-            typepad.Asset.get_by_url_id(asset_id).delete()
+            typepad.client.batch_request()
+            asset = typepad.Asset.get_by_url_id(asset_id)
+            typepad.client.complete_batch()
+
+            self.assert_(asset.can_delete)
+            asset.delete()
 
             # now, see if we can select it. hopefully this fails.
             typepad.client.batch_request()
@@ -1033,6 +1064,24 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(user.xid, member_id)
 
     @attr(user='group')
+    def test_0_GET_users_invalid(self):
+        """GET /users/(invalid).json (group)
+        """
+
+        typepad.client.batch_request()
+        self.assertRaises(ValueError, typepad.User.get_by_url_id, '(invalid)')
+        typepad.client.complete_batch()
+
+    @attr(user='group')
+    def test_0_GET_users__(self):
+        """GET /users/.json (group)
+        """
+
+        typepad.client.batch_request()
+        self.assertRaises(ValueError, typepad.User.get_by_url_id, '')
+        typepad.client.complete_batch()
+
+    @attr(user='group')
     def test_0_GET_users_id_elsewhere_accounts(self):
         """GET /users/<id>/elsewhere-accounts.json (group)
         
@@ -1418,6 +1467,65 @@ class TestTypePad(unittest.TestCase):
         self.assert_(member_id in [x.source.xid for x in contacts])
         self.assert_(admin_id in [x.target.xid for x in contacts])
 
+    @attr(user='member')
+    def test_0_GET_users_self__by_member(self):
+        """GET /users/@self (member)
+        """
+
+        member_id = self.testdata['member']['xid']
+
+        typepad.client.batch_request()
+        user = typepad.User.get_self()
+        typepad.client.complete_batch()
+
+        self.assertValidUser(user)
+        self.assertEquals(user.xid, member_id)
+
+    @attr(user='group')
+    def test_0_GET_users_id__using_id(self):
+        """GET /users/id.json (group)
+        """
+
+        member_id = self.testdata['member']['xid']
+        uri = "tag:api.typepad.com,2009:%s" % member_id
+
+        typepad.client.batch_request()
+        user = typepad.User.get_by_id(uri)
+        typepad.client.complete_batch()
+
+        self.assertValidUser(user)
+        self.assertEquals(user.xid, member_id)
+
+    @attr(user='group')
+    def test_0_GET_assets_id__using_id(self):
+        """GET /assets/id.json (group)
+        """
+
+        asset_id = self.testdata['assets'][0]
+        uri = "tag:api.typepad.com,2009:%s" % asset_id
+
+        typepad.client.batch_request()
+        asset = typepad.Asset.get_by_id(uri)
+        typepad.client.complete_batch()
+
+        self.assertValidAsset(asset)
+        self.assertEquals(asset.xid, asset_id)
+
+    @attr(user='group')
+    def test_0_GET_groups_id__using_id(self):
+        """GET /groups/id.json (group)
+        """
+
+        group_id = self.testdata['group']['xid']
+        uri = "tag:api.typepad.com,2009:%s" % group_id
+
+        typepad.client.batch_request()
+        group = typepad.Group.get_by_id(uri)
+        typepad.client.complete_batch()
+
+        self.assertValidGroup(group)
+        self.assertEquals(group.xid, group_id)
+
     ### Supporting functions for this test suite
 
     def setUp(self):
@@ -1474,6 +1582,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(isinstance(asset, typepad.Asset),
             'object %r is not a typepad.Asset' % asset)
         self.assert_(asset.author)
+        self.assert_(asset.actor)
         self.assertValidUser(asset.author)
         # asset.content is not required for some asset types
         # self.assert_(asset.content)
@@ -1494,14 +1603,19 @@ class TestTypePad(unittest.TestCase):
         self.assert_('favorites' in asset.links)
         self.assert_(asset.links['favorites'].href)
         self.assert_(asset.links['favorites'].type, 'application/json')
+        self.assert_(asset.links['favorites'].total >= 0)
+        self.assertEquals(asset.links['favorites'].total, asset.favorite_count())
         self.assert_('replies' in asset.links)
         self.assert_(asset.links['replies'].href)
         self.assert_(asset.links['replies'].type, 'application/json')
+        self.assert_(asset.links['replies'].total >= 0)
+        self.assertEquals(asset.links['replies'].total, asset.comment_count())
         if 'alternate' in asset.links:
             self.assert_('alternate' in asset.links)
             self.assert_(asset.links['alternate'].href)
             self.assertEquals(asset.links['alternate'].type, 'text/html')
         self.assert_(object_type.startswith('tag:api.typepad.com'))
+        self.assertValidAssetRef(asset.asset_ref)
         if object_type == 'tag:api.typepad.com,2009:Link':
             # additional properties we expect for link assets
             self.assert_('target' in asset.links)
@@ -1538,6 +1652,7 @@ class TestTypePad(unittest.TestCase):
                 object_type)
         if asset.source:
             self.assert_(asset.source.links)
+            self.assert_(asset.source.original_link)
             self.assert_('alternate' in asset.source.links)
             self.assert_(asset.source.links['alternate'].href)
             self.assertEquals(asset.source.links['alternate'].type,
@@ -1595,6 +1710,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(isinstance(event, typepad.Event),
             'object %r is not a typepad.Event' % event)
         self.assert_(event.id)
+        self.assert_(event.xid)
         self.assert_(event.url_id)
         self.assert_(event.published)
         self.assert_(len(event.links) > 0)
@@ -1647,6 +1763,16 @@ class TestTypePad(unittest.TestCase):
                 self.assertEquals(app.links[link].type, 'text/html',
                     'type %s is invalid for %s link' % \
                     (app.links[link].type, link))
+        self.assert_(app.oauth_request_token)
+        self.assert_(app.oauth_authorization_page)
+        self.assert_(app.oauth_access_token_endpoint)
+        self.assert_(app.session_sync_script)
+        self.assert_(app.oauth_identification_page)
+        self.assert_(app.signout_page)
+        # FIXME: application doesn't provide this yet?
+        # self.assert_(app.membership_management_page)
+        self.assert_(app.user_flyouts_script)
+        self.assert_(app.browser_upload_endpoint)
         self.assertEquals(app.links['self'].type, 'application/json')
         self.assert_(app.owner)
         self.assertValidGroup(app.owner)
