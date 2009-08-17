@@ -721,7 +721,8 @@ class TestTypePad(unittest.TestCase):
         self.assertValidFilter(listset)
 
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87911
-        events = [x for x in listset[0] if x.object]
+        # FIXME: https://intranet.sixapart.com/bugs/default.asp?88008
+        events = [x for x in listset[0] if x.object and len(x.object.groups) > 0]
         for event in events:
             self.assertValidEvent(event)
 
@@ -1552,7 +1553,8 @@ class TestTypePad(unittest.TestCase):
             typepad.client.complete_batch()
 
             for event in events:
-                if event.object:
+                # FIXME: https://intranet.sixapart.com/bugs/default.asp?88008
+                if event.object and len(event.object.groups) > 0:
                     self.testdata['assets'].append(event.object.xid)
 
             self.clear_credentials()
@@ -1588,7 +1590,7 @@ class TestTypePad(unittest.TestCase):
         # self.assert_(asset.content)
         self.assert_(asset.text_format)
         self.assert_(asset.text_format in ('text', 'html'))
-        # FIXME: should asset.groups always be present? - needs case
+        # FIXME: https://intranet.sixapart.com/bugs/default.asp?88008
         # self.assert_(len(asset.groups) > 0)
         self.assert_(asset.id)
         self.assert_(asset.url_id)
