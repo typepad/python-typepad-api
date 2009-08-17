@@ -349,11 +349,6 @@ class Application(TypePadObject):
         return self.links['signout-page'].href
 
     @property
-    def membership_management_page(self):
-        """The URL at which end users can manage their group memberships."""
-        return self.links['membership-management-page'].href
-
-    @property
     def user_flyouts_script(self):
         """The URL from which to request typepad user flyout javascript."""
         return self.links['user-flyouts-script'].href
