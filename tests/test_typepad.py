@@ -1701,6 +1701,18 @@ class TestTypePad(unittest.TestCase):
         self.assert_(user.links['alternate'].href)
         self.assertEquals(user.links['alternate'].type, 'text/html')
 
+        # this link is available when a user is accessing their own
+        # user object
+        if 'membership-management-page' in user.links:
+            self.assert_(user.links['membership-management-page'].href)
+            self.assertEquals(user.links['membership-management-page'].type, 'text/html')
+
+        # this link is available when a user is accessing their own
+        # user object
+        if 'profile-edit-page' in user.links:
+            self.assert_(user.links['profile-edit-page'].href)
+            self.assertEquals(user.links['profile-edit-page'].type, 'text/html')
+
         self.assert_('avatar' in user.links)
         self.assert_(user.links['avatar'].href)
         self.assert_(user.links['avatar'].height)
@@ -1771,8 +1783,6 @@ class TestTypePad(unittest.TestCase):
         self.assert_(app.session_sync_script)
         self.assert_(app.oauth_identification_page)
         self.assert_(app.signout_page)
-        # FIXME: application doesn't provide this yet?
-        # self.assert_(app.membership_management_page)
         self.assert_(app.user_flyouts_script)
         self.assert_(app.browser_upload_endpoint)
         self.assertEquals(app.links['self'].type, 'application/json')
