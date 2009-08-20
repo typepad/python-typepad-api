@@ -73,7 +73,7 @@ is through the test method name, as tests are run in alphabetic order.
 """
 
 
-from httplib import HTTPException
+import httplib
 import logging
 import os
 from pprint import pprint
@@ -81,6 +81,8 @@ import re
 import unittest
 from urllib import urlencode, unquote
 from urlparse import urlsplit, urlunsplit, urlparse
+import cgi
+import base64
 
 import httplib2
 import nose
@@ -584,15 +586,174 @@ class TestTypePad(unittest.TestCase):
         raise nose.SkipTest(
             'We test this endpoint through our other tests.')
 
-    @utils.todo
-    def test_5_POST_browser_upload(self):
-        """POST /browser-upload.json
-        
-        POST data required: oauth_nonce, oauth_timestamp, oauth_consumer_key,
-        oauth_signature_method, oauth_version, oauth_token, oauth_signature
+    def upload_asset(self, ident, asset, filename, file_type, content):
+        """Helper method for posting a file to the TypePad API.
+
+        ident is one of the user identifiers (group, member, admin, blocked)
+        content is the base64 encoded file contents to post."""
+
+        api_key = self.testdata['configuration']['oauth_consumer_key']
+
+        typepad.client.batch_request()
+        app = typepad.Application.get_by_api_key(api_key)
+        typepad.client.complete_batch()
+
+        post_type = asset['objectTypes'][0]
+        post_type = post_type[post_type.rindex(':')+1:]
+
+        self.assertValidApplication(app)
+
+        # make sure we don't have any oauth credentials; we're not using
+        # oauth in this way for the browser-upload endpoint
+        typepad.client.clear_credentials()
+
+        boundary = 'BoUnDaRyStRiNg'
+        body = (
+            """--%(boundary)s\n"""
+            """Content-Disposition: form-data; name="redirect_to\n"""
+            """\n"""
+            """http://127.0.0.1:8000/ajax/upload_url\n"""
+            """--%(boundary)s\n"""
+            """Content-Disposition: form-data; name="post_type"\n"""
+            """\n"""
+            """%(post_type)s\n"""
+            """--%(boundary)s\n"""
+            """Content-Disposition: form-data; name="asset"\n"""
+            """\n"""
+            """%(asset)s\n"""
+            """--%(boundary)s\n"""
+            """Content-Disposition: form-data; name="file"; filename="%(filename)s"\n"""
+            """Content-Type: %(mime_type)s\n"""
+            """\n"""
+            """%(file)s\n"""
+            """--%(boundary)s--""").replace('\n', '\r\n') % \
+            { 'asset': json.dumps(asset),
+              'boundary': boundary,
+              'file': base64.decodestring(content),
+              'filename': filename,
+              'post_type': post_type,
+              'mime_type': file_type }
+
+        consumer = oauth.OAuthConsumer(
+            key = self.testdata['configuration']['oauth_consumer_key'],
+            secret = self.testdata['configuration']['oauth_consumer_secret'],
+        )
+        token = oauth.OAuthToken(
+            self.testdata[ident]['oauth_key'],
+            self.testdata[ident]['oauth_secret'],
+        )
+        oauth_client = typepad.OAuthClient(consumer, token)
+
+        remote_url = app.browser_upload_endpoint
+        url = oauth_client.get_file_upload_url(remote_url)
+
+        headers = {
+            'Content-Type': 'multipart/form-data; boundary=%s' % boundary,
+            'Content-Length': str(len(body)),
+        }
+        response = None
+        content = None
+        try:
+            # don't follow the redirect; we want it for ourselves
+            response, content = typepad.client.request(url, 'POST',
+                body, headers, 0)
+        except httplib2.RedirectLimit, ex:
+            response, content = ex.repsonse, ex.content
+
+        self.assert_(response)
+        self.assertEquals(response.status, httplib.FOUND)
+        self.assert_('location' in response)
+
+        urlparts = urlsplit(response['location'])
+        params = cgi.parse_qs(urlparts[3])
+
+        self.assert_('status' in params)
+
+        if ident in ('member', 'admin'): # test for a successful upload
+            self.assert_('error' not in params)
+            self.assert_(int(params['status'][0]) != httplib.BAD_REQUEST, 'returned status is BAD_REQUEST')
+            self.assert_('asset_url' in params)
+            parts = urlparse(params['asset_url'][0])
+
+            self.credentials_for('group')
+            posted_asset = typepad.Asset.get(parts[2], batch=False)
+
+            self.assertValidAsset(posted_asset)
+            self.assertEquals(posted_asset.primary_object_type(), asset['objectTypes'][0])
+
+            self.testdata['assets_created'].append(posted_asset.xid)
+        else: # test for a failure
+            self.assertEquals(int(params['status'][0]), httplib.UNAUTHORIZED)
+
+    @attr(user='member')
+    def test_5_POST_browser_upload__photo__by_member(self):
+        """POST /browser-upload.json (photo; member)
         """
 
-        raise NotImplementedError()
+        asset = {
+            'content': 'This is a test upload',
+            'objectTypes': ['tag:api.typepad.com,2009:Photo']
+        }
+        content = "\n".join(
+            """iVBORw0KGgoAAAANSUhEUgAAACAAAAAWCAYAAAChWZ5EAAAAqUlEQVRIx8XTsQ2AIBCFYcM+OoOV"""
+            """lQu4gxM4jQswAyUrsAI1A6BXaKIiiLkHxSV0338EGu99U2nEPn1NvK0VcOI1Ai546YAHXjIgiJcK"""
+            """eMVLBERxdEASRwYQ3qVwVMBnHBEQxK21ozFmQge8bq61nqWUKzIgiDvnBtpcKbVQAJ3vNwHdnDCC"""
+            """78MZEH1w6Bv4/NoRbyDrq3F/Qzb8TwArnhvAjucECG74mA3T52uZi1CUIgAAAABJRU5ErkJggg=="""
+        )
+        self.upload_asset('member', asset, 'photo.png', 'image/png', content)
+
+    @attr(user='member')
+    def test_5_POST_browser_upload__audio__by_member(self):
+        """POST /browser-upload.json (audio; member)
+        """
+
+        asset = {
+            'content': 'A small audio post',
+            'objectTypes': ['tag:api.typepad.com,2009:Audio']
+        }
+        content = "\n".join(
+            """//tQZAAAAAAAf4UAAAgAAA0goAABFVWnQ7kKAAAAADSDAAAAgEAYCAQCAUBAIAYABADkguG8AkDk"""
+            """fDIoN1fFnCC3hiIUiHw/hiEUkGrgt+/xNoZFC30R0GKtf8MjCkQ1aGARSQau//C34TaGKQtBD9gs"""
+            """iBuL//E2hgEG+h0QWRACggFhIGQIgwFrskkYnP+A4CBhn4GyjgYlABnSABQoWkLQQtFGOFBGQBA4"""
+            """6Yt+iBgxLf4fMMaIKjMkcLmIMdIqVTInk1l3////84jMUlGSAP/7QGQAiPJHRcrvAqAIAAANIOAA"""
+            """AQeBEymgH5PgAAA0gAAABAAAA/3+sEX+9Wut7erUtfU3umtal9m3qzMxKJsl77/rf39a///MS6gi"""
+            """iXwAAyBiYZgdkdQGiyUAMLhRhCUcRiXTXv+nsW38QgAbf/WBl/fed5Rptb7a3MVWOXc70ykQs3mp"""
+            """f9f62T////3q7q/FGXmBgIeBdgOXiNbqQ/T1Bbv+nsV/IwAAAAPv/rAw9dt6+dpk//swZAcI8dZF"""
+            """SugF5PgAAA0gAAABB4ETK6AGsWAAADSAAAAEX211Szeu3iKBY76J/r9vVP///+u4duR9eAVD5sTh"""
+            """mJwSsR/4xSW7D9P/xb+8Acff6gRUR/PcvPU+a7RFTLQNnus2mJa9l7fr////+yRqTI6hGIJiQDJH"""
+            """yAwGDhSJHGaZ41qf/ZQWR2ZNAAAAF+/+qCX///3qKDfN//tAZAeI8o5GSmgn5ygAAA0gAAABCXUb"""
+            """J6CLnKAAADSAAAAEsq85hVkCaxGSImdmOZWUdDr3mM9f2Rm8/70MY89/vPtSGKKnaQ5qdZUCZx2y"""
+            """gJqhgPfemZ3I9SiwTxOFgwU1z//WcAF229oAH///1h0gu4MEYfy5SzWWejulaIN6Oylm6yG/+lDS"""
+            """lmeuOEqjVd2WczaIIKBpfc4QQQaHQwCF0lTQw7z/W5TZTEpY8Cv//QoAAAD/+0BkAYryVkXK6CLf"""
+            """KAAADSAAAAEI0RcpoI9coAAANIAAAAQb//7IJf///f6OqGjAdJ5azqGeyw8uj0Gv1dqpoVUIU/9N"""
+            """XIp0Y+vcN25i9DcAuuyAs4cPKNLSTXJLYcmZ+kBchWBEkOm7/kABtYGv///hnyQRCMcyqSQ6zSZr"""
+            """uJ0z2SyL0ENbc2PYy+TPbv/n/bTpM5d/Xd/3OXPrADKzFV28i8CxrCXVeHtIafGVW/+I6gAABv/7"""
+            """MGQBiPG2QspoAaN4AAANIAAAAQZZCymgCbHgAAA0gAAABBfv/qwwq+/kiPImEgsdBUEkBPDchpup"""
+            """NFFV3c4jU2vq6///6u/+rSRJoAxIHiNX//3U/6QBv//rA1ZNaF+Xq7JdlCq7sqGSqLSToxqtgjnk"""
+            """0X16bLVX9tupq//TJAH8Shznq+//+ToADgMD/kL////////QkEISrv/7EGQIj/CGQkuYAT8IAAAN"""
+            """IAAAAQAAAaQAAAAgAAA0gAAABExBTUUzLjk4qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"""
+            """qqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//sQZCIP8AAAaQAAAAgAAA0gAAABAAABpAAA"""
+            """ACAAADSAAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"""
+            """qqqqqqqqqqqqqqqqqqqqqqqqqqo="""
+        )
+        self.upload_asset('member', asset, 'audio.mp3', 'audio/mpeg', content)
+
+    @attr(user='group')
+    def test_5_POST_browser_upload__photo__by_group(self):
+        """POST /browser-upload.json (photo; group)
+        """
+
+        asset = {
+            'content': 'This is a test upload',
+            'objectTypes': ['tag:api.typepad.com,2009:Photo']
+        }
+        content = "\n".join(
+            """iVBORw0KGgoAAAANSUhEUgAAACAAAAAWCAYAAAChWZ5EAAAAqUlEQVRIx8XTsQ2AIBCFYcM+OoOV"""
+            """lQu4gxM4jQswAyUrsAI1A6BXaKIiiLkHxSV0338EGu99U2nEPn1NvK0VcOI1Ai546YAHXjIgiJcK"""
+            """eMVLBERxdEASRwYQ3qVwVMBnHBEQxK21ozFmQge8bq61nqWUKzIgiDvnBtpcKbVQAJ3vNwHdnDCC"""
+            """78MZEH1w6Bv4/NoRbyDrq3F/Qzb8TwArnhvAjucECG74mA3T52uZi1CUIgAAAABJRU5ErkJggg=="""
+        )
+        self.upload_asset('group', asset, 'test.png', 'image/png', content)
 
     @attr(user='group')
     def test_0_GET_events_id(self):
@@ -774,7 +935,6 @@ class TestTypePad(unittest.TestCase):
         for rel in everyone:
             self.assertValidRelationship(rel)
 
-        # yes, we have one or more admins!
         self.assert_(len(everyone) > 0, 'memberships should be non-zero')
         self.assert_(admin_id in [a.target.xid for a in everyone],
             'configured admin should exist in memberships')
