@@ -449,6 +449,7 @@ class Asset(TypePadObject):
         "tag:api.typepad.com,2009:Post",
         "tag:api.typepad.com,2009:Photo",
         "tag:api.typepad.com,2009:Video",
+        "tag:api.typepad.com,2009:Audio",
         "tag:api.typepad.com,2009:Link",
         "tag:api.typepad.com,2009:Comment",
         "tag:api.typepad.com,2009:Document"
