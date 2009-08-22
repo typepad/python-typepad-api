@@ -293,9 +293,6 @@ class TestTypePad(unittest.TestCase):
         Tests deletion of an asset using admin credentials.
         """
 
-        raise nose.SkipTest(
-            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87922')
-
         self.assert_(len(self.testdata['assets_created']))
 
         asset_id = self.testdata['assets_created'].pop()
@@ -325,9 +322,6 @@ class TestTypePad(unittest.TestCase):
 
         Tests deletion of a comment using admin credentials.
         """
-
-        raise nose.SkipTest(
-            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87922')
 
         self.assert_(len(self.testdata['comments_created']))
 
