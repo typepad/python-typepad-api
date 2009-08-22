@@ -34,6 +34,11 @@ Input test data should have this form:
             'oauth_key': '...',
             'oauth_secret': '...',
         },
+        'featured': {
+            'xid': '...',
+            'oauth_key': '...',
+            'oauth_secret': '...',
+        },
         'group': {
             'xid': '...',
             'name': '...'
@@ -63,11 +68,18 @@ Some tests should be run in a specific order. The only way to do this
 is through the test method name, as tests are run in alphabetic order.
 
     0 - GET requests, relying on test data as described above.
+
+    2 - Relationship test to unblock the blocked member
+    3 - Test to (re-)block the user who was blocked to begin with
+
     4 - PUT requests
+
     5 - POST requests for parent objects (assets)
     6 - POST requests for child objects (favorites, comments)
+
     8 - DELETE requests for child objects (favorites, comments)
     9 - DELETE requests for top-level objects (assets)
+
     A - DELETE for remaining assets (final cleanup)
 
 """
@@ -164,9 +176,9 @@ class TestTypePad(unittest.TestCase):
         group = typepad.Group.get_by_url_id(group_id)
         typepad.client.complete_batch()
 
-        self.assertEquals(app.api_key, api_key)
         self.assertValidApplication(app)
         self.assertValidGroup(group)
+        self.assertEquals(app.api_key, api_key)
 
         # Test owner property
         self.assertEquals(app.owner.xid, group_id)
@@ -212,7 +224,7 @@ class TestTypePad(unittest.TestCase):
         self.assertValidUser(user)
 
         for asset in assets:
-            self.assertEquals(asset.groups[0], group.id)
+            self.assert_(group.id in asset.groups)
             self.assertValidAsset(asset)
 
     @attr(user='group')
@@ -250,6 +262,7 @@ class TestTypePad(unittest.TestCase):
         asset = typepad.Asset.get_by_url_id(asset_id)
         typepad.client.complete_batch()
 
+        self.assertValidAsset(asset)
         self.assert_(not asset.can_delete)
         self.assertForbidden(asset.delete)
 
@@ -269,6 +282,7 @@ class TestTypePad(unittest.TestCase):
         asset = typepad.Asset.get_by_url_id(asset_id)
         typepad.client.complete_batch()
 
+        self.assertValidAsset(asset)
         self.assert_(not asset.can_delete)
         self.assertForbidden(asset.delete)
 
@@ -290,6 +304,7 @@ class TestTypePad(unittest.TestCase):
         asset = typepad.Asset.get_by_url_id(asset_id)
         typepad.client.complete_batch()
 
+        self.assertValidAsset(asset)
         self.assert_(asset.can_delete)
         asset.delete()
 
@@ -322,6 +337,7 @@ class TestTypePad(unittest.TestCase):
         asset = typepad.Asset.get_by_url_id(asset_id)
         typepad.client.complete_batch()
 
+        self.assertValidAsset(asset)
         self.assert_(asset.can_delete)
         asset.delete()
 
@@ -350,6 +366,7 @@ class TestTypePad(unittest.TestCase):
             asset = typepad.Asset.get_by_url_id(asset_id)
             typepad.client.complete_batch()
 
+            self.assertValidAsset(asset)
             self.assert_(asset.can_delete)
             asset.delete()
 
@@ -380,6 +397,7 @@ class TestTypePad(unittest.TestCase):
             asset = typepad.Asset.get_by_url_id(asset_id)
             typepad.client.complete_batch()
 
+            self.assertValidAsset(asset)
             self.assert_(asset.can_delete)
             asset.delete()
 
@@ -418,7 +436,7 @@ class TestTypePad(unittest.TestCase):
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87859
         # self.assertForbidden(asset.put)
         try:
-            asset.put
+            asset.put()
             self.fail('group credentials allowed an update to an asset')
         except:
             pass
@@ -429,7 +447,7 @@ class TestTypePad(unittest.TestCase):
         asset2 = typepad.Asset.get_by_url_id(asset_id)
         typepad.client.complete_batch()
 
-        self.assertValidAsset(asset)
+        self.assertValidAsset(asset2)
 
         self.assertEquals(asset2.title, orig_title)
 
@@ -456,7 +474,6 @@ class TestTypePad(unittest.TestCase):
         asset.put()
 
         # Re-select this asset to verify it has been updated.
-
         typepad.client.batch_request()
         asset2 = typepad.Asset.get_by_url_id(asset_id)
         typepad.client.complete_batch()
@@ -484,16 +501,18 @@ class TestTypePad(unittest.TestCase):
         asset = typepad.Asset.get_by_url_id(asset_id)
         typepad.client.complete_batch()
 
+        self.assertValidAsset(asset)
+
         # Lets change this asset and put it back and see what happens
         asset.title = 'Changed by test suite by admin'
         asset.put()
 
         # Re-select this asset to verify it has been updated.
-
         typepad.client.batch_request()
         asset2 = typepad.Asset.get_by_url_id(asset_id)
         typepad.client.complete_batch()
 
+        self.assertValidAsset(asset2)
         self.assertEquals(asset2.title, 'Changed by test suite by admin')
 
         asset.title = ''
@@ -570,6 +589,7 @@ class TestTypePad(unittest.TestCase):
         # listset = self.filterEndpoint(asset.favorites)
         typepad.client.complete_batch()
 
+        self.assertValidAsset(asset)
         # self.assertValidFilter(listset)
 
         # favs = listset[0]
@@ -607,6 +627,8 @@ class TestTypePad(unittest.TestCase):
         # oauth in this way for the browser-upload endpoint
         typepad.client.clear_credentials()
 
+        # FIXME: browser-upload relies on 'post_type' parameter instead
+        # of objectTypes assigned to asset? That's weird.
         boundary = 'BoUnDaRyStRiNg'
         body = (
             """--%(boundary)s\n"""
@@ -669,7 +691,7 @@ class TestTypePad(unittest.TestCase):
 
         self.assert_('status' in params)
 
-        if ident in ('member', 'admin'): # test for a successful upload
+        if ident in ('member', 'admin', 'featured'): # test for a successful upload
             self.assert_('error' not in params)
             self.assert_(int(params['status'][0]) != httplib.BAD_REQUEST, 'returned status is BAD_REQUEST')
             self.assert_('asset_url' in params)
@@ -878,6 +900,7 @@ class TestTypePad(unittest.TestCase):
         listset = self.filterEndpoint(group.events)
         typepad.client.complete_batch()
 
+        self.assertValidGroup(group)
         self.assertEquals(group.url_id, group_id)
         self.assertValidFilter(listset)
 
@@ -901,14 +924,7 @@ class TestTypePad(unittest.TestCase):
 
         group_id = self.testdata['group']['xid']
 
-        link = typepad.LinkAsset()
-        rel = typepad.Link()
-        rel.href = 'http://www.typepad.com/'
-        rel.rel = 'target'
-        link.title = ''
-        link.links = typepad.LinkSet()
-        link.links.add(rel)
-        link.content = 'Test link post'
+        link = self.link_asset()
 
         typepad.Group.get_by_url_id(group_id).link_assets.post(link)
         self.assertValidAsset(link)
@@ -1035,9 +1051,7 @@ class TestTypePad(unittest.TestCase):
 
         group_id = self.testdata['group']['xid']
 
-        post = typepad.Post()
-        post.title = ''
-        post.content = 'Test post asset'
+        post = self.post_asset()
 
         typepad.Group.get_by_url_id(group_id).post_assets.post(post)
         self.assertValidAsset(post)
@@ -1053,8 +1067,7 @@ class TestTypePad(unittest.TestCase):
 
         group_id = self.testdata['group']['xid']
 
-        post = typepad.Post()
-        post.title = ''
+        post = self.post_asset()
         post.content = 'Test post asset by group'
 
         self.assertUnauthorized(
@@ -1069,8 +1082,7 @@ class TestTypePad(unittest.TestCase):
 
         group_id = self.testdata['group']['xid']
 
-        post = typepad.Post()
-        post.title = ''
+        post = self.post_asset()
         post.content = 'Test post asset by blocked user'
 
         self.assertForbidden(
@@ -1085,14 +1097,7 @@ class TestTypePad(unittest.TestCase):
 
         group_id = self.testdata['group']['xid']
 
-        video = typepad.Video()
-        rel = typepad.Link()
-        rel.href = 'http://www.youtube.com/watch?v=pWdZTqHtJ3U'
-        rel.rel = 'enclosure'
-        video.title = ''
-        video.links = typepad.LinkSet()
-        video.links.add(rel)
-        video.content = 'Test video post'
+        video = self.video_asset()
 
         typepad.Group.get_by_url_id(group_id).video_assets.post(video)
         self.assertValidAsset(video)
@@ -1111,13 +1116,7 @@ class TestTypePad(unittest.TestCase):
 
         group_id = self.testdata['group']['xid']
 
-        video = typepad.Video()
-        rel = typepad.Link()
-        rel.href = 'http://www.youtube.com/watch?v=pWdZTqHtJ3U'
-        rel.rel = 'enclosure'
-        video.title = ''
-        video.links = typepad.LinkSet()
-        video.links.add(rel)
+        video = self.video_asset()
         video.content = 'Test video post by group'
 
         self.assertUnauthorized(
@@ -1131,15 +1130,7 @@ class TestTypePad(unittest.TestCase):
         """
 
         group_id = self.testdata['group']['xid']
-
-        video = typepad.Video()
-        rel = typepad.Link()
-        rel.href = 'http://www.youtube.com/watch?v=pWdZTqHtJ3U'
-        rel.rel = 'enclosure'
-        video.title = ''
-        video.links = typepad.LinkSet()
-        video.links.add(rel)
-        video.content = 'Test video post by blocked user'
+        video = self.video_asset()
 
         self.assertForbidden(
             typepad.Group.get_by_url_id(group_id).video_assets.post, video)
@@ -1198,15 +1189,109 @@ class TestTypePad(unittest.TestCase):
 
         self.assertValidRelationshipStatus(status)
 
-    @utils.todo
-    @attr(user='member')
-    def test_4_PUT_relationship_id_status(self):
-        """PUT /relationships/<id>/status.json (member)
+    def update_relationship(self, ident, action):
+        """Updates the group relationship of a particular user."""
+
+        raise nose.SkipTest("FIXME: https://intranet.sixapart.com/bugs/default.asp?88128")
+
+        if not ident in self.testdata:
+            raise nose.SkipTest("missing configuration for %s user" % ident)
+
+        group_id = self.testdata['group']['xid']
+        user_id = self.testdata[ident]['xid']
+
+        typepad.client.batch_request()
+        group = typepad.Group.get_by_url_id(group_id)
+        typepad.client.complete_batch()
+
+        typepad.client.batch_request()
+        user = typepad.User.get_by_url_id(user_id)
+        memberships = user.memberships.filter(by_group=group)
+        typepad.client.complete_batch()
+
+        self.assertValidUser(user)
+        self.assert_(len(memberships) == 1)
+        self.assertValidRelationship(memberships[0])
+        self.assertEquals(memberships[0].target.xid, group_id)
+
+        if action == 'block':
+            self.assert_(not memberships[0].is_blocked())
+            memberships[0].block()
+        elif action == 'unblock':
+            self.assert_(memberships[0].is_blocked())
+            status = typepad.RelationshipStatus.get(memberships[0].status_url(), batch=False)
+            status.types = ["tag:api.typepad.com,2009:Member"]
+            status.put()
+
+        typepad.client.batch_request()
+        new_membership = user.memberships.filter(by_group=group)
+        typepad.client.complete_batch()
+
+        self.assert_(len(new_mebership) == 1)
+        self.assertValidRelationship(new_membership[0])
+
+        # confirm relationship now reflects status we expect
+        if action == 'block':
+            self.assert_(new_membership[0].is_blocked())
+            self.assert_(not new_membership[0].is_member())
+        elif action == 'unblock':
+            self.assert_(not new_membership[0].is_blocked())
+            self.assert_(new_membership[0].is_member())
+
+    @attr(user='admin')
+    def test_4_PUT_relationships_id_status__unblock_blocked__by_admin(self):
+        """PUT /relationships/<id>/status.json (unblock; admin)
         
         Tests the endpoint to update a relationship status.
         """
 
-        raise NotImplementedError()
+        # This endpoint can only be used by an administrator.
+        self.update_relationship('blocked', 'block')
+
+    @attr(user='admin')
+    def test_3_PUT_relationships_id_status__block_admin__by_admin(self):
+        """PUT /relationships/<id>/status.json (block admin; admin)
+        
+        Tests the endpoint to update a relationship status.
+        """
+
+        # This request should fail, since we should not be allowed to
+        # block ourselves, or other admins.
+        self.assertForbidden(self.update_relationship, 'admin', 'block')
+
+    @attr(user='admin')
+    def test_3_PUT_relationships_id_status__block_featured__by_admin(self):
+        """PUT /relationships/<id>/status.json (block featured; admin)
+        
+        Tests the endpoint to update a relationship status.
+        """
+
+        # This request should fail, since we should not be allowed to
+        # block featured users
+        self.assertForbidden(self.update_relationship, 'featured', 'block')
+
+    @attr(user='group')
+    def test_3_PUT_relationships_id_status__block_blocked__by_group(self):
+        """PUT /relationships/<id>/status.json (group)
+        """
+
+        self.assertForbidden(self.update_relationship, 'blocked', 'block')
+
+    @attr(user='member')
+    def test_3_PUT_relationships_id_status__block_blocked__by_member(self):
+        """PUT /relationships/<id>/status.json (member)
+        """
+
+        self.assertForbidden(self.update_relationship, 'blocked', 'block')
+
+    @attr(user='admin')
+    def test_2_PUT_relationship_id_status__unblock_blocked__by_admin(self):
+        """PUT /relationships/<id>/status.json (block; admin)
+        
+        Tests the endpoint to update a relationship status.
+        """
+
+        self.update_relationship('blocked', 'unblock')
 
     @attr(user='group')
     def test_0_GET_users_id(self):
@@ -1801,8 +1886,10 @@ class TestTypePad(unittest.TestCase):
         elif object_type == 'tag:api.typepad.com,2009:Post':
             pass
         elif object_type == 'tag:api.typepad.com,2009:Comment':
-            self.assert_(asset.in_reply_to)
-            self.assertValidAssetRef(asset.in_reply_to)
+            # FIXME: we have a data problem for one of our comments; parent object was deleted but the comment remained
+            if len(asset.groups) > 0:
+                self.assert_(asset.in_reply_to)
+                self.assertValidAssetRef(asset.in_reply_to)
         elif object_type == 'tag:api.typepad.com,2009:Video':
             self.assert_('enclosure' in asset.links)
             self.assert_(asset.links['enclosure'].html)
@@ -2030,8 +2117,8 @@ class TestTypePad(unittest.TestCase):
         (full, slice1, slice2, slice3, slice4) = listset
         self.assert_(isinstance(full, typepad.ListObject),
             'object %r is not a typepad.ListObject' % full)
-        # all our test views should have a smallish set; certainly < 50 items
-        self.assert_(full.total_results, len(full.entries))
+        # api result set should never exceed 50 entries
+        self.assert_(len(full.entries) <= 50)
         # regardless of start-index/max-results parameters, the total-results
         # parameter should be the same as the full selection
         self.assert_(full.total_results > 1,
@@ -2057,6 +2144,43 @@ class TestTypePad(unittest.TestCase):
     def assertNotFound(self, *args, **kwargs):
         self.assertRaises(HttpObject.NotFound, *args, **kwargs)
 
+    def post_asset(self):
+        """Creates a Post asset instance for testing purposes."""
+
+        post = typepad.Post()
+        post.title = ''
+        post.content = 'Test post asset'
+
+        return post
+
+    def video_asset(self):
+        """Creates a Video asset instance for testing purposes."""
+
+        video = typepad.Video()
+
+        rel = typepad.Link()
+        rel.href = 'http://www.youtube.com/watch?v=pWdZTqHtJ3U'
+        rel.rel = 'enclosure'
+        video.title = ''
+        video.links = typepad.LinkSet()
+        video.links.add(rel)
+        video.content = 'Test video post by blocked user'
+
+        return video
+
+    def link_asset(self):
+        """Creates a Link asset instance for testing purposes."""
+
+        link = typepad.LinkAsset()
+        rel = typepad.Link()
+        rel.href = 'http://www.typepad.com/'
+        rel.rel = 'target'
+        link.title = ''
+        link.links = typepad.LinkSet()
+        link.links.add(rel)
+        link.content = 'Test link post'
+
+        return link
 
 if __name__ == '__main__':
     utils.log()
