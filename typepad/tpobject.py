@@ -475,7 +475,8 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
                 if hasattr(v, 'url_id'):
                     v = v.url_id
                 else:
-                    raise ValueError("invalid object filter value for parameter %k; object must have a url_id property to filter by object" % k)
+                    raise ValueError("""invalid object filter value for parameter %s; """
+                        """object must have a url_id property to filter by object""" % k)
             # Convert by_group to by-group.
             k = k.replace('_', '-')
             # Convert by_group=7 to by_group='7'.
