@@ -293,6 +293,9 @@ class TestTypePad(unittest.TestCase):
         Tests deletion of an asset using admin credentials.
         """
 
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87922')
+
         self.assert_(len(self.testdata['assets_created']))
 
         asset_id = self.testdata['assets_created'].pop()
@@ -323,6 +326,9 @@ class TestTypePad(unittest.TestCase):
         Tests deletion of a comment using admin credentials.
         """
 
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87922')
+
         self.assert_(len(self.testdata['comments_created']))
 
         asset_id = self.testdata['comments_created'].pop()
@@ -332,8 +338,7 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
         self.assertValidAsset(asset)
-        # FIXME: 'DELETE' allowedMethod is not being returned for admin requests
-        # self.assert_(asset.can_delete)
+        self.assert_(asset.can_delete)
         asset.delete()
 
         # now, see if we can select it. hopefully this fails.
@@ -362,8 +367,7 @@ class TestTypePad(unittest.TestCase):
             typepad.client.complete_batch()
 
             self.assertValidAsset(asset)
-            # FIXME: 'DELETE' allowedMethod is not being returned for admin requests
-            # self.assert_(asset.can_delete)
+            self.assert_(asset.can_delete)
             asset.delete()
 
             # now, see if we can select it. hopefully this fails.
