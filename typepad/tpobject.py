@@ -69,14 +69,6 @@ class TypePadObject(remoteobjects.RemoteObject):
     object_types = fields.List(fields.Field(), api_name='objectTypes')
 
     @classmethod
-    def get_response(cls, url, http=None, **kwargs):
-        """Performs the given HTTP request through `typepad.client`
-        `BatchClient` instance."""
-        if not urlparse(url)[1]:  # network location
-            url = urljoin(typepad.client.endpoint, url)
-        return super(TypePadObject, cls).get_response(url, http=typepad.client, **kwargs)
-
-    @classmethod
     def get(cls, url, *args, **kwargs):
         """Promises a new `TypePadObject` instance for the named resource.
 
@@ -95,6 +87,8 @@ class TypePadObject(remoteobjects.RemoteObject):
         if not urlparse(url)[1]:  # network location
             url = urljoin(typepad.client.endpoint, url)
 
+        kwargs['http'] = typepad.client
+
         ret = super(TypePadObject, cls).get(url, *args, **kwargs)
         ret.batch_requests = kwargs.get('batch', cls.batch_requests)
         if ret.batch_requests:
@@ -105,6 +99,14 @@ class TypePadObject(remoteobjects.RemoteObject):
                 # delivery later.
                 ret._origin = inspect.stack()[1][1:4]
         return ret
+
+    def post(self, obj, http=None):
+        http = typepad.client
+        return super(TypePadObject, self).post(obj, http=http)
+
+    def put(self, http=None):
+        http = typepad.client
+        return super(TypePadObject, self).put(http=http)
 
     def reclass_for_data(self, data):
         """Modifies this `TypePadObject` instance to be an instance of the
