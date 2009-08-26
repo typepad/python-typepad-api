@@ -108,6 +108,10 @@ class TypePadObject(remoteobjects.RemoteObject):
         http = typepad.client
         return super(TypePadObject, self).put(http=http)
 
+    def delete(self, http=None):
+        http = typepad.client
+        return super(TypePadObject, self).delete(http=http)
+
     def reclass_for_data(self, data):
         """Modifies this `TypePadObject` instance to be an instance of the
         specific `TypePadObject` subclass specified in `data`.
