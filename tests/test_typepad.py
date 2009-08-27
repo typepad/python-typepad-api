@@ -1042,6 +1042,7 @@ class TestTypePad(unittest.TestCase):
         raise nose.SkipTest(
             'FIXME: https://intranet.sixapart.com/bugs/default.asp?87928')
 
+    @utils.todo
     @attr(user='member')
     def test_5_POST_groups_id_post_assets__by_member(self):
         """POST /groups/<id>/post-assets.json (member)
@@ -1088,6 +1089,7 @@ class TestTypePad(unittest.TestCase):
         self.assertForbidden(
             typepad.Group.get_by_url_id(group_id).post_assets.post, post)
 
+    @utils.todo
     @attr(user='member')
     def test_5_POST_groups_id_video_assets(self):
         """POST /groups/<id>/video-assets.json
