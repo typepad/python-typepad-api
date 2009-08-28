@@ -75,7 +75,10 @@ requests = {
     ),
     'create_post': (
         { 'uri': 'http://127.0.0.1:8000/groups/1/post-assets.json',
-          'headers': {'accept': 'application/json'},
+          'headers': {
+              'accept': 'application/json',
+              'content-type': 'application/json',
+          },
           'body': """{"content": "Hi this post has some content is it not nifty", "objectTypes": ["tag:api.typepad.com,2009:Post"], "categories": [{"term": "fred"}, {"term": "wilma"}], "title": "New post #47"}""",
           'method': 'POST' },
         { 'status': 201,
@@ -126,6 +129,7 @@ requests = {
           'headers': {
             'if-match': '7',
             'accept': 'application/json',
+            'content-type': 'application/json',
           },
           'body': mox.Func(json_equals({"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"})),
           'method': 'PUT' },
