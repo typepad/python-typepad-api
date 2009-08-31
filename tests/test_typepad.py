@@ -2145,7 +2145,7 @@ class TestTypePad(unittest.TestCase):
 
         post = typepad.Post()
         post.title = ''
-        post.content = 'Test post asset'
+        post.content = 'Test text post'
 
         return post
 
@@ -2160,7 +2160,7 @@ class TestTypePad(unittest.TestCase):
         video.title = ''
         video.links = typepad.LinkSet()
         video.links.add(rel)
-        video.content = 'Test video post by blocked user'
+        video.content = 'Test video post'
 
         return video
 
