@@ -1905,8 +1905,7 @@ class TestTypePad(unittest.TestCase):
                 'text/html')
             self.assert_(asset.source.provider)
 
-            # FIXME: https://intranet.sixapart.com/bugs/default.asp?85409
-            # self.assert_(asset.source.provider.icon)
+            self.assert_(asset.source.provider.icon)
             self.assert_(asset.source.provider.name)
             self.assert_(asset.source.provider.uri)
 
