@@ -1102,10 +1102,7 @@ class TestTypePad(unittest.TestCase):
         typepad.Group.get_by_url_id(group_id).video_assets.post(video)
         self.assertValidAsset(video)
 
-        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87916
-        # we can't delete video assets, so don't put it in the
-        # list to delete yet.
-        # self.testdata['assets_created'].append(video.xid)
+        self.testdata['assets_created'].append(video.xid)
 
     @attr(user='group')
     def test_5_POST_groups_id_video_assets__by_group(self):
