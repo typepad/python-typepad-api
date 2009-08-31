@@ -115,7 +115,9 @@ class User(TypePadObject):
         Asserts that the id parameter is valid."""
         id = xid_from_atom_id(id)
         assert id, "valid id parameter required"
-        return cls.get_by_url_id(id, **kwargs)
+        u = cls.get_by_url_id(id, **kwargs)
+        u.id = id
+        return u
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -131,7 +133,9 @@ class User(TypePadObject):
         if mo:
             raise ValueError('URL identifiers cannot contain "%s" characters'
                              % mo.group(0))
-        return cls.get('/users/%s.json' % url_id, **kwargs)
+        u = cls.get('/users/%s.json' % url_id, **kwargs)
+        u.url_id = url_id
+        return u
 
 
 class ElsewhereAccount(TypePadObject):
@@ -288,7 +292,9 @@ class Group(TypePadObject):
         Asserts that the id parameter is valid."""
         id = xid_from_atom_id(id)
         assert id, "valid id parameter required"
-        return cls.get_by_url_id(id, **kwargs)
+        g = cls.get_by_url_id(id, **kwargs)
+        g.id = id
+        return g
 
     @classmethod
     def get_by_url_id(cls, url_id):
@@ -296,7 +302,9 @@ class Group(TypePadObject):
 
         Asserts that the url_id parameter matches ^\w+$."""
         assert re.match('^\w+$', url_id), "invalid url_id parameter given"
-        return cls.get('/groups/%s.json' % url_id)
+        g = cls.get('/groups/%s.json' % url_id)
+        g.url_id = url_id
+        return g
 
 
 class Application(TypePadObject):
@@ -510,7 +518,9 @@ class Asset(TypePadObject):
         Asserts that the url_id parameter matches ^\w+$."""
         id = xid_from_atom_id(id)
         assert id, "valid id parameter required"
-        return cls.get_by_url_id(id, **kwargs)
+        a = cls.get_by_url_id(id, **kwargs)
+        a.id = id
+        return a
 
     @classmethod
     def get_by_url_id(cls, url_id):
@@ -520,6 +530,7 @@ class Asset(TypePadObject):
         assert re.match('^\w+$', url_id), "invalid url_id parameter given"
         a = cls.get('/assets/%s.json' % url_id)
         a.id = '%s-%s' % (cls.object_type, url_id)
+        a.url_id = url_id
         return a
 
     @property
