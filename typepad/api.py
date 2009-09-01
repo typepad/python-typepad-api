@@ -113,9 +113,9 @@ class User(TypePadObject):
         """Returns a `User` instance by their unique identifier.
 
         Asserts that the id parameter is valid."""
-        id = xid_from_atom_id(id)
-        assert id, "valid id parameter required"
-        u = cls.get_by_url_id(id, **kwargs)
+        url_id = xid_from_atom_id(id)
+        assert url_id, "valid id parameter required"
+        u = cls.get_by_url_id(url_id, **kwargs)
         u.id = id
         return u
 
