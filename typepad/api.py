@@ -290,9 +290,9 @@ class Group(TypePadObject):
         """Returns a `Group` instance by their unique identifier.
 
         Asserts that the id parameter is valid."""
-        id = xid_from_atom_id(id)
-        assert id, "valid id parameter required"
-        g = cls.get_by_url_id(id, **kwargs)
+        url_id = xid_from_atom_id(id)
+        assert url_id, "valid id parameter required"
+        g = cls.get_by_url_id(url_id, **kwargs)
         g.id = id
         return g
 
@@ -516,9 +516,9 @@ class Asset(TypePadObject):
         """Returns an `Asset` instance by the identifier for the asset.
 
         Asserts that the url_id parameter matches ^\w+$."""
-        id = xid_from_atom_id(id)
-        assert id, "valid id parameter required"
-        a = cls.get_by_url_id(id, **kwargs)
+        url_id = xid_from_atom_id(id)
+        assert url_id, "valid id parameter required"
+        a = cls.get_by_url_id(url_id, **kwargs)
         a.id = id
         return a
 
