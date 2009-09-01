@@ -47,14 +47,6 @@ Input test data should have this form:
         }
     }
 
-    the test group should have at least 2 assets, all owned by the
-    member identified and ideally one for each post type
-
-    asset #1 should have 2 or more favorites
-    asset #1 should have 2 or more comments
-
-    asset #2 will be modified (title will change)
-
     the member should follow admin
     the admin should follow member
 
@@ -67,7 +59,9 @@ Numbering prefix scheme for tests.
 Some tests should be run in a specific order. The only way to do this
 is through the test method name, as tests are run in alphabetic order.
 
-    0 - GET requests, relying on test data as described above.
+    0 - POSTs for setting up data for tests
+
+    1 - GET requests, relying on test data as described above.
 
     2 - Relationship test to unblock the blocked member
     3 - Test to (re-)block the user who was blocked to begin with
@@ -77,10 +71,10 @@ is through the test method name, as tests are run in alphabetic order.
     5 - POST requests for parent objects (assets)
     6 - POST requests for child objects (favorites, comments)
 
-    8 - DELETE requests for child objects (favorites, comments)
-    9 - DELETE requests for top-level objects (assets)
+    7 - DELETE requests for child objects (favorites, comments)
+    8 - DELETE requests for top-level objects (assets)
 
-    A - DELETE for remaining assets (final cleanup)
+    9 - DELETE for remaining assets (final cleanup)
 
 """
 
@@ -90,6 +84,7 @@ import logging
 import os
 from pprint import pprint
 import re
+import time
 import unittest
 from urllib import urlencode, unquote
 from urlparse import urlsplit, urlunsplit, urlparse
@@ -151,6 +146,7 @@ def attr(*args, **kwargs):
             if user is not None:
                 self.credentials_for(user)
             fn(self, *args, **kwargs)
+            self.clear_credentials()
         utils.update_wrapper(test_user, fn)
         return test_user
     return wrap
@@ -158,8 +154,84 @@ def attr(*args, **kwargs):
 
 class TestTypePad(unittest.TestCase):
 
+    @attr(user='member')
+    def test_0_setup_test_data(self):
+        """Sets up some test data for our group."""
+
+        group_id = self.testdata['group']['xid']
+        member_id = self.testdata['member']['xid']
+
+        post1 = self.post_asset()
+        post1.content = "This post is needed to test list operations."
+        typepad.Group.get_by_url_id(group_id).post_assets.post(post1)
+        self.assertValidAsset(post1)
+
+        self.testdata['assets_created'].append(post1.xid)
+
+        # lets pause to reflect (and allow timestamps between these assets to differ)
+        time.sleep(2)
+
+        post2 = self.post_asset()
+        post2.content = "This post will be favorited and commented on."
+        typepad.Group.get_by_url_id(group_id).post_assets.post(post2)
+        self.assertValidAsset(post2)
+
+        self.testdata['assets_created'].append(post2.xid)
+
+        # the older post should be favorited
+
+        typepad.client.batch_request()
+        user = typepad.User.get_by_url_id(member_id)
+        typepad.client.complete_batch()
+
+        fav = typepad.Favorite()
+        fav.in_reply_to = post1.asset_ref
+        user.favorites.post(fav)
+
+        self.assertValidFavorite(fav)
+
+        # the older post should have 2 comments
+
+        content = (
+            """Lorem ipsum dolor sit amet, consectetur adipisicing elit, """
+            """sed do eiusmod tempor incididunt ut labore et dolore magna """
+            """aliqua. Ut enim ad minim veniam, quis nostrud exercitation """
+            """ullamco laboris nisi ut aliquip ex ea commodo consequat. """
+            """Duis aute irure dolor in reprehenderit in voluptate velit """
+            """esse cillum dolore eu fugiat nulla pariatur. Excepteur """
+            """sint occaecat cupidatat non proident, sunt in culpa qui """
+            """officia deserunt mollit anim id est laborum."""
+        )
+
+        comment1 = typepad.Comment()
+        comment1.title = ''
+        comment1.content = content
+        post1.comments.post(comment1)
+
+        # validate comment asset now that it's been posted
+        self.assertValidAsset(comment1)
+        self.assertEquals(comment1.in_reply_to.url_id, post1.url_id)
+        self.assertEquals(comment1.content, content)
+
+        self.testdata['comments_created'].append(comment1.xid)
+
+        content = 'Yeah, what he said.'
+
+        comment2 = typepad.Comment()
+        comment2.title = ''
+        comment2.content = content
+        post1.comments.post(comment2)
+
+        self.assertValidAsset(comment2)
+        self.assertEquals(comment2.in_reply_to.url_id, post1.url_id)
+
+        self.testdata['comments_created'].append(comment2.xid)
+
+        # now, load testdata['assets'] with these test assets
+        self.load_test_assets()
+
     @attr(user='group')
-    def test_0_GET_applications_id(self):
+    def test_1_GET_applications_id(self):
         """GET /applications/<id>.json (group)
         
         Tests the application endpoint using the configured OAuth consumer key
@@ -186,7 +258,7 @@ class TestTypePad(unittest.TestCase):
             group.links['self'].href)
 
     @attr(user='group')
-    def test_0_GET_application_id__invalid(self):
+    def test_1_GET_application_id__invalid(self):
         """GET /applications/invalid.json (group)
         
         Tests the /applications endpoint with an invalid application
@@ -198,7 +270,7 @@ class TestTypePad(unittest.TestCase):
         self.assertNotFound(typepad.client.complete_batch)
 
     @attr(user='group')
-    def test_0_GET_assets_id(self):
+    def test_1_GET_assets_id(self):
         """GET /assets/<id>.json (group)
         
         Tests the /assets endpoint using the first 18 assets found in the
@@ -228,7 +300,7 @@ class TestTypePad(unittest.TestCase):
             self.assertValidAsset(asset)
 
     @attr(user='group')
-    def test_0_GET_assets_id__invalid(self):
+    def test_1_GET_assets_id__invalid(self):
         """GET /assets/invalid.json (group)
         
         Tests the /assets endpoint using an invalid asset id. This should
@@ -236,18 +308,11 @@ class TestTypePad(unittest.TestCase):
         """
 
         typepad.client.batch_request()
-
         asset = typepad.Asset.get_by_url_id('invalid')
-        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87858
-        # self.assertNotFound(typepad.client.complete_batch)
-        try:
-            typepad.client.complete_batch()
-            self.fail('invalid post should not yield an asset')
-        except:
-            pass
+        self.assertNotFound(typepad.client.complete_batch)
 
     @attr(user='group')
-    def test_9_DELETE_assets_id__by_group(self):
+    def test_8_DELETE_assets_id__by_group(self):
         """DELETE /assets/<id>.json (group)
 
         Tests deletion of an asset using group credentials. This should result
@@ -267,7 +332,7 @@ class TestTypePad(unittest.TestCase):
         self.assertForbidden(asset.delete)
 
     @attr(user='group')
-    def test_9_DELETE_assets_id__comment__by_group(self):
+    def test_8_DELETE_assets_id__comment__by_group(self):
         """DELETE /assets/<id>.json (comment asset; group)
 
         Tests deletion of a comment using group credentials. This should
@@ -287,7 +352,7 @@ class TestTypePad(unittest.TestCase):
         self.assertForbidden(asset.delete)
 
     @attr(user='admin')
-    def test_9_DELETE_assets_id__by_admin(self):
+    def test_8_DELETE_assets_id__by_admin(self):
         """DELETE /assets/<id>.json (admin)
 
         Tests deletion of an asset using admin credentials.
@@ -311,16 +376,10 @@ class TestTypePad(unittest.TestCase):
         # now, see if we can select it. hopefully this fails.
         typepad.client.batch_request()
         asset = typepad.Asset.get_by_url_id(asset_id)
-        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87858
-        # self.assertNotFound(typepad.client.complete_batch)
-        try:
-            typepad.client.complete_batch()
-            self.fail('oops; deleted post still accessible?')
-        except:
-            pass
+        self.assertNotFound(typepad.client.complete_batch)
 
     @attr(user='admin')
-    def test_9_DELETE_assets_id__comment__by_admin(self):
+    def test_8_DELETE_assets_id__comment__by_admin(self):
         """DELETE /assets/<id>.json (comment asset; admin)
 
         Tests deletion of a comment using admin credentials.
@@ -344,16 +403,10 @@ class TestTypePad(unittest.TestCase):
         # now, see if we can select it. hopefully this fails.
         typepad.client.batch_request()
         asset = typepad.Asset.get_by_url_id(asset_id)
-        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87858
-        # self.assertNotFound(typepad.client.complete_batch)
-        try:
-            typepad.client.complete_batch()
-            self.fail('oops; deleted comment still accessible?')
-        except:
-            pass
+        self.assertNotFound(typepad.client.complete_batch)
 
     @attr(user='member')
-    def test_A_DELETE_assets_id__by_member(self):
+    def test_9_DELETE_assets_id__post__by_member(self):
         """DELETE /assets/<id>.json (member)
 
         Tests deletion of an asset using member credentials.
@@ -373,18 +426,12 @@ class TestTypePad(unittest.TestCase):
             # now, see if we can select it. hopefully this fails.
             typepad.client.batch_request()
             asset = typepad.Asset.get_by_url_id(asset_id)
-            # FIXME: https://intranet.sixapart.com/bugs/default.asp?87858
-            # self.assertNotFound(typepad.client.complete_batch)
-            try:
-                typepad.client.complete_batch()
-                self.fail('oops; deleted post still accessible?')
-            except:
-                pass
+            self.assertNotFound(typepad.client.complete_batch)
 
         self.testdata['assets_created'] = []
 
     @attr(user='member')
-    def test_A_DELETE_assets_id__comment__by_member(self):
+    def test_9_DELETE_assets_id__comment__by_member(self):
         """DELETE /assets/<id>.json (comment asset; member)
 
         Tests deletion of a comment using member credentials.
@@ -402,15 +449,10 @@ class TestTypePad(unittest.TestCase):
             asset.delete()
 
             # now, see if we can select it. hopefully this fails.
-            typepad.client.batch_request()
-            asset = typepad.Asset.get_by_url_id(asset_id)
-            # FIXME: https://intranet.sixapart.com/bugs/default.asp?87858
+            # FIXME: https://intranet.sixapart.com/bugs/default.asp?88441
+            # typepad.client.batch_request()
+            # asset = typepad.Asset.get_by_url_id(asset_id)
             # self.assertNotFound(typepad.client.complete_batch)
-            try:
-                typepad.client.complete_batch()
-                self.fail('oops; deleted comment still accessible?')
-            except:
-                pass
 
         self.testdata['comments_created'] = []
 
@@ -422,7 +464,7 @@ class TestTypePad(unittest.TestCase):
         result in a 403 error (FORBIDDEN).
         """
 
-        asset_id = self.testdata['assets'][1]
+        asset_id = self.testdata['assets'][0]
 
         typepad.client.batch_request()
         asset = typepad.Asset.get_by_url_id(asset_id)
@@ -461,7 +503,7 @@ class TestTypePad(unittest.TestCase):
         raise nose.SkipTest(
             'FIXME: https://intranet.sixapart.com/bugs/default.asp?87900')
 
-        asset_id = self.testdata['assets'][1]
+        asset_id = self.testdata['assets'][0]
 
         typepad.client.batch_request()
         asset = typepad.Asset.get_by_url_id(asset_id)
@@ -495,7 +537,7 @@ class TestTypePad(unittest.TestCase):
         raise nose.SkipTest(
             'FIXME: https://intranet.sixapart.com/bugs/default.asp?87900')
 
-        asset_id = self.testdata['assets'][1]
+        asset_id = self.testdata['assets'][0]
 
         typepad.client.batch_request()
         asset = typepad.Asset.get_by_url_id(asset_id)
@@ -519,7 +561,7 @@ class TestTypePad(unittest.TestCase):
         asset.put()
 
     @attr(user='group')
-    def test_0_GET_assets_id_comments(self):
+    def test_1_GET_assets_id_comments(self):
         """GET /assets/<id>/comments.json (group)
         
         Tests selection of comments for a specific asset.
@@ -528,7 +570,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(len(self.testdata['assets']) >= 2,
             'Must have 2 or more assets to test')
 
-        asset_id = self.testdata['assets'][0]
+        asset_id = self.testdata['assets'][1]
 
         typepad.client.batch_request()
         asset = typepad.Asset.get_by_url_id(asset_id)
@@ -549,7 +591,7 @@ class TestTypePad(unittest.TestCase):
         Tests posting a comment to an asset.
         """
 
-        asset_id = self.testdata['assets'][0]
+        asset_id = self.testdata['assets'][1]
 
         typepad.client.batch_request()
         asset = typepad.Asset.get_by_url_id(asset_id)
@@ -570,7 +612,7 @@ class TestTypePad(unittest.TestCase):
         self.testdata['comments_created'].append(comment.xid)
 
     @attr(user='group')
-    def test_0_GET_assets_id_favorites(self):
+    def test_1_GET_assets_id_favorites(self):
         """GET /assets/<id>/favorites.json (group)
         
         Tests selecting favorites for a specific asset.
@@ -579,7 +621,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(len(self.testdata['assets']) >= 2,
             'Must have 2 or more assets to test')
 
-        asset_id = self.testdata['assets'][0]
+        asset_id = self.testdata['assets'][1]
         member_id = self.testdata['member']['xid']
 
         typepad.client.batch_request()
@@ -675,12 +717,9 @@ class TestTypePad(unittest.TestCase):
         }
         response = None
         content = None
-        try:
-            # don't follow the redirect; we want it for ourselves
-            response, content = typepad.client.request(url, 'POST',
-                body, headers, 0)
-        except httplib2.RedirectLimit, ex:
-            response, content = ex.repsonse, ex.content
+        # don't follow the redirect; we want it for ourselves
+        response, content = typepad.client.request(url, 'POST',
+            body, headers, 0)
 
         self.assert_(response)
         self.assertEquals(response.status, httplib.FOUND)
@@ -778,7 +817,7 @@ class TestTypePad(unittest.TestCase):
         self.upload_asset('group', asset, 'test.png', 'image/png', content)
 
     @attr(user='group')
-    def test_0_GET_events_id(self):
+    def test_1_GET_events_id(self):
         """GET /events/<id>.json (group)
         """
 
@@ -786,7 +825,7 @@ class TestTypePad(unittest.TestCase):
             'FIXME: https://intranet.sixapart.com/bugs/default.asp?87901')
 
     @attr(user='group')
-    def test_0_GET_favorites_id(self):
+    def test_1_GET_favorites_id(self):
         """GET /favorites/<id>.json (group)
         
         Tests selection of a single favorite object.
@@ -797,7 +836,7 @@ class TestTypePad(unittest.TestCase):
 
         # asset:user
         member_id = self.testdata['member']['xid']
-        asset_id = self.testdata['assets'][0]
+        asset_id = self.testdata['assets'][1]
 
         typepad.client.batch_request()
         fav = typepad.Favorite.get_by_user_asset(member_id, asset_id)
@@ -808,7 +847,7 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(fav.author.url_id, member_id)
 
     @attr(user='group')
-    def test_8_DELETE_favorites_id__by_group(self):
+    def test_7_DELETE_favorites_id__by_group(self):
         """DELETE /favorites/<id>.json (group)
         
         Tests deletion of a favorite object using group credentials.
@@ -826,7 +865,7 @@ class TestTypePad(unittest.TestCase):
             typepad.Favorite.get_by_user_asset(member_id, asset_id).delete)
 
     @attr(user='member')
-    def test_8_DELETE_favorites_id__by_member(self):
+    def test_7_DELETE_favorites_id__by_member(self):
         """DELETE /favorites/<id>.json (member)
         
         Tests deletion of a favorite object using member credentials.
@@ -844,7 +883,7 @@ class TestTypePad(unittest.TestCase):
         self.assertNotFound(typepad.client.complete_batch)
 
     @attr(user='admin')
-    def test_8_DELETE_favorites_id__by_admin(self):
+    def test_7_DELETE_favorites_id__by_admin(self):
         """DELETE /favorites/<id>.json (admin)
         
         Tests deletion of a favorite object using admin credentials.
@@ -865,7 +904,7 @@ class TestTypePad(unittest.TestCase):
         self.assertNotFound(typepad.client.complete_batch)
 
     @attr(user='group')
-    def test_0_GET_groups_id(self):
+    def test_1_GET_groups_id(self):
         """GET /groups/<id>.json (group)
         
         Tests selection of a group object using group credentials.
@@ -882,7 +921,7 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(group.display_name, self.testdata['group']['name'])
 
     @attr(user='group')
-    def test_0_GET_groups_id_events(self):
+    def test_1_GET_groups_id_events(self):
         """GET /groups/<id>/events.json (group)
         
         Tests endpoint for selecting the group event stream.
@@ -932,7 +971,7 @@ class TestTypePad(unittest.TestCase):
         self.testdata['assets_created'].append(link.xid)
 
     @attr(user='group')
-    def test_0_GET_groups_id_memberships(self):
+    def test_1_GET_groups_id_memberships(self):
         """GET /groups/<id>/memberships.json (group)
         
         Tests selection of group memberships.
@@ -958,7 +997,7 @@ class TestTypePad(unittest.TestCase):
             'configured member should exist in memberships')
 
     @attr(user='group')
-    def test_0_GET_groups_id_memberships_admin(self):
+    def test_1_GET_groups_id_memberships_admin(self):
         """GET /groups/<id>/memberships/@admin.json (group)
         
         Tests selection of group administrator memberships.
@@ -990,7 +1029,7 @@ class TestTypePad(unittest.TestCase):
         #     ( admins.total_results, everyone.total_results ))
 
     @attr(user='group')
-    def test_0_GET_groups_id_memberships_member(self):
+    def test_1_GET_groups_id_memberships_member(self):
         """GET /groups/<id>/memberships/@member.json (group)
         
         Tests selection of a group member relationships.
@@ -1015,7 +1054,7 @@ class TestTypePad(unittest.TestCase):
             'configured admin should exist in admin memberships')
 
     @attr(user='group')
-    def test_0_GET_groups_id_notifications(self):
+    def test_1_GET_groups_id_notifications(self):
         """GET /groups/<id>/notifications.json (group)
         """
 
@@ -1133,7 +1172,7 @@ class TestTypePad(unittest.TestCase):
             typepad.Group.get_by_url_id(group_id).video_assets.post, video)
 
     @attr(user='group')
-    def test_0_GET_relationships_id(self):
+    def test_1_GET_relationships_id(self):
         """GET /relationships/<id>.json (group)
         
         Tests the selection of a single relationship object.
@@ -1160,7 +1199,7 @@ class TestTypePad(unittest.TestCase):
         self.assertValidRelationship(rel2)
 
     @attr(user='group')
-    def test_0_GET_relationship_id_status(self):
+    def test_1_GET_relationship_id_status(self):
         """GET /relationships/<id>/status.json (group)
         
         Tests the selection of a relationship's status.
@@ -1291,7 +1330,7 @@ class TestTypePad(unittest.TestCase):
         self.update_relationship('blocked', 'unblock')
 
     @attr(user='group')
-    def test_0_GET_users_id(self):
+    def test_1_GET_users_id(self):
         """GET /users/<id>.json (group)
         
         Tests the selection of a single user object.
@@ -1307,7 +1346,7 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(user.xid, member_id)
 
     @attr(user='group')
-    def test_0_GET_users_invalid(self):
+    def test_1_GET_users_invalid(self):
         """GET /users/(invalid).json (group)
         """
 
@@ -1316,7 +1355,7 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
     @attr(user='group')
-    def test_0_GET_users__(self):
+    def test_1_GET_users__(self):
         """GET /users/.json (group)
         """
 
@@ -1325,7 +1364,7 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
     @attr(user='group')
-    def test_0_GET_users_id_elsewhere_accounts(self):
+    def test_1_GET_users_id_elsewhere_accounts(self):
         """GET /users/<id>/elsewhere-accounts.json (group)
         
         Tests the selection of the elsewhere account for the configured
@@ -1347,7 +1386,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(len(elsewhere) > 0)
 
     @attr(user='group')
-    def test_0_GET_users_id_events(self):
+    def test_1_GET_users_id_events(self):
         """GET /users/<id>/events.json (group)
         
         Tests the selection of an event stream for a specific user.
@@ -1357,7 +1396,7 @@ class TestTypePad(unittest.TestCase):
             'FIXME: https://intranet.sixapart.com/bugs/default.asp?87756')
 
     @attr(user='group')
-    def test_0_GET_users_id_events_by_group_id(self):
+    def test_1_GET_users_id_events_by_group_id(self):
         """GET /users/<id>/events/@by-group/<id>.json (group)
         
         Tests the selection of the group-specific event stream for a specific
@@ -1385,7 +1424,7 @@ class TestTypePad(unittest.TestCase):
         self.assertTrue(events[0].object.groups[0].endswith(group_id))
 
     @attr(user='group')
-    def test_0_GET_users_id_favorites(self):
+    def test_1_GET_users_id_favorites(self):
         """GET /users/<id>/favorites.json (group)
         
         Tests the selection of the favorites for a specific user.
@@ -1441,7 +1480,7 @@ class TestTypePad(unittest.TestCase):
             self.assertValidFavorite(fav2)
 
     @attr(user='group')
-    def test_0_GET_users_id_memberships(self):
+    def test_1_GET_users_id_memberships(self):
         """GET /users/<id>/memberships.json (group)
         
         Tests the endpoint for selecting memberships for a specific user.
@@ -1461,15 +1500,12 @@ class TestTypePad(unittest.TestCase):
         self.assert_(group_id in [x.source.xid for x in memberships])
 
     @attr(user='group')
-    def test_0_GET_users_id_memberships_admin(self):
+    def test_1_GET_users_id_memberships_admin(self):
         """GET /users/<id>/memberships/@admin.json (group)
         
         Tests the endpoint for selecting a user's relationships for groups
         they administer.
         """
-
-        raise nose.SkipTest(
-            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87906')
 
         admin_id = self.testdata['admin']['xid']
         group_id = self.testdata['group']['xid']
@@ -1479,13 +1515,14 @@ class TestTypePad(unittest.TestCase):
         listset = self.filterEndpoint(user.memberships, admin=True)
         typepad.client.complete_batch()
 
-        self.assertValidFilter(listset)
+        # FIXME: https://intranet.sixapart.com/bugs/default.asp?88434
+        # self.assertValidFilter(listset)
 
         memberships = listset[0]
         self.assert_(group_id in [x.source.xid for x in memberships])
 
     @attr(user='group')
-    def test_0_GET_users_id_memberships_by_group_id(self):
+    def test_1_GET_users_id_memberships_by_group_id(self):
         """GET /users/<id>/memberships/@by-group/<id>.json (group)
 
         Tests the endpoint for selecting a group membership for a specific
@@ -1509,7 +1546,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(member_id in [x.target.xid for x in memberships])
 
     @attr(user='group')
-    def test_0_GET_users_id_memberships_member(self):
+    def test_1_GET_users_id_memberships_member(self):
         """GET /users/<id>/memberships/@member.json (group)
         
         Tests the endpoint for selecting a user's relationships for
@@ -1532,7 +1569,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(group_id in [x.source.xid for x in memberships])
 
     @attr(user='group')
-    def test_0_GET_users_id_notifications(self):
+    def test_1_GET_users_id_notifications(self):
         """GET /users/<id>/notifications.json (group)
         
         Tests the endpoint for gathering a user's notifications.
@@ -1542,7 +1579,7 @@ class TestTypePad(unittest.TestCase):
             'Must have 2 or more assets to test')
 
         admin_id = self.testdata['admin']['xid']
-        asset_id = self.testdata['assets'][0]
+        asset_id = self.testdata['assets'][1]
 
         typepad.client.batch_request()
         user = typepad.User.get_by_url_id(admin_id)
@@ -1559,7 +1596,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(asset_id in [x.object.url_id for x in inbox if x.object])
 
     @attr(user='group')
-    def test_0_GET_users_id_relationships(self):
+    def test_1_GET_users_id_relationships(self):
         """GET /users/<id>/relationships.json (group)
 
         Tests the endpoint for selecting all of a user's relationships.
@@ -1582,7 +1619,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(member_id in [x.source.xid for x in contacts])
 
     @attr(user='group')
-    def test_0_GET_users_id_relationships_by_group_id(self):
+    def test_1_GET_users_id_relationships_by_group_id(self):
         """GET /users/<id>/relationships/@by-group/<id>.json (group)
 
         Selects user relationships within a specific group.
@@ -1607,7 +1644,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(member_id in [x.source.xid for x in contacts])
 
     @attr(user='group')
-    def test_0_GET_users_id_relationships_follower(self):
+    def test_1_GET_users_id_relationships_follower(self):
         """GET /users/<id>/relationships/@follower.json (group)
 
         Tests the endpoint for selecting the user's followers.
@@ -1632,7 +1669,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(admin_id in [x.target.xid for x in contacts])
 
     @attr(user='group')
-    def test_0_GET_users_id_relationships_follower_by_group_id(self):
+    def test_1_GET_users_id_relationships_follower_by_group_id(self):
         """GET /users/<id>/relationships/@follower/@by-group/<id>.json (group)
 
         Tests the endpoint for selecting the user's followers within a group.
@@ -1659,7 +1696,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(admin_id in [x.target.xid for x in contacts])
 
     @attr(user='group')
-    def test_0_GET_users_id_relationships_following(self):
+    def test_1_GET_users_id_relationships_following(self):
         """GET /users/<id>/relationships/@following.json (group)
         
         Tests selection of a user's global following list.
@@ -1684,7 +1721,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(admin_id in [x.target.xid for x in contacts])
 
     @attr(user='group')
-    def test_0_GET_users_id_relationships_following_by_group_id(self):
+    def test_1_GET_users_id_relationships_following_by_group_id(self):
         """GET /users/<id>/relationships/@following/@by-group/<id>.json (group)
         
         Tests selection of a user's following list within a group.
@@ -1711,7 +1748,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(admin_id in [x.target.xid for x in contacts])
 
     @attr(user='member')
-    def test_0_GET_users_self__by_member(self):
+    def test_1_GET_users_self__by_member(self):
         """GET /users/@self (member)
         """
 
@@ -1725,7 +1762,7 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(user.xid, member_id)
 
     @attr(user='group')
-    def test_0_GET_users_id__using_id(self):
+    def test_1_GET_users_id__using_id(self):
         """GET /users/id.json (group)
         """
 
@@ -1740,11 +1777,11 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(user.xid, member_id)
 
     @attr(user='group')
-    def test_0_GET_assets_id__using_id(self):
+    def test_1_GET_assets_id__using_id(self):
         """GET /assets/id.json (group)
         """
 
-        asset_id = self.testdata['assets'][0]
+        asset_id = self.testdata['assets'][1]
         uri = "tag:api.typepad.com,2009:%s" % asset_id
 
         typepad.client.batch_request()
@@ -1755,7 +1792,7 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(asset.xid, asset_id)
 
     @attr(user='group')
-    def test_0_GET_groups_id__using_id(self):
+    def test_1_GET_groups_id__using_id(self):
         """GET /groups/id.json (group)
         """
 
@@ -1787,19 +1824,25 @@ class TestTypePad(unittest.TestCase):
         self.testdata = testdata
 
         if not len(self.testdata['assets']):
-            self.credentials_for('group')
+            self.load_test_assets()
 
-            typepad.client.batch_request()
-            group = typepad.Group.get_by_url_id(self.testdata['group']['xid'])
-            events = group.events.filter()
-            typepad.client.complete_batch()
+    @attr(user='group')
+    def load_test_assets(self):
+        """Fetches the event stream for the group and populates the testdata
+        dictionary with the assets found."""
 
-            for event in events:
-                # FIXME: https://intranet.sixapart.com/bugs/default.asp?88008
-                if event.object and len(event.object.groups) > 0:
-                    self.testdata['assets'].append(event.object.xid)
+        typepad.client.batch_request()
+        group = typepad.Group.get_by_url_id(self.testdata['group']['xid'])
+        events = group.events.filter()
+        typepad.client.complete_batch()
 
-            self.clear_credentials()
+        self.testdata['assets'] = []
+        for event in events:
+            # FIXME: https://intranet.sixapart.com/bugs/default.asp?88008
+            if event.object and len(event.object.groups) > 0:
+                self.testdata['assets'].append(event.object.xid)
+
+        self.clear_credentials()
 
     def credentials_for(self, ident):
         if ident not in self.testdata:
