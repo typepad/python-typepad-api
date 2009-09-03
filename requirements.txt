@@ -1,5 +1,5 @@
--e svn+http://oauth.googlecode.com/svn/code/python/@904#egg=oauth
+-e svn+http://oauth.googlecode.com/svn/code/python@904#egg=oauth
 simplejson==2.0.9
 httplib2==0.5.0
 -e git://github.com/sixapart/remoteobjects#egg=remoteobjects
--e svn+http://svn.sixapart.com/repos/typeapp/trunk/libraries/python/batchhttp/#egg=batchhttp
+-e git://github.com/sixapart/batchhttp#egg=batchhttp
