@@ -577,6 +577,7 @@ class Asset(TypePadObject):
             if object_type in self.known_object_types: return object_type
         return None
 
+
 class Comment(Asset):
 
     """A text comment posted in reply to some other asset."""
