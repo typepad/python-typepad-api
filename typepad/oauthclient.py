@@ -6,9 +6,11 @@ import logging
 
 import typepad
 
+
 __all__ = ('OAuthAuthentication', 'OAuthClient', 'OAuthHttp', 'log')
 
 log = logging.getLogger('typepad.oauthclient')
+
 
 class OAuthAuthentication(httplib2.Authentication):
 
@@ -52,11 +54,13 @@ class OAuthAuthentication(httplib2.Authentication):
 
         headers.update(req.to_header())
 
+
 httplib2.AUTH_SCHEME_CLASSES['oauth'] = OAuthAuthentication
 httplib2.AUTH_SCHEME_ORDER[0:0] = ('oauth',)  # unshift onto front
 
 
 class OAuthHttp(httplib2.Http):
+
     default_scheme = None
 
     def add_credentials(self, name, password, domain=""):
@@ -74,9 +78,9 @@ class OAuthHttp(httplib2.Http):
 
 
 class OAuthClient(oauth.OAuthClient):
-    """
-        An httplib2 OAuth client.
-    """
+
+    """An httplib2 OAuth client."""
+
     consumer = None
     request_token_url = None
     access_token_url = None
