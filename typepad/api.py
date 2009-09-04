@@ -5,6 +5,7 @@ content objects provided in the TypePad API.
 
 """
 
+import base64
 from datetime import datetime
 import re
 import simplejson as json
@@ -774,8 +775,9 @@ class BrowserUploadEndpoint(TypePadObject):
         filemsg = HTTPMessage()
         filemsg.set_type(content_type)
         filemsg.add_header('Content-Disposition', 'form-data', name="file")
-        # TODO: do we need to handle content encoding ourselves?
-        filemsg.set_payload(fileobj.read())
+        filemsg.add_header('Content-Transfer-Encoding', 'base64')
+        filecontent = fileobj.read()
+        filemsg.set_payload(base64.encodestring(filecontent))
         bodyobj.attach(filemsg)
 
         # Serialize the message first, so we have the generated MIME

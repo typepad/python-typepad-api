@@ -6,6 +6,7 @@ except ImportError:
     from email.Parser import FeedParser
     from email.Header import Header
 import logging
+import os
 import random
 import re
 from StringIO import StringIO
@@ -460,6 +461,15 @@ class TestBrowserUpload(unittest.TestCase):
         self.body = body
         return True
 
+    def message_from_response(self, headers, body):
+        fp = FeedParser()
+        for header, value in headers.iteritems():
+            fp.feed("%s: %s\n" % (header, Header(value).encode()))
+        fp.feed("\n")
+        fp.feed(body)
+        response = fp.close()
+        return response
+
     def test_basic(self):
         request = {
             'uri': 'http://example.com/brupload',
@@ -490,13 +500,7 @@ class TestBrowserUpload(unittest.TestCase):
         # Verify the headers and body.
         self.assert_(self.headers)
         self.assert_(self.body)
-
-        fp = FeedParser()
-        for header, value in self.headers.iteritems():
-            fp.feed("%s: %s\n" % (header, Header(value).encode()))
-        fp.feed("\n")
-        fp.feed(self.body)
-        response = fp.close()
+        response = self.message_from_response(self.headers, self.body)
 
         content_type = response.get_content_type()
         self.assert_(content_type)
@@ -517,7 +521,46 @@ class TestBrowserUpload(unittest.TestCase):
             'objectTypes': ['tag:api.typepad.com,2009:Photo'],
         }, asset_json))
 
-        self.assertEquals(bodyparts['file'].get_payload(), 'hi hello pretend file')
+        self.assertEquals(bodyparts['file'].get_payload(decode=True), 'hi hello pretend file')
+
+    def test_real_file(self):
+        request = {
+            'uri': 'http://example.com/brupload',
+            'method': 'POST',
+            'headers': mox.Func(self.save_headers),
+            'body': mox.Func(self.save_body),
+        }
+        response = {
+            'status': 302,
+            'location': 'http://client.example.com/hi',
+        }
+
+        mock = utils.mock_http(request, response)
+        typepad.client = mock
+
+        asset = typepad.Photo()
+        asset.title = "One-by-one png"
+        asset.content = "This is a 1&times;1 transparent PNG."
+
+        fileobj = file(os.path.join(os.path.dirname(__file__), 'onebyone.png'))
+        brupload = typepad.BrowserUploadEndpoint.get('http://example.com/brupload')
+        brupload.upload(asset, fileobj, "image/png",
+            redirect_to='http://client.example.com/hi',
+            post_type='photo')
+
+        mox.Verify(mock)
+
+        response = self.message_from_response(self.headers, self.body)
+
+        (filepart,) = [part for part in response.get_payload()
+            if part.get_param('name', header='content-disposition') == 'file']
+
+        self.assertEquals(filepart.get_content_type(), 'image/png')
+
+        fileobj.seek(0)
+        filecontent = fileobj.read()
+        fileobj.close()
+        self.assertEquals(filepart.get_payload(decode=True), filecontent)
 
 
 if __name__ == '__main__':
