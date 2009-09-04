@@ -449,10 +449,9 @@ class TestTypePad(unittest.TestCase):
             asset.delete()
 
             # now, see if we can select it. hopefully this fails.
-            # FIXME: https://intranet.sixapart.com/bugs/default.asp?88441
-            # typepad.client.batch_request()
-            # asset = typepad.Asset.get_by_url_id(asset_id)
-            # self.assertNotFound(typepad.client.complete_batch)
+            typepad.client.batch_request()
+            asset = typepad.Asset.get_by_url_id(asset_id)
+            self.assertNotFound(typepad.client.complete_batch)
 
         self.testdata['comments_created'] = []
 
