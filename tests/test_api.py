@@ -1,6 +1,14 @@
 from datetime import datetime
+try:
+    from email.feedparser import FeedParser
+    from email.header import Header
+except ImportError:
+    from email.Parser import FeedParser
+    from email.Header import Header
 import logging
 import random
+import re
+from StringIO import StringIO
 import sys
 import traceback
 import unittest
@@ -12,12 +20,14 @@ import typepad
 from tests import utils
 
 
-def json_equals(data):
+def json_equals(data, text):
+    otherdata = json.loads(text)
+    return bool(data == otherdata)
+
+
+def json_equals_test(data):
     def confirm_equals_data(text):
-        otherdata = json.loads(text)
-        if data == otherdata:
-            return True
-        return False
+        return json_equals(data, text)
     return confirm_equals_data
 
 
@@ -131,7 +141,7 @@ requests = {
             'accept': 'application/json',
             'content-type': 'application/json',
           },
-          'body': mox.Func(json_equals({"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"})),
+          'body': mox.Func(json_equals_test({"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"})),
           'method': 'PUT' },
         { 'content': """{"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"}""",
           'etag': 'xyz' },
@@ -425,6 +435,83 @@ class TestLocally(unittest.TestCase):
         invalid('')
         invalid('Why?')
         invalid('^hat^hat^')
+
+
+class TestBrowserUpload(unittest.TestCase):
+
+    def tearDown(self):
+        for x in ('headers', 'body'):
+            try:
+                delattr(self, x)
+            except AttributeError:
+                pass
+
+    def save_headers(self, headers):
+        self.headers = headers
+        return True
+
+    def save_body(self, body):
+        self.body = body
+        return True
+
+    def test_basic(self):
+        request = {
+            'uri': 'http://example.com/brupload',
+            'method': 'POST',
+            'headers': mox.Func(self.save_headers),
+            'body': mox.Func(self.save_body),
+        }
+        response = {
+            'status': 302,
+            'location': 'http://client.example.com/hi',
+        }
+
+        mock = utils.mock_http(request, response)
+        typepad.client = mock
+
+        asset = typepad.Photo()
+        asset.title = "Fake photo"
+        asset.content = "This is a made-up photo for testing automated browser style upload."
+
+        fileobj = StringIO('hi hello pretend file')
+        brupload = typepad.BrowserUploadEndpoint.get('http://example.com/brupload')
+        brupload.upload(asset, fileobj, "image/png",
+            redirect_to='http://client.example.com/hi',
+            post_type='photo')
+
+        mox.Verify(mock)
+
+        # Verify the headers and body.
+        self.assert_(self.headers)
+        self.assert_(self.body)
+
+        fp = FeedParser()
+        for header, value in self.headers.iteritems():
+            fp.feed("%s: %s\n" % (header, Header(value).encode()))
+        fp.feed("\n")
+        fp.feed(self.body)
+        response = fp.close()
+
+        content_type = response.get_content_type()
+        self.assert_(content_type)
+        self.assert_(not response.defects)
+
+        bodyparts = response.get_payload()
+        self.assertEquals(len(bodyparts), 4)
+        bodyparts = dict((part.get_param('name', header='content-disposition'),
+            part) for part in bodyparts)
+
+        self.assertEquals(bodyparts['post_type'].get_payload(), 'photo')
+        self.assertEquals(bodyparts['redirect_to'].get_payload(), 'http://client.example.com/hi')
+
+        asset_json = bodyparts['asset'].get_payload()
+        self.assert_(json_equals({
+            'title': 'Fake photo',
+            'content': 'This is a made-up photo for testing automated browser style upload.',
+            'objectTypes': ['tag:api.typepad.com,2009:Photo'],
+        }, asset_json))
+
+        self.assertEquals(bodyparts['file'].get_payload(), 'hi hello pretend file')
 
 
 if __name__ == '__main__':

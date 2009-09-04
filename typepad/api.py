@@ -5,12 +5,14 @@ content objects provided in the TypePad API.
 
 """
 
-from urlparse import urljoin
 from datetime import datetime
 import re
+import simplejson as json
+from urlparse import urljoin
 
 from remoteobjects.dataobject import find_by_name
 
+from batchhttp.multipart import HTTPMessage
 from typepad.tpobject import *
 from typepad import fields
 import typepad
@@ -723,3 +725,70 @@ class Tag(TypePadObject):
     """
 
     object_types = None
+
+
+class BrowserUploadEndpoint(TypePadObject):
+
+    object_types = None
+
+    @classmethod
+    def get(cls, url, http=None):
+        if not urlparse(url)[1]:  # network location
+            url = urljoin(typepad.client.endpoint, url)
+
+        # This isn't actually a gettable endpoint, so give me a predelivered
+        # instance instead.
+        self = cls()
+        self._location = url
+
+        return self
+
+    def post(self, obj, http=None):
+        raise ValueError('Browser upload endpoints cannot be POSTed to')
+
+    def put(self, http=None):
+        raise ValueError('Browser upload endpoints cannot be PUT to')
+
+    def delete(self, http=None):
+        raise ValueError('Browser upload endpoints cannot be DELETEd')
+
+    def upload(self, obj, fileobj, content_type, redirect_to=None, post_type=None):
+        http = typepad.client
+
+        data = {
+            "redirect_to": redirect_to,
+            "post_type": post_type,
+            "asset": json.dumps(obj.to_dict()),
+        }
+
+        bodyobj = HTTPMessage()
+        bodyobj.set_type('multipart/form-data')
+        bodyobj.preamble = "multipart snowform for you"
+        for key, value in data.iteritems():
+            msg = HTTPMessage()
+            msg.add_header('Content-Disposition', 'form-data', name=key)
+            # TODO: do we need to handle content encoding ourselves?
+            msg.set_payload(value)
+            bodyobj.attach(msg)
+
+        filemsg = HTTPMessage()
+        filemsg.set_type(content_type)
+        filemsg.add_header('Content-Disposition', 'form-data', name="file")
+        # TODO: do we need to handle content encoding ourselves?
+        filemsg.set_payload(fileobj.read())
+        bodyobj.attach(filemsg)
+
+        # Serialize the message first, so we have the generated MIME
+        # boundary when we pull the headers out.
+        body = bodyobj.as_string(write_headers=False)
+        headers = dict(bodyobj.items())
+
+        request = obj.get_request(url=self._location, method='POST',
+            body=body, headers=headers)
+        response, content = http.request(**request)
+
+        # TODO: do we expect obj at the end? or just the redirect?
+        return response, content
+
+
+browser_upload = BrowserUploadEndpoint.get('/browser-upload.json')
