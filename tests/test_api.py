@@ -25,7 +25,7 @@ def json_equals(data, text):
     return bool(data == otherdata)
 
 
-def json_equals_test(data):
+def json_equals_func(data):
     def confirm_equals_data(text):
         return json_equals(data, text)
     return confirm_equals_data
@@ -141,7 +141,7 @@ requests = {
             'accept': 'application/json',
             'content-type': 'application/json',
           },
-          'body': mox.Func(json_equals_test({"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"})),
+          'body': mox.Func(json_equals_func({"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"})),
           'method': 'PUT' },
         { 'content': """{"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"}""",
           'etag': 'xyz' },
@@ -439,7 +439,13 @@ class TestLocally(unittest.TestCase):
 
 class TestBrowserUpload(unittest.TestCase):
 
+    def setUp(self):
+        self.typepad_client = typepad.client
+
     def tearDown(self):
+        typepad.client = self.typepad_client
+        del self.typepad_client
+
         for x in ('headers', 'body'):
             try:
                 delattr(self, x)
