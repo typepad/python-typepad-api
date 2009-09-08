@@ -479,6 +479,75 @@ class TestBrowserUpload(unittest.TestCase):
             'body': mox.Func(self.saver('body')),
         }
         response = {
+            'status': 201,  # created
+        }
+
+        http = typepad.TypePadClient()
+        typepad.client = http
+        http.add_credentials(
+            OAuthConsumer('consumertoken', 'consumersecret'),
+            OAuthToken('tokentoken', 'tokensecret'),
+            domain='api.typepad.com',
+        )
+
+        mock = mox.Mox()
+        mock.StubOutWithMock(http, 'request')
+        http.request(**request).AndReturn((response, ''))
+        mock.ReplayAll()
+
+        asset = typepad.Photo()
+        asset.title = "Fake photo"
+        asset.content = "This is a made-up photo for testing automated browser style upload."
+
+        fileobj = StringIO('hi hello pretend file')
+        brupload = typepad.BrowserUploadEndpoint()
+        brupload.upload(asset, fileobj, "image/png",
+            post_type='photo')
+
+        mock.VerifyAll()
+
+        self.assert_(self.uri)
+        self.assert_(self.uri.startswith('http://api.typepad.com/browser-upload.json'))
+        uriparts = list(urlparse(self.uri))
+        querydict = cgi.parse_qs(uriparts[4])
+        self.assert_('oauth_signature' in querydict)
+
+        # TODO: really verify the signature
+
+        # Verify the headers and body.
+        self.assert_(self.headers)
+        self.assert_(self.body)
+        response = self.message_from_response(self.headers, self.body)
+
+        content_type = response.get_content_type()
+        self.assert_(content_type)
+        self.assert_(not response.defects)
+
+        bodyparts = response.get_payload()
+        self.assertEquals(len(bodyparts), 3)
+        bodyparts = dict((part.get_param('name', header='content-disposition'),
+            part) for part in bodyparts)
+
+        self.assertEquals(bodyparts['post_type'].get_payload(), 'photo')
+        self.assert_('redirect_to' not in bodyparts)
+
+        asset_json = bodyparts['asset'].get_payload()
+        self.assert_(json_equals({
+            'title': 'Fake photo',
+            'content': 'This is a made-up photo for testing automated browser style upload.',
+            'objectTypes': ['tag:api.typepad.com,2009:Photo'],
+        }, asset_json))
+
+        self.assertEquals(bodyparts['file'].get_payload(decode=True), 'hi hello pretend file')
+
+    def test_redirect(self):
+        request = {
+            'uri': mox.Func(self.saver('uri')),
+            'method': 'POST',
+            'headers': mox.Func(self.saver('headers')),
+            'body': mox.Func(self.saver('body')),
+        }
+        response = {
             'status': 302,
             'location': 'http://client.example.com/hi',
         }
@@ -508,43 +577,21 @@ class TestBrowserUpload(unittest.TestCase):
 
         mock.VerifyAll()
 
-        self.assert_(self.uri)
-        self.assert_(self.uri.startswith('http://api.typepad.com/browser-upload.json'))
-        uriparts = list(urlparse(self.uri))
-        querydict = cgi.parse_qs(uriparts[4])
-        self.assert_('oauth_signature' in querydict)
-
-        # TODO: really verify the signature
-
         # Verify the headers and body.
         self.assert_(self.headers)
         self.assert_(self.body)
         response = self.message_from_response(self.headers, self.body)
-
-        content_type = response.get_content_type()
-        self.assert_(content_type)
-        self.assert_(not response.defects)
 
         bodyparts = response.get_payload()
         self.assertEquals(len(bodyparts), 4)
         bodyparts = dict((part.get_param('name', header='content-disposition'),
             part) for part in bodyparts)
 
-        self.assertEquals(bodyparts['post_type'].get_payload(), 'photo')
-        self.assertEquals(bodyparts['redirect_to'].get_payload(), 'http://client.example.com/hi')
+        # Confirm that the redirect_to was sent.
+        self.assert_('redirect_to' in bodyparts)
+        self.assertEquals(bodyparts['redirect_to'].get_payload(),
+            'http://client.example.com/hi')
 
-        asset_json = bodyparts['asset'].get_payload()
-        self.assert_(json_equals({
-            'title': 'Fake photo',
-            'content': 'This is a made-up photo for testing automated browser style upload.',
-            'objectTypes': ['tag:api.typepad.com,2009:Photo'],
-        }, asset_json))
-
-        self.assertEquals(bodyparts['file'].get_payload(decode=True), 'hi hello pretend file')
-
-    @utils.todo
-    def test_redirect(self):
-        raise NotImplementedError
 
     def test_real_file(self):
         request = {
@@ -554,8 +601,7 @@ class TestBrowserUpload(unittest.TestCase):
             'body': mox.Func(self.saver('body')),
         }
         response = {
-            'status': 302,
-            'location': 'http://client.example.com/hi',
+            'status': 201,
         }
 
         http = typepad.TypePadClient()
@@ -578,7 +624,6 @@ class TestBrowserUpload(unittest.TestCase):
         fileobj = file(os.path.join(os.path.dirname(__file__), 'onebyone.png'))
         brupload = typepad.BrowserUploadEndpoint()
         brupload.upload(asset, fileobj, "image/png",
-            redirect_to='http://client.example.com/hi',
             post_type='photo')
 
         mock.VerifyAll()

@@ -730,14 +730,11 @@ class Tag(TypePadObject):
 
 class BrowserUploadEndpoint(object):
 
-    def upload(self, obj, fileobj, content_type, redirect_to=None, post_type=None):
+    def upload(self, obj, fileobj, content_type, **kwargs):
         http = typepad.client
 
-        data = {
-            "redirect_to": redirect_to,
-            "post_type": post_type,
-            "asset": json.dumps(obj.to_dict()),
-        }
+        data = dict(kwargs)
+        data['asset'] = json.dumps(obj.to_dict())
 
         bodyobj = HTTPMessage()
         bodyobj.set_type('multipart/form-data')
