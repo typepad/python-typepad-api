@@ -542,6 +542,10 @@ class TestBrowserUpload(unittest.TestCase):
 
         self.assertEquals(bodyparts['file'].get_payload(decode=True), 'hi hello pretend file')
 
+    @utils.todo
+    def test_redirect(self):
+        raise NotImplementedError
+
     def test_real_file(self):
         request = {
             'uri': mox.Func(self.saver('uri')),
@@ -554,8 +558,18 @@ class TestBrowserUpload(unittest.TestCase):
             'location': 'http://client.example.com/hi',
         }
 
-        mock = utils.mock_http(request, response)
-        typepad.client = mock
+        http = typepad.TypePadClient()
+        typepad.client = http
+        http.add_credentials(
+            OAuthConsumer('consumertoken', 'consumersecret'),
+            OAuthToken('tokentoken', 'tokensecret'),
+            domain='api.typepad.com',
+        )
+
+        mock = mox.Mox()
+        mock.StubOutWithMock(http, 'request')
+        http.request(**request).AndReturn((response, ''))
+        mock.ReplayAll()
 
         asset = typepad.Photo()
         asset.title = "One-by-one png"
@@ -567,7 +581,7 @@ class TestBrowserUpload(unittest.TestCase):
             redirect_to='http://client.example.com/hi',
             post_type='photo')
 
-        mox.Verify(mock)
+        mock.VerifyAll()
 
         response = self.message_from_response(self.headers, self.body)
 
