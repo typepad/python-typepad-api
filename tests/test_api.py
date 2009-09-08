@@ -1,3 +1,4 @@
+import cgi
 from datetime import datetime
 try:
     from email.feedparser import FeedParser
@@ -13,8 +14,10 @@ from StringIO import StringIO
 import sys
 import traceback
 import unittest
+from urlparse import urlparse
 
 import mox
+from oauth.oauth import OAuthConsumer, OAuthToken
 import simplejson as json
 
 import typepad
@@ -453,13 +456,11 @@ class TestBrowserUpload(unittest.TestCase):
             except AttributeError:
                 pass
 
-    def save_headers(self, headers):
-        self.headers = headers
-        return True
-
-    def save_body(self, body):
-        self.body = body
-        return True
+    def saver(self, fld):
+        def save_data(data):
+            setattr(self, fld, data)
+            return True
+        return save_data
 
     def message_from_response(self, headers, body):
         fp = FeedParser()
@@ -472,30 +473,48 @@ class TestBrowserUpload(unittest.TestCase):
 
     def test_basic(self):
         request = {
-            'uri': 'http://example.com/brupload',
+            'uri': mox.Func(self.saver('uri')),
             'method': 'POST',
-            'headers': mox.Func(self.save_headers),
-            'body': mox.Func(self.save_body),
+            'headers': mox.Func(self.saver('headers')),
+            'body': mox.Func(self.saver('body')),
         }
         response = {
             'status': 302,
             'location': 'http://client.example.com/hi',
         }
 
-        mock = utils.mock_http(request, response)
-        typepad.client = mock
+        http = typepad.TypePadClient()
+        typepad.client = http
+        http.add_credentials(
+            OAuthConsumer('consumertoken', 'consumersecret'),
+            OAuthToken('tokentoken', 'tokensecret'),
+            domain='api.typepad.com',
+        )
+
+        mock = mox.Mox()
+        mock.StubOutWithMock(http, 'request')
+        http.request(**request).AndReturn((response, ''))
+        mock.ReplayAll()
 
         asset = typepad.Photo()
         asset.title = "Fake photo"
         asset.content = "This is a made-up photo for testing automated browser style upload."
 
         fileobj = StringIO('hi hello pretend file')
-        brupload = typepad.BrowserUploadEndpoint.get('http://example.com/brupload')
+        brupload = typepad.BrowserUploadEndpoint()
         brupload.upload(asset, fileobj, "image/png",
             redirect_to='http://client.example.com/hi',
             post_type='photo')
 
-        mox.Verify(mock)
+        mock.VerifyAll()
+
+        self.assert_(self.uri)
+        self.assert_(self.uri.startswith('http://api.typepad.com/browser-upload.json'))
+        uriparts = list(urlparse(self.uri))
+        querydict = cgi.parse_qs(uriparts[4])
+        self.assert_('oauth_signature' in querydict)
+
+        # TODO: really verify the signature
 
         # Verify the headers and body.
         self.assert_(self.headers)
@@ -525,10 +544,10 @@ class TestBrowserUpload(unittest.TestCase):
 
     def test_real_file(self):
         request = {
-            'uri': 'http://example.com/brupload',
+            'uri': mox.Func(self.saver('uri')),
             'method': 'POST',
-            'headers': mox.Func(self.save_headers),
-            'body': mox.Func(self.save_body),
+            'headers': mox.Func(self.saver('headers')),
+            'body': mox.Func(self.saver('body')),
         }
         response = {
             'status': 302,
@@ -543,7 +562,7 @@ class TestBrowserUpload(unittest.TestCase):
         asset.content = "This is a 1&times;1 transparent PNG."
 
         fileobj = file(os.path.join(os.path.dirname(__file__), 'onebyone.png'))
-        brupload = typepad.BrowserUploadEndpoint.get('http://example.com/brupload')
+        brupload = typepad.BrowserUploadEndpoint()
         brupload.upload(asset, fileobj, "image/png",
             redirect_to='http://client.example.com/hi',
             post_type='photo')

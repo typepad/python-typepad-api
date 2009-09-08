@@ -37,8 +37,20 @@ class OAuthAuthentication(httplib2.Authentication):
         # httplib2 only gives us the URI in parts, so rebuild it from the
         # partial uri and host.
         partial_uri = urlparse.urlsplit(request_uri)
+
+        # Check the query to see if the URI is already signed.
+        query = partial_uri[3]
+        querydict = cgi.parse_qs(query)
+        if 'oauth_signature' in querydict:
+            # The URI is already signed. Don't do anything.
+            return
+
         uri = urlparse.urlunsplit((self.http.default_scheme, self.host) + partial_uri[2:])
 
+        req = self.signed_request(uri, method)
+        headers.update(req.to_header())
+
+    def signed_request(self, uri, method):
         csr, token = self.credentials
         assert token.secret is not None
 
@@ -49,10 +61,10 @@ class OAuthAuthentication(httplib2.Authentication):
         req.set_parameter('oauth_signature_method', sign_method.get_name())
         log.debug('Signing base string %r for web request %s'
             % (sign_method.build_signature_base_string(req, csr, token),
-               request_uri))
+               uri))
         req.sign_request(sign_method, csr, token)
 
-        headers.update(req.to_header())
+        return req
 
 
 httplib2.AUTH_SCHEME_CLASSES['oauth'] = OAuthAuthentication
@@ -75,6 +87,26 @@ class OAuthHttp(httplib2.Http):
             domain = domain.lower()
             auth = OAuthAuthentication(cred, domain, "%s://%s/" % ( self.default_scheme, domain ), {}, None, None, self)
             self.authorizations.append(auth)
+
+    def signed_request(self, uri, method=None, headers=None, body=None):
+        if method is None:
+            method = 'GET'
+
+        uriparts = list(urlparse.urlparse(uri))
+        host = uriparts[1]
+        request_uri = urlparse.urlunparse([None, None] + uriparts[2:])
+
+        # find OAuthAuthentication for this uri
+        auths = [(auth.depth(request_uri), auth) for auth in self.authorizations if auth.inscope(host, request_uri)]
+        if not auths:
+            raise ValueError('No authorizations with which to sign a request to %r are available' % uri)
+        auth = sorted(auths)[0][1]
+
+        # use it to make a signed uri instead
+        req = auth.signed_request(uri, method)
+        uri = req.to_url()
+
+        return self.request(uri=uri, method=method, headers=headers, body=body)
 
 
 class OAuthClient(oauth.OAuthClient):

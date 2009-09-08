@@ -728,30 +728,7 @@ class Tag(TypePadObject):
     object_types = None
 
 
-class BrowserUploadEndpoint(TypePadObject):
-
-    object_types = None
-
-    @classmethod
-    def get(cls, url, http=None):
-        if not urlparse(url)[1]:  # network location
-            url = urljoin(typepad.client.endpoint, url)
-
-        # This isn't actually a gettable endpoint, so give me a predelivered
-        # instance instead.
-        self = cls()
-        self._location = url
-
-        return self
-
-    def post(self, obj, http=None):
-        raise ValueError('Browser upload endpoints cannot be POSTed to')
-
-    def put(self, http=None):
-        raise ValueError('Browser upload endpoints cannot be PUT to')
-
-    def delete(self, http=None):
-        raise ValueError('Browser upload endpoints cannot be DELETEd')
+class BrowserUploadEndpoint(object):
 
     def upload(self, obj, fileobj, content_type, redirect_to=None, post_type=None):
         http = typepad.client
@@ -785,12 +762,12 @@ class BrowserUploadEndpoint(TypePadObject):
         body = bodyobj.as_string(write_headers=False)
         headers = dict(bodyobj.items())
 
-        request = obj.get_request(url=self._location, method='POST',
-            body=body, headers=headers)
-        response, content = http.request(**request)
+        request = obj.get_request(url='/browser-upload.json', method='POST',
+            headers=headers, body=body)
+        response, content = http.signed_request(**request)
 
         # TODO: do we expect obj at the end? or just the redirect?
         return response, content
 
 
-browser_upload = BrowserUploadEndpoint.get('/browser-upload.json')
+browser_upload = BrowserUploadEndpoint()
