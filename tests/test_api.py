@@ -510,20 +510,25 @@ class TestBrowserUpload(unittest.TestCase):
         self.assert_(self.uri.startswith('http://api.typepad.com/browser-upload.json'))
         uriparts = list(urlparse(self.uri))
         querydict = cgi.parse_qs(uriparts[4])
-        self.assert_('oauth_signature' in querydict)
 
         # TODO: really verify the signature
 
         # Verify the headers and body.
         self.assert_(self.headers)
         self.assert_(self.body)
-        response = self.message_from_response(self.headers, self.body)
+        responsemsg = self.message_from_response(self.headers, self.body)
 
-        content_type = response.get_content_type()
+        content_type = responsemsg.get_content_type()
         self.assert_(content_type)
-        self.assert_(not response.defects)
+        self.assert_(not responsemsg.defects)
 
-        bodyparts = response.get_payload()
+        # Make sure we're only putting credentials in the query string, not
+        # the headers.
+        self.assert_('oauth_signature' in querydict)
+        self.assert_('authorization' not in responsemsg)
+        self.assert_('Authorization' not in responsemsg)
+
+        bodyparts = responsemsg.get_payload()
         self.assertEquals(len(bodyparts), 3)
         bodyparts = dict((part.get_param('name', header='content-disposition'),
             part) for part in bodyparts)
