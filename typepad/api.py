@@ -748,7 +748,8 @@ class BrowserUploadEndpoint(object):
 
         filemsg = HTTPMessage()
         filemsg.set_type(content_type)
-        filemsg.add_header('Content-Disposition', 'form-data', name="file")
+        filemsg.add_header('Content-Disposition', 'form-data', name="file",
+            filename="file")
         filemsg.add_header('Content-Transfer-Encoding', 'base64')
         filecontent = fileobj.read()
         filemsg.set_payload(base64.encodestring(filecontent))

@@ -543,7 +543,10 @@ class TestBrowserUpload(unittest.TestCase):
             'objectTypes': ['tag:api.typepad.com,2009:Photo'],
         }, asset_json))
 
-        self.assertEquals(bodyparts['file'].get_payload(decode=True), 'hi hello pretend file')
+        filepart = bodyparts['file']
+        self.assertEquals(filepart.get_payload(decode=True), 'hi hello pretend file')
+        filename = filepart.get_param('filename', header='content-disposition')
+        self.assert_(filename)
 
     def test_redirect(self):
         request = {
