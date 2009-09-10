@@ -6,14 +6,18 @@ content objects provided in the TypePad API.
 """
 
 import base64
+from cStringIO import StringIO
 from datetime import datetime
+try:
+    from email.message import Message
+except ImportError:
+    from email.Message import Message
 import re
 import simplejson as json
 from urlparse import urljoin
 
 from remoteobjects.dataobject import find_by_name
 
-from batchhttp.multipart import HTTPMessage
 from typepad.tpobject import *
 from typepad import fields
 import typepad
@@ -730,23 +734,78 @@ class Tag(TypePadObject):
 
 class BrowserUploadEndpoint(object):
 
+    class NetworkMessage(Message):
+
+        """A MIME `Message` that has its headers separated by the
+        network style CR LF character pairs, not only UNIX style LF
+        characters.
+
+        As noted in Python issue 1349106, the default behavior of
+        the `email.message.Message` implementation is to use plain
+        system line endings when writing its headers, and having the
+        protocol module such as `smtplib` convert the headers to
+        network style when sending them on the wire. In order to
+        work with protocol libraries that are not aware of MIME
+        messages, flattening a `NetworkMessage` with `as_string()`
+        produces network style CR LF line endings.
+
+        """
+
+        def as_string(self, unixfrom=False, write_headers=True):
+            """Flattens this `NetworkMessage` instance to a string.
+
+            If `write_headers` is ``True``, the headers of this
+            `NetworkMessage` instance are included in the result.
+            Headers of sub-messages contained in this message's
+            payload are always included.
+
+            """
+            self.write_headers = write_headers
+            try:
+                return Message.as_string(self, unixfrom=unixfrom)
+            finally:
+                del self.write_headers
+
+        def _write_headers(self, gen):
+            """Writes this `NetworkMessage` instance's headers to
+            the given generator's output file with network style CR
+            LF character pair line endings.
+
+            If called during a `NetworkMessage.as_string()` to which
+            the `write_headers` option was ``False``, this method
+            does nothing.
+
+            """
+            if not getattr(self, 'write_headers', True):
+                return
+
+            headerfile = gen._fp
+            unixheaderfile = StringIO()
+            try:
+                gen._fp = unixheaderfile
+                gen._write_headers(self)
+            finally:
+                gen._fp = headerfile
+
+            headers = unixheaderfile.getvalue()
+            headerfile.write(headers.replace('\n', '\r\n'))
+
     def upload(self, obj, fileobj, content_type, **kwargs):
         http = typepad.client
 
         data = dict(kwargs)
         data['asset'] = json.dumps(obj.to_dict())
 
-        bodyobj = HTTPMessage()
+        bodyobj = self.NetworkMessage()
         bodyobj.set_type('multipart/form-data')
         bodyobj.preamble = "multipart snowform for you"
         for key, value in data.iteritems():
-            msg = HTTPMessage()
+            msg = self.NetworkMessage()
             msg.add_header('Content-Disposition', 'form-data', name=key)
-            # TODO: do we need to handle content encoding ourselves?
             msg.set_payload(value)
             bodyobj.attach(msg)
 
-        filemsg = HTTPMessage()
+        filemsg = self.NetworkMessage()
         filemsg.set_type(content_type)
         filemsg.add_header('Content-Disposition', 'form-data', name="file",
             filename="file")
@@ -765,7 +824,6 @@ class BrowserUploadEndpoint(object):
             headers=headers, body=body)
         response, content = http.signed_request(**request)
 
-        # TODO: do we expect obj at the end? or just the redirect?
         return response, content
 
 

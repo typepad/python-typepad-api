@@ -522,6 +522,10 @@ class TestBrowserUpload(unittest.TestCase):
         self.assert_(content_type)
         self.assert_(not responsemsg.defects)
 
+        # Check that the unparsed body has its internal mime headers
+        # separated by full CRLFs, not just LFs.
+        self.assert_('\r\nContent-Type:' in self.body)
+
         # Make sure we're only putting credentials in the query string, not
         # the headers.
         self.assert_('oauth_signature' in querydict)
