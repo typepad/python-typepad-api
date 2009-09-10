@@ -544,7 +544,7 @@ class TestBrowserUpload(unittest.TestCase):
         }, asset_json))
 
         filepart = bodyparts['file']
-        self.assertEquals(filepart.get_payload(decode=True), 'hi hello pretend file')
+        self.assertEquals(filepart.get_payload(decode=False), 'hi hello pretend file')
         filename = filepart.get_param('filename', header='content-disposition')
         self.assert_(filename)
 
@@ -643,10 +643,15 @@ class TestBrowserUpload(unittest.TestCase):
 
         self.assertEquals(filepart.get_content_type(), 'image/png')
 
+        # If there's a transfer encoding, it has to be the identity encoding.
+        transenc = filepart.get('content-transfer-encoding')
+        self.assert_(transenc is None or transenc == 'identity')
+
+        # Check that the file content is equivalent without decoding.
         fileobj.seek(0)
         filecontent = fileobj.read()
         fileobj.close()
-        self.assertEquals(filepart.get_payload(decode=True), filecontent)
+        self.assertEquals(filepart.get_payload(decode=False), filecontent)
 
 
 if __name__ == '__main__':

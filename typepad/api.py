@@ -750,9 +750,9 @@ class BrowserUploadEndpoint(object):
         filemsg.set_type(content_type)
         filemsg.add_header('Content-Disposition', 'form-data', name="file",
             filename="file")
-        filemsg.add_header('Content-Transfer-Encoding', 'base64')
+        filemsg.add_header('Content-Transfer-Encoding', 'identity')
         filecontent = fileobj.read()
-        filemsg.set_payload(base64.encodestring(filecontent))
+        filemsg.set_payload(filecontent)
         bodyobj.attach(filemsg)
 
         # Serialize the message first, so we have the generated MIME
