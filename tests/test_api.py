@@ -545,6 +545,8 @@ class TestBrowserUpload(unittest.TestCase):
 
         filepart = bodyparts['file']
         self.assertEquals(filepart.get_payload(decode=False), 'hi hello pretend file')
+        filelength = filepart.get('content-length')
+        self.assertEquals(int(filelength), len('hi hello pretend file'))
         filename = filepart.get_param('filename', header='content-disposition')
         self.assert_(filename)
 
@@ -651,6 +653,9 @@ class TestBrowserUpload(unittest.TestCase):
         filecontent = fileobj.read()
         fileobj.close()
         self.assertEquals(filepart.get_payload(decode=False), filecontent)
+
+        filelength = filepart.get('content-length')
+        self.assertEquals(int(filelength), len(filecontent))
 
 
 if __name__ == '__main__':

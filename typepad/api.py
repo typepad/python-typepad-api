@@ -753,6 +753,7 @@ class BrowserUploadEndpoint(object):
         filemsg.add_header('Content-Transfer-Encoding', 'identity')
         filecontent = fileobj.read()
         filemsg.set_payload(filecontent)
+        filemsg.add_header('Content-Length', str(len(filecontent)))
         bodyobj.attach(filemsg)
 
         # Serialize the message first, so we have the generated MIME
