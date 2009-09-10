@@ -600,7 +600,6 @@ class TestBrowserUpload(unittest.TestCase):
         self.assertEquals(bodyparts['redirect_to'].get_payload(),
             'http://client.example.com/hi')
 
-
     def test_real_file(self):
         request = {
             'uri': mox.Func(self.saver('uri')),
