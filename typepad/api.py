@@ -10,8 +10,12 @@ from cStringIO import StringIO
 from datetime import datetime
 try:
     from email.message import Message
+    from email.generator import Generator
+    from email import generator
 except ImportError:
     from email.Message import Message
+    from email.Generator import Generator
+    from email import Generator as generator
 import re
 import simplejson as json
 from urlparse import urljoin
@@ -745,6 +749,65 @@ class Tag(TypePadObject):
 
 class BrowserUploadEndpoint(object):
 
+    class NetworkGenerator(Generator):
+
+        from cStringIO import StringIO
+
+        def _handle_multipart(self, msg):
+            # The trick here is to write out each part separately, merge them all
+            # together, and then make sure that the boundary we've chosen isn't
+            # present in the payload.
+            msgtexts = []
+            subparts = msg.get_payload()
+            if subparts is None:
+                subparts = []
+            elif isinstance(subparts, basestring):
+                # e.g. a non-strict parse of a message with no starting boundary.
+                self._fp.write(subparts)
+                return
+            elif not isinstance(subparts, list):
+                # Scalar payload
+                subparts = [subparts]
+            for part in subparts:
+                s = StringIO()
+                g = self.clone(s)
+                g.flatten(part, unixfrom=False)
+                msgtexts.append(s.getvalue())
+            # Now make sure the boundary we've selected doesn't appear in any of
+            # the message texts.
+            alltext = "\r\n".join(msgtexts)
+            # BAW: What about boundaries that are wrapped in double-quotes?
+            boundary = msg.get_boundary(failobj=generator._make_boundary(alltext))
+            # If we had to calculate a new boundary because the body text
+            # contained that string, set the new boundary.  We don't do it
+            # unconditionally because, while set_boundary() preserves order, it
+            # doesn't preserve newlines/continuations in headers.  This is no big
+            # deal in practice, but turns out to be inconvenient for the unittest
+            # suite.
+            if msg.get_boundary() <> boundary:
+                msg.set_boundary(boundary)
+            # If there's a preamble, write it out, with a trailing CRLF
+            if msg.preamble is not None:
+                self._fp.write(msg.preamble + '\r\n')
+            # dash-boundary transport-padding CRLF
+            self._fp.write('--' + boundary + '\r\n')
+            # body-part
+            if msgtexts:
+                self._fp.write(msgtexts.pop(0))
+            # *encapsulation
+            # --> delimiter transport-padding
+            # --> CRLF body-part
+            for body_part in msgtexts:
+                # delimiter transport-padding CRLF
+                self._fp.write('\r\n--' + boundary + '\r\n')
+                # body-part
+                self._fp.write(body_part)
+            # close-delimiter transport-padding
+            self._fp.write('\r\n--' + boundary + '--')
+            if msg.epilogue is not None:
+                self._fp.write('\r\n')
+                self._fp.write(msg.epilogue)
+
     class NetworkMessage(Message):
 
         """A MIME `Message` that has its headers separated by the
@@ -773,7 +836,11 @@ class BrowserUploadEndpoint(object):
             """
             self.write_headers = write_headers
             try:
-                return Message.as_string(self, unixfrom=unixfrom)
+                fp = StringIO()
+                g = BrowserUploadEndpoint.NetworkGenerator(fp)
+                g.flatten(self, unixfrom=unixfrom)
+                return fp.getvalue()
+                # return Message.as_string(self, unixfrom=unixfrom)
             finally:
                 del self.write_headers
 
@@ -830,6 +897,12 @@ class BrowserUploadEndpoint(object):
         # boundary when we pull the headers out.
         body = bodyobj.as_string(write_headers=False)
         headers = dict(bodyobj.items())
+
+        import pprint
+        print "going to post this upload; headers:"
+        pprint.pprint(headers)
+        print "\nbody"
+        pprint.pprint(body)
 
         request = obj.get_request(url='/browser-upload.json', method='POST',
             headers=headers, body=body)
