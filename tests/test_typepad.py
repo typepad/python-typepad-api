@@ -1022,10 +1022,9 @@ class TestTypePad(unittest.TestCase):
         self.assert_(admin_id in [a.target.xid for a in admins],
             'configured admin should exist in admin memberships')
 
-        # FIXME: https://intranet.sixapart.com/bugs/default.asp?84133
-        # self.assertNotEqual(admins.total_results, everyone.total_results,
-        #     'Filtered member list size should be less than unfiltered list: %d != %d' %
-        #     ( admins.total_results, everyone.total_results ))
+        self.assertNotEqual(admins.total_results, everyone.total_results,
+            'Filtered member list size should be less than unfiltered list: %d != %d' %
+            ( admins.total_results, everyone.total_results ))
 
     @attr(user='group')
     def test_1_GET_groups_id_memberships_member(self):
