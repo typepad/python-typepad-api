@@ -171,6 +171,14 @@ class ElsewhereAccount(TypePadObject):
     provider_icon_url = fields.Field(api_name='providerIconURL')
     """The URL of a 16 by 16 pixel icon representing the service providing
     this account."""
+    crosspostable     = fields.Field()
+    """Boolean for whether or not this account supports cross-posting."""
+    id                = fields.Field()
+    """A unique identifier for this elsewhere account.
+    
+    Used when issuing a cross-post to the elsewhere account.
+    
+    """
 
 
 class Relationship(TypePadObject):
@@ -507,6 +515,9 @@ class Asset(TypePadObject):
     text_format  = fields.Field(api_name='textFormat')
     groups       = fields.List(fields.Field())
 
+    crosspost_accounts = fields.List(fields.Field(), api_name='crosspostAccounts')
+    """A list of elsewhere account IDs to crosspost to."""
+
     @property
     def can_delete(self):
         try:
@@ -790,7 +801,7 @@ class BrowserUploadEndpoint(object):
             headers = unixheaderfile.getvalue()
             headerfile.write(headers.replace('\n', '\r\n'))
 
-    def upload(self, obj, fileobj, content_type, **kwargs):
+    def upload(self, obj, fileobj, content_type='application/octet-stream', **kwargs):
         http = typepad.client
 
         data = dict(kwargs)
