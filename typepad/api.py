@@ -898,12 +898,6 @@ class BrowserUploadEndpoint(object):
         body = bodyobj.as_string(write_headers=False)
         headers = dict(bodyobj.items())
 
-        import pprint
-        print "going to post this upload; headers:"
-        pprint.pprint(headers)
-        print "\nbody"
-        pprint.pprint(body)
-
         request = obj.get_request(url='/browser-upload.json', method='POST',
             headers=headers, body=body)
         response, content = http.signed_request(**request)
