@@ -455,109 +455,109 @@ class TestTypePad(unittest.TestCase):
 
         self.testdata['comments_created'] = []
 
-    @attr(user='group')
-    def test_4_PUT_assets_id__by_group(self):
-        """PUT /assets/<id>.json (group)
-        
-        Tests updating an asset using group's credentials. This should
-        result in a 403 error (FORBIDDEN).
-        """
-
-        asset_id = self.testdata['assets'][0]
-
-        typepad.client.batch_request()
-        asset = typepad.Asset.get_by_url_id(asset_id)
-        typepad.client.complete_batch()
-
-        self.assertValidAsset(asset)
-
-        # Lets change this asset and put it back and see what happens
-        orig_title = asset.title
-        asset.title = 'Changed by test suite by group'
-        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87859
-        # self.assertForbidden(asset.put)
-        try:
-            asset.put()
-            self.fail('group credentials allowed an update to an asset')
-        except:
-            pass
-
-        # Re-select this asset to verify it has not been updated.
-
-        typepad.client.batch_request()
-        asset2 = typepad.Asset.get_by_url_id(asset_id)
-        typepad.client.complete_batch()
-
-        self.assertValidAsset(asset2)
-
-        self.assertEquals(asset2.title, orig_title)
-
-    @attr(user='member')
-    def test_4_PUT_assets_id__by_member(self):
-        """PUT /assets/<id>.json (member)
-
-        Tests updating an asset using member credentials.
-        """
-
-        raise nose.SkipTest(
-            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87900')
-
-        asset_id = self.testdata['assets'][0]
-
-        typepad.client.batch_request()
-        asset = typepad.Asset.get_by_url_id(asset_id)
-        typepad.client.complete_batch()
-
-        self.assertValidAsset(asset)
-
-        # Lets change this asset and put it back and see what happens
-        asset.title = 'Changed by test suite by creator'
-        asset.put()
-
-        # Re-select this asset to verify it has been updated.
-        typepad.client.batch_request()
-        asset2 = typepad.Asset.get_by_url_id(asset_id)
-        typepad.client.complete_batch()
-
-        self.assertValidAsset(asset2)
-
-        self.assertEquals(asset2.title, 'Changed by test suite by creator')
-
-        asset.title = ''
-        asset.put()
-
-    @attr(user='admin')
-    def test_4_PUT_assets_id__by_admin(self):
-        """PUT /assets/<id>.json (admin)
-        
-        Tests updating an asset using admin credentials.
-        """
-
-        raise nose.SkipTest(
-            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87900')
-
-        asset_id = self.testdata['assets'][0]
-
-        typepad.client.batch_request()
-        asset = typepad.Asset.get_by_url_id(asset_id)
-        typepad.client.complete_batch()
-
-        self.assertValidAsset(asset)
-
-        # Lets change this asset and put it back and see what happens
-        asset.title = 'Changed by test suite by admin'
-        asset.put()
-
-        # Re-select this asset to verify it has been updated.
-        typepad.client.batch_request()
-        asset2 = typepad.Asset.get_by_url_id(asset_id)
-        typepad.client.complete_batch()
-
-        self.assertValidAsset(asset2)
-        self.assertEquals(asset2.title, 'Changed by test suite by admin')
-
-        asset.title = ''
-        asset.put()
+    # @attr(user='group')
+    # def test_4_PUT_assets_id__by_group(self):
+    #     """PUT /assets/<id>.json (group)
+    #     
+    #     Tests updating an asset using group's credentials. This should
+    #     result in a 403 error (FORBIDDEN).
+    #     """
+    # 
+    #     asset_id = self.testdata['assets'][0]
+    # 
+    #     typepad.client.batch_request()
+    #     asset = typepad.Asset.get_by_url_id(asset_id)
+    #     typepad.client.complete_batch()
+    # 
+    #     self.assertValidAsset(asset)
+    # 
+    #     # Lets change this asset and put it back and see what happens
+    #     orig_title = asset.title
+    #     asset.title = 'Changed by test suite by group'
+    #     # FIXME: https://intranet.sixapart.com/bugs/default.asp?87859
+    #     # self.assertForbidden(asset.put)
+    #     try:
+    #         asset.put()
+    #         self.fail('group credentials allowed an update to an asset')
+    #     except:
+    #         pass
+    # 
+    #     # Re-select this asset to verify it has not been updated.
+    # 
+    #     typepad.client.batch_request()
+    #     asset2 = typepad.Asset.get_by_url_id(asset_id)
+    #     typepad.client.complete_batch()
+    # 
+    #     self.assertValidAsset(asset2)
+    # 
+    #     self.assertEquals(asset2.title, orig_title)
+    # 
+    # @attr(user='member')
+    # def test_4_PUT_assets_id__by_member(self):
+    #     """PUT /assets/<id>.json (member)
+    # 
+    #     Tests updating an asset using member credentials.
+    #     """
+    # 
+    #     raise nose.SkipTest(
+    #         'FIXME: https://intranet.sixapart.com/bugs/default.asp?87900')
+    # 
+    #     asset_id = self.testdata['assets'][0]
+    # 
+    #     typepad.client.batch_request()
+    #     asset = typepad.Asset.get_by_url_id(asset_id)
+    #     typepad.client.complete_batch()
+    # 
+    #     self.assertValidAsset(asset)
+    # 
+    #     # Lets change this asset and put it back and see what happens
+    #     asset.title = 'Changed by test suite by creator'
+    #     asset.put()
+    # 
+    #     # Re-select this asset to verify it has been updated.
+    #     typepad.client.batch_request()
+    #     asset2 = typepad.Asset.get_by_url_id(asset_id)
+    #     typepad.client.complete_batch()
+    # 
+    #     self.assertValidAsset(asset2)
+    # 
+    #     self.assertEquals(asset2.title, 'Changed by test suite by creator')
+    # 
+    #     asset.title = ''
+    #     asset.put()
+    # 
+    # @attr(user='admin')
+    # def test_4_PUT_assets_id__by_admin(self):
+    #     """PUT /assets/<id>.json (admin)
+    #     
+    #     Tests updating an asset using admin credentials.
+    #     """
+    # 
+    #     raise nose.SkipTest(
+    #         'FIXME: https://intranet.sixapart.com/bugs/default.asp?87900')
+    # 
+    #     asset_id = self.testdata['assets'][0]
+    # 
+    #     typepad.client.batch_request()
+    #     asset = typepad.Asset.get_by_url_id(asset_id)
+    #     typepad.client.complete_batch()
+    # 
+    #     self.assertValidAsset(asset)
+    # 
+    #     # Lets change this asset and put it back and see what happens
+    #     asset.title = 'Changed by test suite by admin'
+    #     asset.put()
+    # 
+    #     # Re-select this asset to verify it has been updated.
+    #     typepad.client.batch_request()
+    #     asset2 = typepad.Asset.get_by_url_id(asset_id)
+    #     typepad.client.complete_batch()
+    # 
+    #     self.assertValidAsset(asset2)
+    #     self.assertEquals(asset2.title, 'Changed by test suite by admin')
+    # 
+    #     asset.title = ''
+    #     asset.put()
 
     @attr(user='group')
     def test_1_GET_assets_id_comments(self):
