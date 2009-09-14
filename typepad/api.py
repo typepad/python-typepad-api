@@ -10,20 +10,10 @@ from cStringIO import StringIO
 from datetime import datetime
 try:
     from email.message import Message
-<<<<<<< .mine
     from email.generator import Generator, _make_boundary
-=======
-    from email.generator import Generator
-    from email import generator
->>>>>>> .r2234
 except ImportError:
     from email.Message import Message
-<<<<<<< .mine
     from email.Generator import Generator, _make_boundary
-=======
-    from email.Generator import Generator
-    from email import Generator as generator
->>>>>>> .r2234
 import re
 import simplejson as json
 from urlparse import urljoin
