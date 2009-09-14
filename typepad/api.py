@@ -10,12 +10,20 @@ from cStringIO import StringIO
 from datetime import datetime
 try:
     from email.message import Message
+<<<<<<< .mine
+    from email.generator import Generator, _make_boundary
+=======
     from email.generator import Generator
     from email import generator
+>>>>>>> .r2234
 except ImportError:
     from email.Message import Message
+<<<<<<< .mine
+    from email.Generator import Generator, _make_boundary
+=======
     from email.Generator import Generator
     from email import Generator as generator
+>>>>>>> .r2234
 import re
 import simplejson as json
 from urlparse import urljoin
@@ -751,59 +759,71 @@ class BrowserUploadEndpoint(object):
 
     class NetworkGenerator(Generator):
 
-        from cStringIO import StringIO
+        def __init__(self, outfp, mangle_from_=True, maxheaderlen=78, write_headers=True):
+            self.write_headers = write_headers
+            Generator.__init__(self, outfp, mangle_from_, maxheaderlen)
+
+        def _write_headers(self, msg):
+            """Writes this `NetworkMessage` instance's headers to
+            the given generator's output file with network style CR
+            LF character pair line endings.
+
+            If called during a `NetworkMessage.as_string()` to which
+            the `write_headers` option was ``False``, this method
+            does nothing.
+
+            """
+            if not self.write_headers:
+                return
+
+            headerfile = self._fp
+            unixheaderfile = StringIO()
+            try:
+                self._fp = unixheaderfile
+                Generator._write_headers(self, msg)
+            finally:
+                self._fp = headerfile
+
+            headers = unixheaderfile.getvalue()
+            headerfile.write(headers.replace('\n', '\r\n'))
+
+        def _flatten_submessage(self, part):
+            s = StringIO()
+            g = self.clone(s)
+            g.flatten(part, unixfrom=False)
+            return s.getvalue()
 
         def _handle_multipart(self, msg):
-            # The trick here is to write out each part separately, merge them all
-            # together, and then make sure that the boundary we've chosen isn't
-            # present in the payload.
-            msgtexts = []
             subparts = msg.get_payload()
             if subparts is None:
                 subparts = []
             elif isinstance(subparts, basestring):
-                # e.g. a non-strict parse of a message with no starting boundary.
                 self._fp.write(subparts)
                 return
             elif not isinstance(subparts, list):
-                # Scalar payload
                 subparts = [subparts]
-            for part in subparts:
-                s = StringIO()
-                g = self.clone(s)
-                g.flatten(part, unixfrom=False)
-                msgtexts.append(s.getvalue())
-            # Now make sure the boundary we've selected doesn't appear in any of
-            # the message texts.
-            alltext = "\r\n".join(msgtexts)
-            # BAW: What about boundaries that are wrapped in double-quotes?
-            boundary = msg.get_boundary(failobj=generator._make_boundary(alltext))
-            # If we had to calculate a new boundary because the body text
-            # contained that string, set the new boundary.  We don't do it
-            # unconditionally because, while set_boundary() preserves order, it
-            # doesn't preserve newlines/continuations in headers.  This is no big
-            # deal in practice, but turns out to be inconvenient for the unittest
-            # suite.
-            if msg.get_boundary() <> boundary:
+
+            msgtexts = [self._flatten_submessage(part) for part in subparts]
+
+            alltext = '\r\n'.join(msgtexts)
+
+            no_boundary = object()
+            boundary = msg.get_boundary(failobj=no_boundary)
+            if boundary is no_boundary:
+                boundary = _make_boundary(alltext)
                 msg.set_boundary(boundary)
-            # If there's a preamble, write it out, with a trailing CRLF
+
             if msg.preamble is not None:
-                self._fp.write(msg.preamble + '\r\n')
-            # dash-boundary transport-padding CRLF
-            self._fp.write('--' + boundary + '\r\n')
-            # body-part
-            if msgtexts:
-                self._fp.write(msgtexts.pop(0))
-            # *encapsulation
-            # --> delimiter transport-padding
-            # --> CRLF body-part
+                self._fp.write(msg.preamble)
+                self._fp.write('\r\n')
+            self._fp.write('--' + boundary)
+
             for body_part in msgtexts:
-                # delimiter transport-padding CRLF
-                self._fp.write('\r\n--' + boundary + '\r\n')
-                # body-part
+                self._fp.write('\r\n')
                 self._fp.write(body_part)
-            # close-delimiter transport-padding
-            self._fp.write('\r\n--' + boundary + '--')
+                self._fp.write('\r\n--' + boundary)
+            self._fp.write('--\r\n')
+
             if msg.epilogue is not None:
                 self._fp.write('\r\n')
                 self._fp.write(msg.epilogue)
@@ -834,39 +854,10 @@ class BrowserUploadEndpoint(object):
             payload are always included.
 
             """
-            self.write_headers = write_headers
-            try:
-                fp = StringIO()
-                g = BrowserUploadEndpoint.NetworkGenerator(fp)
-                g.flatten(self, unixfrom=unixfrom)
-                return fp.getvalue()
-                # return Message.as_string(self, unixfrom=unixfrom)
-            finally:
-                del self.write_headers
-
-        def _write_headers(self, gen):
-            """Writes this `NetworkMessage` instance's headers to
-            the given generator's output file with network style CR
-            LF character pair line endings.
-
-            If called during a `NetworkMessage.as_string()` to which
-            the `write_headers` option was ``False``, this method
-            does nothing.
-
-            """
-            if not getattr(self, 'write_headers', True):
-                return
-
-            headerfile = gen._fp
-            unixheaderfile = StringIO()
-            try:
-                gen._fp = unixheaderfile
-                gen._write_headers(self)
-            finally:
-                gen._fp = headerfile
-
-            headers = unixheaderfile.getvalue()
-            headerfile.write(headers.replace('\n', '\r\n'))
+            fp = StringIO()
+            g = BrowserUploadEndpoint.NetworkGenerator(fp, write_headers=write_headers)
+            g.flatten(self, unixfrom=unixfrom)
+            return fp.getvalue()
 
     def upload(self, obj, fileobj, content_type='application/octet-stream', **kwargs):
         http = typepad.client
