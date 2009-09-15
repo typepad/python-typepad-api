@@ -1664,8 +1664,8 @@ class TestTypePad(unittest.TestCase):
         for contact in contacts:
             self.assertValidRelationship(contact)
 
-        self.assert_(admin_id in [x.target.xid for x in contacts])
-        self.assert_(member_id in [x.source.xid for x in contacts])
+        self.assert_(admin_id in [x.source.xid for x in contacts])
+        self.assert_(member_id in [x.target.xid for x in contacts])
 
     @attr(user='group')
     def test_1_GET_users_id_relationships_follower_by_group_id(self):
@@ -1691,8 +1691,8 @@ class TestTypePad(unittest.TestCase):
         for contact in contacts:
             self.assertValidRelationship(contact)
 
-        self.assert_(admin_id in [x.target.xid for x in contacts])
-        self.assert_(member_id in [x.source.xid for x in contacts])
+        self.assert_(admin_id in [x.source.xid for x in contacts])
+        self.assert_(member_id in [x.target.xid for x in contacts])
 
     @attr(user='group')
     def test_1_GET_users_id_relationships_following(self):
