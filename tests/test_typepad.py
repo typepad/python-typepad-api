@@ -852,6 +852,9 @@ class TestTypePad(unittest.TestCase):
         Tests deletion of a favorite object using group credentials.
         """
 
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87864')
+
         self.assert_(len(self.testdata['assets_created']))
 
         member_id = self.testdata['member']['xid']
