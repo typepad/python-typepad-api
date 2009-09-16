@@ -1816,6 +1816,9 @@ class TestTypePad(unittest.TestCase):
         if not os.getenv('TEST_TYPEPAD_JSON'):
             raise nose.SkipTest('no TypePad tests without TEST_TYPEPAD_JSON')
 
+        # force this on; other tests may have disabled it
+        typepad.TypePadObject.batch_requests = True
+
         global testdata
         if 'configuration' not in testdata:
             raise nose.SkipTest('cannot run tests without configuration in test data')
