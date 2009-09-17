@@ -124,7 +124,9 @@ class User(TypePadObject):
         Asserts that the id parameter is valid."""
         url_id = xid_from_atom_id(id)
         assert url_id, "valid id parameter required"
-        return cls.get_by_url_id(url_id, id=id, **kwargs)
+        u = cls.get_by_url_id(url_id, **kwargs)
+        u.__dict__['id'] = id
+        return u
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -140,7 +142,9 @@ class User(TypePadObject):
         if mo:
             raise ValueError('URL identifiers cannot contain "%s" characters'
                              % mo.group(0))
-        return cls.get('/users/%s.json' % url_id, url_id=url_id, **kwargs)
+        u = cls.get('/users/%s.json' % url_id, **kwargs)
+        u.__dict__['url_id'] = url_id
+        return u
 
 
 class ElsewhereAccount(TypePadObject):
@@ -305,7 +309,9 @@ class Group(TypePadObject):
         Asserts that the id parameter is valid."""
         url_id = xid_from_atom_id(id)
         assert url_id, "valid id parameter required"
-        return cls.get_by_url_id(url_id, id=id, **kwargs)
+        g = cls.get_by_url_id(url_id, **kwargs)
+        g.__dict__['id'] = id
+        return g
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -313,7 +319,9 @@ class Group(TypePadObject):
 
         Asserts that the url_id parameter matches ^\w+$."""
         assert re.match('^\w+$', url_id), "invalid url_id parameter given"
-        return cls.get('/groups/%s.json' % url_id, url_id=url_id, **kwargs)
+        g = cls.get('/groups/%s.json' % url_id, **kwargs)
+        g.__dict__['url_id'] = url_id
+        return g
 
 
 class Application(TypePadObject):
@@ -538,8 +546,10 @@ class Asset(TypePadObject):
 
         Asserts that the url_id parameter matches ^\w+$."""
         assert re.match('^\w+$', url_id), "invalid url_id parameter given"
-        return cls.get('/assets/%s.json' % url_id,
-            id='%s-%s' % (cls.object_type, url_id), url_id=url_id, **kwargs)
+        a = cls.get('/assets/%s.json' % url_id, **kwargs)
+        a.__dict__['url_id'] = url_id
+        a.__dict__['id'] = '%s-%s' % (cls.object_type, url_id)
+        return a
 
     @property
     def actor(self):
