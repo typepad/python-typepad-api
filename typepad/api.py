@@ -124,9 +124,7 @@ class User(TypePadObject):
         Asserts that the id parameter is valid."""
         url_id = xid_from_atom_id(id)
         assert url_id, "valid id parameter required"
-        u = cls.get_by_url_id(url_id, **kwargs)
-        u.id = id
-        return u
+        return cls.get_by_url_id(url_id, id=id, **kwargs)
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -142,9 +140,7 @@ class User(TypePadObject):
         if mo:
             raise ValueError('URL identifiers cannot contain "%s" characters'
                              % mo.group(0))
-        u = cls.get('/users/%s.json' % url_id, **kwargs)
-        u.url_id = url_id
-        return u
+        return cls.get('/users/%s.json' % url_id, url_id=url_id, **kwargs)
 
 
 class ElsewhereAccount(TypePadObject):
@@ -309,19 +305,15 @@ class Group(TypePadObject):
         Asserts that the id parameter is valid."""
         url_id = xid_from_atom_id(id)
         assert url_id, "valid id parameter required"
-        g = cls.get_by_url_id(url_id, **kwargs)
-        g.id = id
-        return g
+        return cls.get_by_url_id(url_id, id=id, **kwargs)
 
     @classmethod
-    def get_by_url_id(cls, url_id):
+    def get_by_url_id(cls, url_id, **kwargs):
         """Returns a `Group` instance by the group's url identifier.
 
         Asserts that the url_id parameter matches ^\w+$."""
         assert re.match('^\w+$', url_id), "invalid url_id parameter given"
-        g = cls.get('/groups/%s.json' % url_id)
-        g.url_id = url_id
-        return g
+        return cls.get('/groups/%s.json' % url_id, url_id=url_id, **kwargs)
 
 
 class Application(TypePadObject):
@@ -385,12 +377,12 @@ class Application(TypePadObject):
         return urljoin(typepad.client.endpoint, '/browser-upload.json')
 
     @classmethod
-    def get_by_api_key(cls, api_key):
+    def get_by_api_key(cls, api_key, **kwargs):
         """Returns an `Application` instance by the API key.
 
         Asserts that the api_key parameter matches ^\w+$."""
         assert re.match('^\w+$', api_key), "invalid api_key parameter given"
-        return cls.get('/applications/%s.json' % api_key)
+        return cls.get('/applications/%s.json' % api_key, **kwargs)
 
 
 class Event(TypePadObject):
@@ -538,20 +530,16 @@ class Asset(TypePadObject):
         Asserts that the url_id parameter matches ^\w+$."""
         url_id = xid_from_atom_id(id)
         assert url_id, "valid id parameter required"
-        a = cls.get_by_url_id(url_id, **kwargs)
-        a.id = id
-        return a
+        return cls.get_by_url_id(url_id, **kwargs)
 
     @classmethod
-    def get_by_url_id(cls, url_id):
+    def get_by_url_id(cls, url_id, **kwargs):
         """Returns an `Asset` instance by the url id for the asset.
 
         Asserts that the url_id parameter matches ^\w+$."""
         assert re.match('^\w+$', url_id), "invalid url_id parameter given"
-        a = cls.get('/assets/%s.json' % url_id)
-        a.id = '%s-%s' % (cls.object_type, url_id)
-        a.url_id = url_id
-        return a
+        return cls.get('/assets/%s.json' % url_id,
+            id='%s-%s' % (cls.object_type, url_id), url_id=url_id, **kwargs)
 
     @property
     def actor(self):
@@ -614,11 +602,12 @@ class Favorite(Asset):
     object_type = "tag:api.typepad.com,2009:Favorite"
 
     @classmethod
-    def get_by_user_asset(cls, user_id, asset_id):
+    def get_by_user_asset(cls, user_id, asset_id, **kwargs):
         ## TODO this url is broken! - bug id 86429
         assert re.match('^\w+$', user_id), "invalid user_id parameter given"
         assert re.match('^\w+$', asset_id), "invalid asset_id parameter given"
-        return cls.get('/favorites/%s:%s.json' % (asset_id, user_id))
+        return cls.get('/favorites/%s:%s.json' % (asset_id, user_id),
+            **kwargs)
 
 
 class Post(Asset):
