@@ -171,11 +171,12 @@ class OAuthClient(oauth.OAuthClient):
         self.token = oauth.OAuthToken.from_string(content)
         return self.token
 
-    def authorize_token(self, callback):
+    def authorize_token(self, callback, params):
         req = oauth.OAuthRequest.from_token_and_callback(
             self.token,
             callback=callback,
             http_url=self.authorization_url,
+            parameters=params,
         )
         return req.to_url()
 

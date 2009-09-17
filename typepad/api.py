@@ -324,6 +324,31 @@ class Group(TypePadObject):
         return g
 
 
+class ApiKey(TypePadObject):
+
+    api_key = fields.Field(api_name='apiKey')
+    """The consumer key portion for this `ApiKey`."""
+    owner   = fields.Object('Application')
+
+    @classmethod
+    def get_by_api_key(cls, api_key):
+        """Returns an `ApiKey` instance with the given consumer key.
+
+        Asserts that the api_key parameter matches ^\w+$."""
+        assert re.match('^\w+$', api_key), "invalid api_key parameter given"
+        return cls.get('/api-keys/%s.json' % api_key)
+
+
+class AuthToken(TypePadObject):
+
+    auth_token = fields.Field()
+    target     = fields.Object('TypePadObject', api_name='targetObject')
+
+    @classmethod
+    def get_by_key_and_token(cls, api_key, auth_token):
+        return cls.get('/auth-tokens/%s:%s.json' % (api_key, auth_token))
+
+
 class Application(TypePadObject):
 
     """An application that can authenticate to the TypePad API using OAuth.
@@ -333,11 +358,11 @@ class Application(TypePadObject):
 
     """
 
-    api_key = fields.Field(api_name='apiKey')
-    """The consumer key for this `Application`."""
-    owner   = fields.Object('TypePadObject')
-    """The entity (`Group` or `User`) that owns this `Application`."""
-    links   = fields.Object('LinkSet')
+    object_type = "tag:api.typepad.com,2009:Application"
+
+    name  = fields.Field()
+    """The name of this `Application` as configured by the developer."""
+    links = fields.Object('LinkSet')
     """A `LinkSet` containing the API endpoints associated with this
     `Application`."""
 
