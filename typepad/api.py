@@ -341,7 +341,7 @@ class ApiKey(TypePadObject):
 
 class AuthToken(TypePadObject):
 
-    auth_token = fields.Field()
+    auth_token = fields.Field(api_name='authToken')
     target     = fields.Object('TypePadObject', api_name='targetObject')
 
     @classmethod
