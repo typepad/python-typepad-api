@@ -248,6 +248,7 @@ class TestTypePad(unittest.TestCase):
         app = typepad.Application.get_by_api_key(api_key)
         typepad.client.complete_batch()
 
+        self.assert_('deprecationWarning' in app.api_data)
         self.assertValidApplication(app)
 
     @attr(user='group')
