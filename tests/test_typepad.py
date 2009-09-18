@@ -249,7 +249,6 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
         self.assertValidApplication(app)
-        self.assertEquals(app.api_key, api_key)
 
     @attr(user='group')
     def test_1_GET_application_id__invalid(self):
