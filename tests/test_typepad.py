@@ -264,6 +264,43 @@ class TestTypePad(unittest.TestCase):
         self.assertNotFound(typepad.client.complete_batch)
 
     @attr(user='group')
+    def test_1_GET_api_key_key(self):
+        """GET /api-keys/<key>.json (group)
+
+        Tests that the /api-keys endpoint really returns the
+        configured API key, with its associated Application.
+
+        """
+        key = self.testdata['configuration']['oauth_consumer_key']
+
+        typepad.client.batch_request()
+        key_obj = typepad.ApiKey.get_by_api_key(key)
+        typepad.client.complete_batch()
+
+        self.assert_(isinstance(key_obj, typepad.ApiKey))
+        self.assertEquals(key_obj.api_key, key)
+        self.assert_(isinstance(key_obj.owner, typepad.Application))
+
+    @attr(user='group')
+    def test_1_GET_auth_token_key_token(self):
+        """GET /auth-tokens/<key>:<token>.json (group)
+
+        Tests that the /auth-tokens endpoint really returns the
+        configured anonymous AuthToken, with its related Group.
+
+        """
+        key = self.testdata['configuration']['oauth_consumer_key']
+        token = self.testdata['group']['oauth_key']
+
+        typepad.client.batch_request()
+        token_obj = typepad.AuthToken.get_by_key_and_token(key, token)
+        typepad.client.complete_batch()
+
+        self.assert_(isinstance(token_obj, typepad.AuthToken))
+        self.assertEquals(token_obj.auth_token, token)
+        self.assert_(isinstance(token_obj.target, typepad.Group))
+
+    @attr(user='group')
     def test_1_GET_assets_id(self):
         """GET /assets/<id>.json (group)
         
