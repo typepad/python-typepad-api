@@ -233,29 +233,23 @@ class TestTypePad(unittest.TestCase):
     @attr(user='group')
     def test_1_GET_applications_id(self):
         """GET /applications/<id>.json (group)
-        
+
         Tests the application endpoint using the configured OAuth consumer key
         (which is the application id). Also tests that the application's
         "owner" object is the group that has been identified in the test
         configuration.
+
+        This test needs to be replaced due to our application refactoring.
         """
 
         api_key = self.testdata['configuration']['oauth_consumer_key']
-        group_id = self.testdata['group']['xid']
 
         typepad.client.batch_request()
         app = typepad.Application.get_by_api_key(api_key)
-        group = typepad.Group.get_by_url_id(group_id)
         typepad.client.complete_batch()
 
         self.assertValidApplication(app)
-        self.assertValidGroup(group)
         self.assertEquals(app.api_key, api_key)
-
-        # Test owner property
-        self.assertEquals(app.owner.xid, group_id)
-        self.assertEquals(app.owner.links['self'].href,
-            group.links['self'].href)
 
     @attr(user='group')
     def test_1_GET_application_id__invalid(self):
@@ -2091,8 +2085,6 @@ class TestTypePad(unittest.TestCase):
         self.assert_(app.user_flyouts_script)
         self.assert_(app.browser_upload_endpoint)
         self.assertEquals(app.links['self'].type, 'application/json')
-        self.assert_(app.owner)
-        self.assertValidGroup(app.owner)
 
     def assertValidFavorite(self, fav):
         self.assert_(isinstance(fav, typepad.Favorite),
