@@ -415,6 +415,9 @@ class Application(TypePadObject):
 
         Asserts that the api_key parameter matches ^\w+$."""
         assert re.match('^\w+$', api_key), "invalid api_key parameter given"
+        import logging
+        logging.getLogger("typepad.api").warn(
+            'Application.get_by_api_key is deprecated')
         return cls.get('/applications/%s.json' % api_key, **kwargs)
 
 
