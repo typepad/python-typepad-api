@@ -2,8 +2,6 @@
 Tests drawn from https://intranet.sixapart.com/wiki/index.php/TPX:API_Endpoints_Implemented_for_Potion
 
     # TODO
-    # - blocked members
-    #   - that they should not be able to create posts/favorites
     # - featured members (i don't think we have filters for them yet)
     #   - that we cannot block a featured member
     # - test for failure of post by non-member / blocked user
@@ -90,6 +88,7 @@ from urllib import urlencode, unquote
 from urlparse import urlsplit, urlunsplit, urlparse
 import cgi
 import base64
+from StringIO import StringIO
 
 import httplib2
 import nose
@@ -678,78 +677,33 @@ class TestTypePad(unittest.TestCase):
         raise nose.SkipTest(
             'We test this endpoint through our other tests.')
 
-    def upload_asset(self, ident, asset, filename, file_type, content):
+    def upload_asset(self, ident, data, content):
         """Helper method for posting a file to the TypePad API.
 
         ident is one of the user identifiers (group, member, admin, blocked)
         content is the base64 encoded file contents to post."""
 
-        api_key = self.testdata['configuration']['oauth_consumer_key']
+        self.credentials_for(ident)
+
+        group_id = self.testdata['group']['xid']
 
         typepad.client.batch_request()
-        app = typepad.Application.get_by_api_key(api_key)
+        group = typepad.Group.get_by_url_id(group_id)
         typepad.client.complete_batch()
 
-        post_type = asset['objectTypes'][0]
-        post_type = post_type[post_type.rindex(':')+1:]
+        self.assertValidGroup(group)
 
-        self.assertValidApplication(app)
+        fileobj = StringIO(base64.decodestring(content))
 
-        # make sure we don't have any oauth credentials; we're not using
-        # oauth in this way for the browser-upload endpoint
-        typepad.client.clear_credentials()
+        asset = typepad.Asset.from_dict(data)
 
-        # FIXME: browser-upload relies on 'post_type' parameter instead
-        # of objectTypes assigned to asset? That's weird.
-        boundary = 'BoUnDaRyStRiNg'
-        body = (
-            """--%(boundary)s\n"""
-            """Content-Disposition: form-data; name="redirect_to\n"""
-            """\n"""
-            """http://127.0.0.1:8000/ajax/upload_url\n"""
-            """--%(boundary)s\n"""
-            """Content-Disposition: form-data; name="post_type"\n"""
-            """\n"""
-            """%(post_type)s\n"""
-            """--%(boundary)s\n"""
-            """Content-Disposition: form-data; name="asset"\n"""
-            """\n"""
-            """%(asset)s\n"""
-            """--%(boundary)s\n"""
-            """Content-Disposition: form-data; name="file"; filename="%(filename)s"\n"""
-            """Content-Type: %(mime_type)s\n"""
-            """\n"""
-            """%(file)s\n"""
-            """--%(boundary)s--""").replace('\n', '\r\n') % \
-            { 'asset': json.dumps(asset),
-              'boundary': boundary,
-              'file': base64.decodestring(content),
-              'filename': filename,
-              'post_type': post_type,
-              'mime_type': file_type }
+        object_type = asset.primary_object_type() or asset.object_type
+        post_type = object_type.split(':')[2].lower()
 
-        consumer = oauth.OAuthConsumer(
-            key = self.testdata['configuration']['oauth_consumer_key'],
-            secret = self.testdata['configuration']['oauth_consumer_secret'],
-        )
-        token = oauth.OAuthToken(
-            self.testdata[ident]['oauth_key'],
-            self.testdata[ident]['oauth_secret'],
-        )
-        oauth_client = typepad.OAuthClient(consumer, token)
-
-        remote_url = app.browser_upload_endpoint
-        url = oauth_client.get_file_upload_url(remote_url)
-
-        headers = {
-            'Content-Type': 'multipart/form-data; boundary=%s' % boundary,
-            'Content-Length': str(len(body)),
-        }
-        response = None
-        content = None
-        # don't follow the redirect; we want it for ourselves
-        response, content = typepad.client.request(url, 'POST',
-            body, headers, 0)
+        asset.groups = [ group.id ]
+        response, content = typepad.api.browser_upload.upload(
+            asset, fileobj, post_type=post_type,
+            redirect_to='http://example.com/none')
 
         self.assert_(response)
         self.assertEquals(response.status, httplib.FOUND)
@@ -770,7 +724,7 @@ class TestTypePad(unittest.TestCase):
             posted_asset = typepad.Asset.get(parts[2], batch=False)
 
             self.assertValidAsset(posted_asset)
-            self.assertEquals(posted_asset.primary_object_type(), asset['objectTypes'][0])
+            self.assertEquals(posted_asset.primary_object_type(), data['objectTypes'][0])
 
             self.testdata['assets_created'].append(posted_asset.xid)
         else: # test for a failure
@@ -791,7 +745,7 @@ class TestTypePad(unittest.TestCase):
             """eMVLBERxdEASRwYQ3qVwVMBnHBEQxK21ozFmQge8bq61nqWUKzIgiDvnBtpcKbVQAJ3vNwHdnDCC"""
             """78MZEH1w6Bv4/NoRbyDrq3F/Qzb8TwArnhvAjucECG74mA3T52uZi1CUIgAAAABJRU5ErkJggg=="""
         )
-        self.upload_asset('member', asset, 'photo.png', 'image/png', content)
+        self.upload_asset('member', asset, content)
 
     @attr(user='member')
     def test_5_POST_browser_upload__audio__by_member(self):
@@ -827,7 +781,7 @@ class TestTypePad(unittest.TestCase):
             """ACAAADSAAAAEqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq"""
             """qqqqqqqqqqqqqqqqqqqqqqqqqqo="""
         )
-        self.upload_asset('member', asset, 'audio.mp3', 'audio/mpeg', content)
+        self.upload_asset('member', asset, content)
 
     @attr(user='group')
     def test_5_POST_browser_upload__photo__by_group(self):
@@ -844,7 +798,7 @@ class TestTypePad(unittest.TestCase):
             """eMVLBERxdEASRwYQ3qVwVMBnHBEQxK21ozFmQge8bq61nqWUKzIgiDvnBtpcKbVQAJ3vNwHdnDCC"""
             """78MZEH1w6Bv4/NoRbyDrq3F/Qzb8TwArnhvAjucECG74mA3T52uZi1CUIgAAAABJRU5ErkJggg=="""
         )
-        self.upload_asset('group', asset, 'test.png', 'image/png', content)
+        self.upload_asset('group', asset, content)
 
     @attr(user='group')
     def test_1_GET_events_id(self):
@@ -2066,6 +2020,13 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(event.links['self'].type, 'application/json')
         self.assert_(len(event.verbs) > 0)
         self.assert_(event.verbs[0].startswith('tag:api.typepad.com,2009:'))
+        # m = re.match(r'^tag:api\.typepad\.com,2009:([A-Za-z]+)$',
+        #     event.verbs[0])
+        # self.assert_(m,
+        #     "%s does not match '^tag:api\.typepad\.com,2009:[A-Za-z]+$'" \
+        #     % events.verbs[0])
+        # self.assert_(m.groups()[0] in ('Favorite', 'NewAsset'),
+        #     "Event type %s is not recognized" % m.groups()[0])
         self.assert_(event.actor)
         self.assertValidUser(event.actor)
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87911
