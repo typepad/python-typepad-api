@@ -129,13 +129,14 @@ class OAuthClient(oauth.OAuthClient):
     def set_token_from_string(self, token_str):
         self.token = oauth.OAuthToken.from_string(token_str)
 
-    def fetch_request_token(self):
+    def fetch_request_token(self, callback):
         h = typepad.client
         h.clear_credentials()
         req = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer,
             http_method = 'GET',
             http_url = self.request_token_url,
+            callback = callback,
         )
 
         sign_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
@@ -151,13 +152,14 @@ class OAuthClient(oauth.OAuthClient):
         self.token = oauth.OAuthToken.from_string(content)
         return self.token
 
-    def fetch_access_token(self, request_token_str=None):
+    def fetch_access_token(self, request_token_str=None, verifier=None):
         # -> OAuthToken
         h = typepad.client
         req = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer,
             token = self.token,
             http_url = self.access_token_url,
+            verifier = verifier,
         )
 
         sign_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
@@ -171,10 +173,9 @@ class OAuthClient(oauth.OAuthClient):
         self.token = oauth.OAuthToken.from_string(content)
         return self.token
 
-    def authorize_token(self, callback, params):
+    def authorize_token(self, params):
         req = oauth.OAuthRequest.from_token_and_callback(
             self.token,
-            callback=callback,
             http_url=self.authorization_url,
             parameters=params,
         )
