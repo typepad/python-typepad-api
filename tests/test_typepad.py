@@ -93,12 +93,11 @@ from StringIO import StringIO
 import httplib2
 import nose
 import nose.plugins.attrib
+import nose.tools
 from oauth import oauth
 import simplejson as json
 
 from remoteobjects.http import HttpObject
-from tests import utils
-from tests import test_api
 import typepad
 
 
@@ -140,13 +139,13 @@ def attr(*args, **kwargs):
             if m is not None:
                 verb = m.groups()[0]
                 kwargs['method'] = verb
+        @nose.tools.make_decorator(fn)
         @nose.plugins.attrib.attr(*args, **kwargs)
         def test_user(self, *args, **kwargs):
             if user is not None:
                 self.credentials_for(user)
             fn(self, *args, **kwargs)
             self.clear_credentials()
-        utils.update_wrapper(test_user, fn)
         return test_user
     return wrap
 
@@ -2227,5 +2226,6 @@ class TestTypePad(unittest.TestCase):
         return link
 
 if __name__ == '__main__':
+    from tests import utils
     utils.log()
     unittest.main()
