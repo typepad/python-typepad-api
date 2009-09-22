@@ -4,31 +4,11 @@ import os
 
 import mox
 import nose
-
-
-def update_wrapper(wrapper, original):
-    for field in ('__module__', '__name__', '__doc__'):
-        setattr(wrapper, field, getattr(original, field))
-
-
-def skip(fn):
-    def test_nothing(self):
-        raise nose.SkipTest('skip this test')
-    update_wrapper(test_nothing, fn)
-    return test_nothing
-
-
-def are_automated():
-    return bool(os.getenv('AUTOMATED_TESTING'))
-
-
-def skip_if_automated(fn):
-    if are_automated():
-        return skip(fn)
-    return fn
+import nose.tools
 
 
 def todo(fn):
+    @nose.tools.make_decorator(fn)
     def test_reverse(*args, **kwargs):
         try:
             fn(*args, **kwargs)
@@ -36,7 +16,6 @@ def todo(fn):
             pass
         else:
             raise AssertionError('test %s unexpectedly succeeded' % fn.__name__)
-    update_wrapper(test_reverse, fn)
     return test_reverse
 
 
