@@ -38,6 +38,15 @@ classes_by_object_type = {}
 
 class TypePadObjectMetaclass(remoteobjects.RemoteObject.__metaclass__):
 
+    """A metaclass for creating new `TypePadObject` classes.
+
+    In addition to the normal behavior of `RemoteObject` class creation,
+    classes created by `TypePadObjectMetaclass` are classified by their
+    ``object_type`` members, so their instances can be reclassified based on
+    ``object_types`` data in API responses.
+
+    """
+
     def __new__(cls, name, bases, attrs):
         newcls = super(TypePadObjectMetaclass, cls).__new__(cls, name, bases, attrs)
         try:
@@ -54,10 +63,9 @@ class TypePadObject(remoteobjects.RemoteObject):
     """A `RemoteObject` representing an object in the TypePad API.
 
     All HTTP requests made for a `TypePadObject` are made through the
-    `typepad.client` instance of `batchhttp.client.BatchClient`. Unlike other
-    `PromiseObject` instances, `TypePadObject` instances cannot be
-    independently delivered; they must be delivered by an outside object
-    (namely `typepad.client`).
+    `typepad.client` user agent instance. Unlike other `PromiseObject`
+    instances, `TypePadObject` instances cannot be independently delivered;
+    they must be delivered by an outside object (namely `typepad.client`).
 
     """
 
@@ -67,14 +75,15 @@ class TypePadObject(remoteobjects.RemoteObject):
     batch_requests = True
 
     object_types = fields.List(fields.Field(), api_name='objectTypes')
+    """A list of URIs that identify the type of TypePad content object this
+    is."""
 
     @classmethod
     def get(cls, url, *args, **kwargs):
         """Promises a new `TypePadObject` instance for the named resource.
 
-        If parameter `url` is not an absolute URL but the `TypePadObject`
-        class has been configured with a base URL, the resulting instance will
-        reference the given URL relative to the base address.
+        If parameter `url` is not an absolute URL, the resulting instance will
+        reference the given URL relative to the TypePad API's base address.
 
         If batch requests are enabled, the request that delivers the resulting
         `TypePadObject` instance will be added to the `typepad.client`
@@ -101,14 +110,35 @@ class TypePadObject(remoteobjects.RemoteObject):
         return ret
 
     def post(self, obj, http=None):
+        """Adds another `TypePadObject` to this remote resource through an HTTP
+        ``POST`` request, as in `HttpObject.post()`.
+
+        Regardless of the `http` parameter, the request is performed with the
+        `typepad.client` user agent.
+
+        """
         http = typepad.client
         return super(TypePadObject, self).post(obj, http=http)
 
     def put(self, http=None):
+        """Saves a previously requested `TypePadObject` back to its remote
+        resource through an HTTP ``PUT`` request, as in `HttpObject.put()`.
+
+        Regardless of the `http` parameter, the request is performed with the
+        `typepad.client` user agent.
+
+        """
         http = typepad.client
         return super(TypePadObject, self).put(http=http)
 
     def delete(self, http=None):
+        """Deletes the remote resource represented by this `TypePadObject`
+        instance through an HTTP ``DELETE`` request.
+
+        Regardless of the `http` parameter, the request is performed with the
+        `typepad.client` user agent.
+
+        """
         http = typepad.client
         return super(TypePadObject, self).delete(http=http)
 
@@ -197,6 +227,7 @@ class TypePadObject(remoteobjects.RemoteObject):
                 pass
 
     def to_dict(self):
+        """Encodes the `TypePadObject` instance to a dictionary."""
         ret = super(TypePadObject, self).to_dict()
         if 'objectTypes' not in ret and self.object_type is not None:
             ret['objectTypes'] = (self.object_type,)
@@ -233,15 +264,35 @@ class Link(TypePadObject):
     """
 
     rel             = fields.Field()
+    """A keyword representing the relationship type of the link.
+
+    See the Link Relationship Keywords section of the API documentation for
+    possible values and their meanings.
+
+    """
     href            = fields.Field()
-    html            = fields.Field()
+    """The absolute URL of the target resource."""
     type            = fields.Field()
+    """The MIME media type of the target resource."""
     width           = fields.Field()
+    """Where the link is to a visual media item (a photo, for example), the
+    width of the item in pixels."""
     height          = fields.Field()
-    duration        = fields.Field()
+    """Where the link is to a visual media item (a photo, for example), the
+    height of the item in pixels."""
     total           = fields.Field()
-    by_user         = fields.Field(api_name="byUser")
+    """Where the link is to a list resource, the total number of items in that list."""
     allowed_methods = fields.List(fields.Field(), api_name='allowedMethods')
+    """If present, a list of HTTP methods that the TypePad user who requested
+    the containing resource is allowed to perform on the target resource.
+
+    An empty list indicates no methods are allowed. If no list is present, use
+    an ``OPTIONS`` or ``GET`` request to determine the available methods.
+
+    """
+    html            = fields.Field()
+    duration        = fields.Field()
+    by_user         = fields.Field(api_name="byUser")
 
     def __repr__(self):
         """Returns a developer-readable representation of this object."""
@@ -428,9 +479,19 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
     __metaclass__ = ListOf
 
     total_results = fields.Field(api_name='totalResults')
+    """The total number of items in the overall list resource (of which this
+    `ListObject` instance may be only a segment)."""
     start_index   = fields.Field(api_name='startIndex')
+    """The index in the overall list resource of the first item in this
+    `ListObject` instance.
+
+    The first item in the list has index 1.
+
+    """
     links         = fields.Object('LinkSet')
+    """A `LinkSet` of links related to this list resource."""
     entries       = fields.List(fields.Field())
+    """A list of items in this list resource."""
 
     filterorder = ['following', 'follower', 'friend', 'nonreciprocal',
         'published', 'unpublished', 'spam', 'admin', 'member',
@@ -438,16 +499,17 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
         'link']
 
     def count(self):
+        """Returns the number of items in the overall list resource, of which
+        this `ListObject` instance may be only a segment."""
         return int(self.total_results)
 
     def filter(self, **kwargs):
         """Returns a new `ListObject` instance representing the same endpoint
         as this `ListObject` instance with the additional filtering applied.
 
-        This method filters the `ListObject` as does
-        `remoteobjects.ListObject.filter()`, but specially treats filters
-        defined in the TypePad API. These special filters are not added in as
-        query parameters but as path components.
+        This method filters the `ListObject` as does `RemoteObject.filter()`,
+        but specially treats filters defined in the TypePad API. These special
+        filters are not added in as query parameters but as path components.
 
         """
         # Split the list's URL into URL parts, filters, and queryargs.

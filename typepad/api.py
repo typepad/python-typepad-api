@@ -26,6 +26,13 @@ import typepad
 
 
 def xid_from_atom_id(atom_id):
+    """Returns the XID portion of the given Atom ID for a TypePad content
+    object.
+
+    If the given Atom ID is not the same format as a TypePad content object's
+    Atom ID, returns ``None``.
+
+    """
     try:
         # tag:api.typepad.com,2009:6e01148739c04077bd0119f49c602c9c4b
         # tag:api.typepad.com,2003:user-6p00000001

@@ -15,7 +15,7 @@ log = logging.getLogger('typepad.oauthclient')
 
 class OAuthAuthentication(httplib2.Authentication):
 
-    """An httplib2 Authentication module that provides OAuth authentication.
+    """An `httplib2.Authentication` module that provides OAuth authentication.
 
     The OAuth authentication will be tried automatically, but to use OAuth
     authentication with a particular user agent (`Http` instance), it must
@@ -52,6 +52,8 @@ class OAuthAuthentication(httplib2.Authentication):
         headers.update(req.to_header())
 
     def signed_request(self, uri, method):
+        """Returns an `OAuthRequest` for the given URL and HTTP method, signed
+        with this `OAuthAuthentication` instance's credentials."""
         csr, token = self.credentials
         assert token.secret is not None
 
@@ -74,9 +76,22 @@ httplib2.AUTH_SCHEME_ORDER[0:0] = ('oauth',)  # unshift onto front
 
 class OAuthHttp(httplib2.Http):
 
+    """An HTTP user agent for an OAuth web service."""
+
     default_scheme = None
 
     def add_credentials(self, name, password, domain=""):
+        """Adds a name (or `OAuthConsumer` instance) and password (or
+        `OAuthToken` instance) to this user agent's available credentials.
+
+        If ``name`` is an `OAuthConsumer` instance and the ``domain`` parameter
+        is provided, the `OAuthHttp` instance will be configured to provide the
+        given OAuth credentials, even upon the first request to that domain.
+        (Normally the user agent will make the request unauthenticated first,
+        receive a challenge from the server, then make the request again with
+        the credentials.)
+
+        """
         super(OAuthHttp, self).add_credentials(name, password, domain)
         log.debug("Setting credentials for name %s password %s"
             % (name, password))
@@ -90,6 +105,12 @@ class OAuthHttp(httplib2.Http):
             self.authorizations.append(auth)
 
     def signed_request(self, uri, method=None, headers=None, body=None):
+        """Performs a request on the given URL with the given parameters, after
+        signing the URL with any OAuth credentials available for that URL.
+
+        If no such credentials are available, a `ValueError` is raised.
+
+        """
         if method is None:
             method = 'GET'
 
@@ -112,7 +133,7 @@ class OAuthHttp(httplib2.Http):
 
 class OAuthClient(oauth.OAuthClient):
 
-    """An httplib2 OAuth client."""
+    """An `OAuthClient` for interacting with the TypePad API."""
 
     consumer = None
     request_token_url = None
@@ -174,6 +195,8 @@ class OAuthClient(oauth.OAuthClient):
         return self.token
 
     def authorize_token(self, params):
+        """Returns the URL at which an interactive user can authorize this
+        instance's request token."""
         req = oauth.OAuthRequest.from_token_and_callback(
             self.token,
             http_url=self.authorization_url,
@@ -182,6 +205,12 @@ class OAuthClient(oauth.OAuthClient):
         return req.to_url()
 
     def get_file_upload_url(self, upload_url):
+        """Returns the given upload URL, signed for performing an HTTP ``POST``
+        against it, with this instance's OAuth credentials.
+
+        Such a signed URL can be used for uploading asset files to TypePad.
+
+        """
         # oauth GET params for file upload url
         # since the form is multipart/form-data
         req = oauth.OAuthRequest.from_consumer_and_token(
