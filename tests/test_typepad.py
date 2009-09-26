@@ -2052,7 +2052,8 @@ class TestTypePad(unittest.TestCase):
         self.assert_(m,
             "%s does not match '^tag:api\.typepad\.com,2009:[A-Za-z]+$'" \
             % event.verbs[0])
-        self.assert_(m.groups()[0] in ('AddedFavorite', 'NewAsset', 'JoinedGroup'),
+        self.assert_(m.groups()[0] in ('AddedFavorite', 'NewAsset',
+            'JoinedGroup', 'AddedNeighbor'),
             "Event type %s is not recognized" % m.groups()[0])
         self.assert_(event.actor)
         self.assertValidUser(event.actor)
