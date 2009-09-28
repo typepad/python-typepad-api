@@ -29,7 +29,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from distutils.core import setup
+from setuptools import setup
 setup(
     name='typepad',
     version='1.1a1',
@@ -40,5 +40,6 @@ setup(
 
     packages=['typepad'],
     provides=['typepad'],
-    requires=['oauth', 'remoteobjects', 'batchhttp'],
+    requires=['oauth', 'remoteobjects(==1.1a1)', 'batchhttp(==1.1a1)'],
+    install_requires=['oauth', 'remoteobjects==1.1a1', 'batchhttp==1.1a1'],
 )
