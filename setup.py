@@ -32,7 +32,7 @@
 from distutils.core import setup
 setup(
     name='typepad',
-    version='1.1',
+    version='1.1a1',
     description='TypePad API SDK',
     author='Six Apart',
     author_email='python@sixapart.com',
