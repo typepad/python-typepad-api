@@ -1,0 +1,5 @@
+oauth==1.0.1
+simplejson==2.0.9
+httplib2==0.5.0
+remoteobjects==1.0#egg=remoteobjects
+batchhttp==1.0#egg=batchhttp
