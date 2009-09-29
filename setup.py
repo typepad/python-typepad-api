@@ -38,6 +38,18 @@ setup(
     author_email='python@sixapart.com',
     url='http://code.sixapart.com/svn/typepad-py/',
 
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: MacOS :: MacOS X',
+        'Operating System :: POSIX',
+        'Programming Language :: Python',
+        'Topic :: Internet :: WWW/HTTP',
+    ],
+
     packages=['typepad'],
     provides=['typepad'],
     requires=['oauth', 'remoteobjects(==1.1a1)', 'batchhttp(==1.1a1)'],
