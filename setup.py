@@ -37,7 +37,7 @@ setup(
     description='TypePad API SDK',
     author='Six Apart',
     author_email='python@sixapart.com',
-    url='http://code.sixapart.com/svn/typepad-py/',
+    url='http://github.com/sixapart/python-typepad-api',
 
     long_description=open(join(dirname(__file__), 'README.rst')).read(),
     classifiers=[
