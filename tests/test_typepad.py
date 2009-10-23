@@ -258,39 +258,6 @@ class TestTypePad(unittest.TestCase):
         self.load_test_assets()
 
     @attr(user='group')
-    def test_1_GET_applications_id(self):
-        """GET /applications/<id>.json (group)
-
-        Tests the application endpoint using the configured OAuth consumer key
-        (which is the application id). Also tests that the application's
-        "owner" object is the group that has been identified in the test
-        configuration.
-
-        This test needs to be replaced due to our application refactoring.
-        """
-
-        api_key = self.testdata['configuration']['oauth_consumer_key']
-
-        typepad.client.batch_request()
-        app = typepad.Application.get_by_api_key(api_key)
-        typepad.client.complete_batch()
-
-        self.assert_('deprecationWarning' in app.api_data)
-        self.assertValidApplication(app)
-
-    @attr(user='group')
-    def test_1_GET_application_id__invalid(self):
-        """GET /applications/invalid.json (group)
-        
-        Tests the /applications endpoint with an invalid application
-        key. This should result in a 404 error.
-        """
-
-        typepad.client.batch_request()
-        bad_app = typepad.Application.get_by_api_key('invalid')
-        self.assertNotFound(typepad.client.complete_batch)
-
-    @attr(user='group')
     def test_1_GET_api_key_key(self):
         """GET /api-keys/<key>.json (group)
 
