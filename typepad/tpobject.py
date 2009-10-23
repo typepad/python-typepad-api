@@ -57,6 +57,7 @@ import remoteobjects
 from remoteobjects.dataobject import find_by_name
 from remoteobjects.promise import PromiseError
 import remoteobjects.listobject
+import httplib2
 
 import typepad
 from typepad import fields
@@ -128,10 +129,11 @@ class TypePadObject(remoteobjects.RemoteObject):
         kwargs['http'] = typepad.client
 
         ret = super(TypePadObject, cls).get(url, *args, **kwargs)
+        cb = kwargs.get('callback', ret.update_from_response)
         ret.batch_requests = kwargs.get('batch', cls.batch_requests)
         if ret.batch_requests:
             try:
-                typepad.client.batch(ret.get_request(), ret.update_from_response)
+                typepad.client.batch(ret.get_request(), cb)
             except BatchError, ex:
                 # Remember our caller in case we need to complain about
                 # delivery later.
@@ -170,6 +172,30 @@ class TypePadObject(remoteobjects.RemoteObject):
         """
         http = typepad.client
         return super(TypePadObject, self).delete(http=http)
+
+    def head(self, http=None):
+        http = typepad.client
+
+        ret = super(TypePadObject, self).head(http=http)
+        try:
+            typepad.client.batch(ret.get_request(), ret.update_from_response)
+        except BatchError, ex:
+            # Remember our caller in case we need to complain about
+            # delivery later.
+            ret._origin = inspect.stack()[1][1:4]
+        return ret
+
+    def options(self, http=None):
+        http = typepad.client
+
+        ret = super(TypePadObject, self).options(http=http)
+        try:
+            typepad.client.batch(ret.get_request(), ret.update_from_response)
+        except BatchError, ex:
+            # Remember our caller in case we need to complain about
+            # delivery later.
+            ret._origin = inspect.stack()[1][1:4]
+        return ret
 
     def reclass_for_data(self, data):
         """Modifies this `TypePadObject` instance to be an instance of the
@@ -566,6 +592,10 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
 
         # Add kwargs into the filters and queryargs as appropriate.
         for k, v in kwargs.iteritems():
+            # ignore this kwarg
+            if k == 'callback':
+                continue
+
             # handle case where value is a TypePadObject. If it is, check for
             # 'url_id' and if present, use that. If not, raise an exception
             if isinstance(v, typepad.api.TypePadObject):
@@ -598,8 +628,11 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
         parts[4] = urllib.urlencode(queryargs)
         newurl = urlunparse(parts)
 
-        ret = self.get(newurl)
-        return ret
+        getargs = {}
+        if 'callback' in kwargs:
+            getargs['callback'] = kwargs['callback']
+
+        return self.get(newurl, **getargs)
 
     def __getitem__(self, key):
         """Returns the specified members of the `ListObject` instance's
@@ -615,3 +648,4 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
         elif key.stop is not None:
             args['max_results'] = key.stop
         return self.filter(**args)
+
