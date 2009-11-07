@@ -129,9 +129,9 @@ class TypePadObject(remoteobjects.RemoteObject):
         kwargs['http'] = typepad.client
 
         ret = super(TypePadObject, cls).get(url, *args, **kwargs)
-        cb = kwargs.get('callback', ret.update_from_response)
         ret.batch_requests = kwargs.get('batch', cls.batch_requests)
         if ret.batch_requests:
+            cb = kwargs.get('callback', ret.update_from_response)
             try:
                 typepad.client.batch(ret.get_request(), cb)
             except BatchError, ex:
@@ -593,7 +593,7 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
         # Add kwargs into the filters and queryargs as appropriate.
         for k, v in kwargs.iteritems():
             # ignore this kwarg
-            if k == 'callback':
+            if k in ('callback', 'batch'):
                 continue
 
             # handle case where value is a TypePadObject. If it is, check for
@@ -631,7 +631,8 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
         getargs = {}
         if 'callback' in kwargs:
             getargs['callback'] = kwargs['callback']
-
+        if 'batch' in kwargs:
+            getargs['batch'] = kwargs['batch']
         return self.get(newurl, **getargs)
 
     def __getitem__(self, key):
