@@ -220,6 +220,10 @@ class ElsewhereAccount(TypePadObject):
     
     """
 
+    @property
+    def xid(self):
+        return xid_from_atom_id(self.id)
+
 
 class Relationship(TypePadObject):
 
