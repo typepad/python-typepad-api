@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The TypePad Object &mdash; typepad v1.1a1 documentation</title>
+    <title>The TypePad Object &mdash; typepad v1.1 documentation</title>
     <link rel="stylesheet" href="static/default.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1a1',
+        VERSION:     '1.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="typepad v1.1a1 documentation" href="index.html" />
+    <link rel="top" title="typepad v1.1 documentation" href="index.html" />
     <link rel="next" title="TypePad Content Objects" href="api.html" />
     <link rel="prev" title="typepad" href="index.html" /> 
   </head>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="index.html" title="typepad"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">typepad v1.1a1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">typepad v1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -64,8 +64,7 @@ working with the TypePad API&#8217;s list endpoints</li>
 </ul>
 <dl class="class">
 <dt id="typepad.tpobject.Link">
-<em class="property">
-class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">Link</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.Link" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">Link</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.Link" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <cite>TypePadObject</cite> representing a link from to another resource.</p>
 <p>The target of a <cite>Link</cite> object may be something other than an API resource,
 such as a <cite>User</cite> instance&#8217;s avatar image.</p>
@@ -174,8 +173,7 @@ width of the item in pixels.</dd></dl>
 
 <dl class="class">
 <dt id="typepad.tpobject.LinkSet">
-<em class="property">
-class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">LinkSet</tt><a class="headerlink" href="#typepad.tpobject.LinkSet" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">LinkSet</tt><a class="headerlink" href="#typepad.tpobject.LinkSet" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <cite>TypePadObject</cite> representing a set of <cite>Link</cite> objects.</p>
 <p><cite>LinkSet</cite> provides convenience methods for slicing the set of <cite>Link</cite>
 objects by their content. For example, the <cite>Link</cite> with <cite>rel=&#8221;avatar&#8221;</cite> can
@@ -220,8 +218,7 @@ data.</dd></dl>
 
 <dl class="class">
 <dt id="typepad.tpobject.ListObject">
-<em class="property">
-class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">ListObject</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.ListObject" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">ListObject</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.ListObject" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <cite>TypePadObject</cite> representing a list of other <cite>TypePadObject</cite>
 instances.</p>
 <p>Endpoints in the TypePad API can be either objects themselves or sets of
@@ -282,8 +279,7 @@ filters are not added in as query parameters but as path components.</p>
 
 <dl class="class">
 <dt id="typepad.tpobject.TypePadObject">
-<em class="property">
-class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">TypePadObject</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.TypePadObject" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">TypePadObject</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.TypePadObject" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <cite>RemoteObject</cite> representing an object in the TypePad API.</p>
 <p>All HTTP requests made for a <cite>TypePadObject</cite> are made through the
 <cite>typepad.client</cite> user agent instance. Unlike other <cite>PromiseObject</cite>
@@ -309,8 +305,7 @@ enabled for <cite>TypePadObject</cite> instances.</p>
 
 <dl class="classmethod">
 <dt id="typepad.tpobject.TypePadObject.get">
-<em class="property">
-classmethod </em><tt class="descname">get</tt><big>(</big><em>url</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.TypePadObject.get" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descname">get</tt><big>(</big><em>url</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.TypePadObject.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Promises a new <cite>TypePadObject</cite> instance for the named resource.</p>
 <p>If parameter <cite>url</cite> is not an absolute URL, the resulting instance will
 reference the given URL relative to the TypePad API&#8217;s base address.</p>
@@ -400,8 +395,7 @@ modified to be of a different subclass.</p>
 
 <dl class="class">
 <dt id="typepad.tpobject.TypePadObjectMetaclass">
-<em class="property">
-class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">TypePadObjectMetaclass</tt><a class="headerlink" href="#typepad.tpobject.TypePadObjectMetaclass" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">TypePadObjectMetaclass</tt><a class="headerlink" href="#typepad.tpobject.TypePadObjectMetaclass" title="Permalink to this definition">¶</a></dt>
 <dd><p>A metaclass for creating new <cite>TypePadObject</cite> classes.</p>
 <p>In addition to the normal behavior of <cite>RemoteObject</cite> class creation,
 classes created by <cite>TypePadObjectMetaclass</cite> are classified by their
@@ -460,12 +454,12 @@ classes created by <cite>TypePadObjectMetaclass</cite> are classified by their
         <li class="right" >
           <a href="index.html" title="typepad"
              >previous</a> |</li>
-        <li><a href="index.html">typepad v1.1a1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">typepad v1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
       &copy; Copyright 2009, Six Apart Ltd..
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
     </div>
   </body>
 </html>

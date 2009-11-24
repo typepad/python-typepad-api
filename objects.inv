@@ -58,6 +58,7 @@ typepad.api.Asset.crosspost_accounts attribute api.html
 typepad.api.Asset.get_by_url_id classmethod api.html
 typepad.tpobject.LinkSet.to_dict method tpobject.html
 typepad.api.User.events method api.html
+typepad.api.Relationship.id attribute api.html
 typepad.api.Relationship.source attribute api.html
 typepad.api.Asset.status attribute api.html
 typepad.tpobject.TypePadObject.update_from_dict method tpobject.html
