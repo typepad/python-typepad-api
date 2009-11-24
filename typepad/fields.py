@@ -46,7 +46,7 @@ class Link(remoteobjects.fields.Link):
 
     """
 
-    def __get__(self, instance, owner):
+    def __get__(self, instance, type=None, **kwargs):
         """Generates the `TypePadObject` representing the target of this
         `Link` object.
 
@@ -66,7 +66,7 @@ class Link(remoteobjects.fields.Link):
             newurl += '/' + self.api_name
             newurl += '.json'
 
-            ret = self.cls.get(newurl)
+            ret = self.cls.get(newurl, **kwargs)
             return ret
         except Exception, e:
             logging.error(str(e))

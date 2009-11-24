@@ -65,7 +65,9 @@ def xid_from_atom_id(atom_id):
     try:
         # tag:api.typepad.com,2009:6e01148739c04077bd0119f49c602c9c4b
         # tag:api.typepad.com,2003:user-6p00000001
-        return re.match('^tag:(?:[\w-]+[.]?)+,\d{4}:(?:\w+-)?(\w+)$', atom_id).groups()[0]
+        # tag:api.typepad.com,2009:6a01229910fa0c12ef011cd6ccab0303b5:6p01229910fa0c12ef
+        #    (Favorites look like this)
+        return re.match('^tag:(?:[\w-]+[.]?)+,\d{4}:(?:\w+-)?(\w+(:\w+)?)$', atom_id).groups()[0]
     except:
         return None
 
@@ -218,6 +220,10 @@ class ElsewhereAccount(TypePadObject):
     
     """
 
+    @property
+    def xid(self):
+        return xid_from_atom_id(self.id)
+
 
 class Relationship(TypePadObject):
 
@@ -242,6 +248,15 @@ class Relationship(TypePadObject):
     """A `LinkSet` containing other URLs and API endpoints related to this
     relationship."""
     created = fields.Dict(fields.Datetime())
+
+    @property
+    def id(self):
+        """A pseudo-id that we use for caching purposes."""
+        return "tag:api.typepad.com,2009:%s%s" % (self.source.xid, self.target.xid)
+
+    @property
+    def xid(self):
+        return xid_from_atom_id(self.id)
 
     def _rel_type_updater(uri):
         def update(self):
@@ -612,7 +627,7 @@ class Asset(TypePadObject):
         assert re.match('^\w+$', url_id), "invalid url_id parameter given"
         a = cls.get('/assets/%s.json' % url_id, **kwargs)
         a.__dict__['url_id'] = url_id
-        a.__dict__['id'] = '%s-%s' % (cls.object_type, url_id)
+        a.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return a
 
     @property
@@ -677,11 +692,15 @@ class Favorite(Asset):
 
     @classmethod
     def get_by_user_asset(cls, user_id, asset_id, **kwargs):
-        ## TODO this url is broken! - bug id 86429
         assert re.match('^\w+$', user_id), "invalid user_id parameter given"
         assert re.match('^\w+$', asset_id), "invalid asset_id parameter given"
         return cls.get('/favorites/%s:%s.json' % (asset_id, user_id),
             **kwargs)
+
+    @classmethod
+    def head_by_user_asset(cls, *args, **kwargs):
+        fav = cls.get_by_user_asset(*args, **kwargs)
+        return fav.head()
 
 
 class Post(Asset):
