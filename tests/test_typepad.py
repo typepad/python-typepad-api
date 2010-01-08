@@ -1422,9 +1422,6 @@ class TestTypePad(unittest.TestCase):
         Tests the selection of the favorites for a specific user.
         """
 
-        raise nose.SkipTest(
-            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87904')
-
         member_id = self.testdata['member']['xid']
 
         typepad.client.batch_request()
@@ -2019,16 +2016,18 @@ class TestTypePad(unittest.TestCase):
         self.assert_(m,
             "%s does not match '^tag:api\.typepad\.com,2009:[A-Za-z]+$'" \
             % event.verbs[0])
-        self.assert_(m.groups()[0] in ('AddedFavorite', 'NewAsset',
+        verb = m.groups()[0]
+        self.assert_(verb in ('AddedFavorite', 'NewAsset',
             'JoinedGroup', 'AddedNeighbor'),
-            "Event type %s is not recognized" % m.groups()[0])
+            "Event type %s is not recognized" % verb)
         self.assert_(event.actor)
         self.assertValidUser(event.actor)
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87911
         # self.assert_(event.object)
         # self.assertValidAsset(event.object)
         if event.object is not None:
-            self.assertValidAsset(event.object)
+            if verb == 'NewAsset':
+                self.assertValidAsset(event.object)
 
     def assertValidGroup(self, group):
         """Checks given asset for properties that should be present on all assets.
@@ -2137,9 +2136,8 @@ class TestTypePad(unittest.TestCase):
         self.assert_(ref.url_id)
         self.assert_(isinstance(ref, typepad.AssetRef),
             'object %r is not a typepad.AssetRef' % ref)
-        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87953
-        # self.assert_(ref.href)
-        # self.assertEquals(ref.type, 'application/json')
+        self.assert_(ref.href)
+        self.assertEquals(ref.type, 'application/json')
         self.assertValidUser(ref.author)
         self.assert_(ref.object_types)
         self.assert_(len(ref.object_types) > 0)
