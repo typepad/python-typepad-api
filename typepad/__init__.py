@@ -44,6 +44,7 @@ __credits__ = """Brad Choate
 Leah Culver
 Mark Paschal"""
 
+import threading
 from urlparse import urljoin, urlparse
 
 import httplib2
@@ -102,10 +103,49 @@ class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
         host = urlparse(uri)[1]
         if not host:
             uri = urljoin(self.endpoint, uri)
-        return super(TypePadClient, self).signed_request(uri=uri, method=method, body=body, headers=headers)
+        return super(TypePadClient, self).signed_request(uri=uri,
+            method=method, body=body, headers=headers)
 
-client = TypePadClient()
+
+class ThreadAwareTypePadClientProxy(object):
+
+    def __init__(self):
+        self._local = threading.local()
+
+    def _get_client(self):
+        if not hasattr(self._local, 'client'):
+            self.client = client_factory()
+        return self._local.client
+
+    def _set_client(self, new_client):
+        self._local.client = new_client
+
+    client = property(_get_client, _set_client)
+    """Property for accessing the real client instance.
+
+    Constructs a TypePadClient if the active thread doesn't have one."""
+
+    def __getattr__(self, name):
+        if name in ('_local', 'client'):
+            return super(ThreadAwareTypePadClientProxy,
+                self).__getattr__(name)
+        else:
+            return getattr(self.client, name)
+
+    def __setattr__(self, name, value):
+        if name in ('_local', 'client'):
+            super(ThreadAwareTypePadClientProxy, self).__setattr__(name,
+                value)
+        else:
+            setattr(self.client, name, value)
+
+
+client_factory = lambda: TypePadClient()
+"""Python callable that will prep and assign a typepad.client instance."""
+
+client = ThreadAwareTypePadClientProxy()
 """A user agent instance for making TypePad API requests."""
+
 
 from typepad.tpobject import *
 from typepad import fields
