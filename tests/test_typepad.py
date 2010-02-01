@@ -98,6 +98,8 @@ is through the test method name, as tests are run in alphabetic order.
     5 - POST requests for parent objects (assets)
     6 - POST requests for child objects (favorites, comments)
 
+    6z - HEAD, OPTIONS requests made after POSTs but before DELETEs
+
     7 - DELETE requests for child objects (favorites, comments)
     8 - DELETE requests for top-level objects (assets)
 
@@ -337,6 +339,40 @@ class TestTypePad(unittest.TestCase):
         self.assertNotFound(typepad.client.complete_batch)
 
     @attr(user='group')
+    def test_8a_OPTIONS_assets_id__post__by_group(self):
+        """OPTIONS /assets/<id>.json (group)
+
+        Tests OPTIONS of an asset using group credentials.
+        """
+
+        self.assert_(len(self.testdata['assets_created']))
+
+        asset_id = self.testdata['assets_created'][0]
+
+        typepad.client.batch_request()
+        opt = typepad.Asset.get_by_url_id(asset_id).options()
+        typepad.client.complete_batch()
+
+        self.assert_(not opt.can_delete(), "group should NOT be able to delete")
+
+    @attr(user='group')
+    def test_8a_OPTIONS_assets_id__comment__by_group(self):
+        """OPTIONS /assets/<id>.json (group)
+
+        Tests OPTIONS of a comment using group credentials.
+        """
+
+        self.assert_(len(self.testdata['comments_created']))
+
+        asset_id = self.testdata['comments_created'][0]
+
+        typepad.client.batch_request()
+        opt = typepad.Asset.get_by_url_id(asset_id).options()
+        typepad.client.complete_batch()
+
+        self.assert_(not opt.can_delete(), "group should NOT be able to delete comment")
+
+    @attr(user='group')
     def test_8_DELETE_assets_id__by_group(self):
         """DELETE /assets/<id>.json (group)
 
@@ -375,6 +411,40 @@ class TestTypePad(unittest.TestCase):
         self.assertValidAsset(asset)
         self.assert_(not asset.can_delete)
         self.assertForbidden(asset.delete)
+
+    @attr(user='admin')
+    def test_8a_OPTIONS_assets_id__post__by_admin(self):
+        """OPTIONS /assets/<id>.json (admin)
+
+        Tests OPTIONS of an asset using admin credentials.
+        """
+
+        self.assert_(len(self.testdata['assets_created']))
+
+        asset_id = self.testdata['assets_created'][0]
+
+        typepad.client.batch_request()
+        opt = typepad.Asset.get_by_url_id(asset_id).options()
+        typepad.client.complete_batch()
+
+        self.assert_(opt.can_delete(), "admin should be able to delete")
+
+    @attr(user='admin')
+    def test_8a_OPTIONS_assets_id__comment__by_admin(self):
+        """OPTIONS /assets/<id>.json (admin)
+
+        Tests OPTIONS of an comment using admin credentials.
+        """
+
+        self.assert_(len(self.testdata['comments_created']))
+
+        asset_id = self.testdata['comments_created'][0]
+
+        typepad.client.batch_request()
+        opt = typepad.Asset.get_by_url_id(asset_id).options()
+        typepad.client.complete_batch()
+
+        self.assert_(opt.can_delete(), "admin should be able to delete comment")
 
     @attr(user='admin')
     def test_8_DELETE_assets_id__by_admin(self):
@@ -423,6 +493,40 @@ class TestTypePad(unittest.TestCase):
         typepad.client.batch_request()
         asset = typepad.Asset.get_by_url_id(asset_id)
         self.assertNotFound(typepad.client.complete_batch)
+
+    @attr(user='member')
+    def test_6z_OPTIONS_assets_id__post__by_member(self):
+        """OPTIONS /assets/<id>.json (member)
+
+        Tests OPTIONS of an asset using member credentials.
+        """
+
+        self.assert_(len(self.testdata['assets_created']))
+
+        asset_id = self.testdata['assets_created'][0]
+
+        typepad.client.batch_request()
+        opt = typepad.Asset.get_by_url_id(asset_id).options()
+        typepad.client.complete_batch()
+
+        self.assert_(opt.can_delete(), "member should be able to delete")
+
+    @attr(user='member')
+    def test_6z_OPTIONS_assets_id__comment__by_member(self):
+        """OPTIONS /assets/<id>.json (member)
+
+        Tests OPTIONS of an asset using member credentials.
+        """
+
+        self.assert_(len(self.testdata['comments_created']))
+
+        asset_id = self.testdata['comments_created'][0]
+
+        typepad.client.batch_request()
+        opt = typepad.Asset.get_by_url_id(asset_id).options()
+        typepad.client.complete_batch()
+
+        self.assert_(opt.can_delete(), "member should be able to delete comment")
 
     @attr(user='member')
     def test_9_DELETE_assets_id__post__by_member(self):
@@ -818,6 +922,28 @@ class TestTypePad(unittest.TestCase):
         self.assertValidFavorite(fav)
         self.assertEquals(fav.in_reply_to.url_id, asset_id)
         self.assertEquals(fav.author.url_id, member_id)
+
+    @attr(user='member')
+    def test_6z_HEAD_favorites_id(self):
+        """HEAD /favorites/<asset_id>:<user_id>.json (group)
+        
+        Tests existence of a favorite using group credentials.
+        """
+        # '6z' will sort this test so it runs prior to the favorite deletion
+        # tests.
+        self.assert_(len(self.testdata['assets_created']) > 0)
+
+        asset_id = self.testdata['assets_created'][0]
+        member_id = self.testdata['member']['xid']
+        admin_id = self.testdata['admin']['xid']
+
+        typepad.client.batch_request()
+        fav = typepad.Favorite.head_by_user_asset(member_id, asset_id)
+        not_fav = typepad.Favorite.head_by_user_asset(admin_id, asset_id)
+        typepad.client.complete_batch()
+
+        self.assert_(fav.found(), "asset is not a favorite by member but should be")
+        self.assert_(not not_fav.found(), "asset is a favorite of admin but shouldn't be")
 
     @attr(user='group')
     def test_7_DELETE_favorites_id__by_group(self):
