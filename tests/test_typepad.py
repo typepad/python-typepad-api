@@ -166,7 +166,7 @@ def attr(*args, **kwargs):
     def wrap(fn):
         user = kwargs.get('user', None)
         if fn.__doc__ is not None:
-            m = re.match(r'^(GET|DELETE|PUT|POST) ', fn.__doc__)
+            m = re.match(r'^(GET|DELETE|PUT|POST|OPTIONS|HEAD) ', fn.__doc__)
             if m is not None:
                 verb = m.groups()[0]
                 kwargs['method'] = verb
@@ -1536,7 +1536,7 @@ class TestTypePad(unittest.TestCase):
         self.assertTrue(events[0].object.groups[0].endswith(group_id))
 
     @attr(user='group')
-    def test_1_GET_users_id_favorites(self):
+    def test_6z_GET_users_id_favorites(self):
         """GET /users/<id>/favorites.json (group)
         
         Tests the selection of the favorites for a specific user.
