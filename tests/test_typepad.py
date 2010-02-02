@@ -1535,25 +1535,6 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(events[0].object.author.url_id, member_id)
         self.assertTrue(events[0].object.groups[0].endswith(group_id))
 
-    @attr(user='group')
-    def test_6z_GET_users_id_favorites(self):
-        """GET /users/<id>/favorites.json (group)
-        
-        Tests the selection of the favorites for a specific user.
-        """
-
-        member_id = self.testdata['member']['xid']
-
-        typepad.client.batch_request()
-        user = typepad.User.get_by_url_id(member_id)
-        listset = self.filterEndpoint(user.favorites)
-        typepad.client.complete_batch()
-
-        self.assertValidFilter(listset)
-        favs = listset[0]
-        for fav in favs:
-            self.assertValidFavorite(fav)
-
     @attr(user='member')
     def test_6_POST_users_id_favorites(self):
         """POST /users/<id>/favorites.json (member)
@@ -1587,6 +1568,28 @@ class TestTypePad(unittest.TestCase):
             typepad.client.complete_batch()
 
             self.assertValidFavorite(fav2)
+
+    @attr(user='group')
+    def test_6z_GET_users_id_favorites(self):
+        """GET /users/<id>/favorites.json (group)
+        
+        Tests the selection of the favorites for a specific user.
+        """
+
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?92991')
+
+        member_id = self.testdata['member']['xid']
+
+        typepad.client.batch_request()
+        user = typepad.User.get_by_url_id(member_id)
+        listset = self.filterEndpoint(user.favorites)
+        typepad.client.complete_batch()
+
+        self.assertValidFilter(listset)
+        favs = listset[0]
+        for fav in favs:
+            self.assertValidFavorite(fav)
 
     @attr(user='group')
     def test_1_GET_users_id_memberships(self):
