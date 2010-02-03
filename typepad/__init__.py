@@ -69,6 +69,9 @@ class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
     endpoint = 'https://api.typepad.com'
     """The URL against which to perform TypePad API requests."""
 
+    subrequest_limit = 20
+    """The number of subrequests permitted for a given batch."""
+
     def __init__(self, *args, **kwargs):
         self.cookies = dict()
         kwargs['endpoint'] = self.endpoint
