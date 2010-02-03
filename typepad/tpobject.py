@@ -548,10 +548,10 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
     entries       = fields.List(fields.Field())
     """A list of items in this list resource."""
 
-    filterorder = ['following', 'follower', 'friend', 'nonreciprocal',
-        'published', 'unpublished', 'spam', 'admin', 'member',
-        'by-group', 'by-user', 'photo', 'post', 'video', 'audio', 'comment',
-        'link']
+    filterorder = ['following', 'follower', 'blocked', 'friend',
+        'nonreciprocal', 'published', 'unpublished', 'spam', 'admin',
+        'member', 'by-group', 'by-user', 'photo', 'post', 'video', 'audio',
+        'comment', 'link']
 
     def count(self):
         """Returns the number of items in the overall list resource, of which
