@@ -76,6 +76,7 @@ class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
         self.cookies = dict()
         kwargs['endpoint'] = self.endpoint
         super(TypePadClient, self).__init__(*args, **kwargs)
+        self.follow_redirects = False
 
     def request(self, uri, method="GET", body=None, headers=None, redirections=httplib2.DEFAULT_MAX_REDIRECTS, connection_type=None):
         """Makes the given HTTP request, as specified.
