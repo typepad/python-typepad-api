@@ -185,6 +185,58 @@ class User(TypePadObject):
         return u
 
 
+class Blog(TypePadObject):
+
+    """A TypePad blog."""
+
+    id                 = fields.Field()
+    """A URI that uniquely identifies this `Blog`.
+
+    A user's `id` URI is unique across groups, TypePad environments, and
+    time. When associating local content to a user, use this identifier
+    as the "foreign key" to an API user.
+
+    """
+    url_id             = fields.Field(api_name='urlId')
+    """An identifier for this `Blog` that can be used in URLs.
+
+    A user's `url_id` is unique only across groups in one TypePad
+    environment, so you should use `id`, not `url_id`, to associate data
+    with a `Blog`. When constructing URLs to API resources in a given
+    TypePad environment, however, use `url_id`.
+
+    """
+    title              = fields.Field()
+    """The title that was given to this blog by its owner."""
+
+    description        = fields.Field()
+    """The description that was given to this blog by its owner."""
+
+    owner              = fields.Object('User')
+    """The owner of this blog."""
+
+    post_assets        = fields.Link(ListOf('Asset'), api_name="post-assets")
+    page_assets        = fields.Link(ListOf('Asset'), api_name="page-assets")
+
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        """Returns a `Blog` instance by its url identifier.
+
+        Blog URL identifiers must contain only letters, numbers, and
+        underscores.
+
+        """
+        if len(url_id) == 0:
+            raise ValueError('URL identifiers must contain some characters')
+        mo = re.search('\W', url_id)
+        if mo:
+            raise ValueError('URL identifiers cannot contain "%s" characters'
+                             % mo.group(0))
+        u = cls.get('/blogs/%s.json' % url_id, **kwargs)
+        u.__dict__['url_id'] = url_id
+        return u
+
+
 class ElsewhereAccount(TypePadObject):
 
     """A user account on an external website."""
