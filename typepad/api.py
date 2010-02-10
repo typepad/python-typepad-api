@@ -217,6 +217,7 @@ class Blog(TypePadObject):
 
     post_assets        = fields.Link(ListOf('Asset'), api_name="post-assets")
     page_assets        = fields.Link(ListOf('Asset'), api_name="page-assets")
+    comments           = fields.Link(ListOf('Asset'))
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
