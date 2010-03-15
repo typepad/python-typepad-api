@@ -596,8 +596,13 @@ class Asset(TypePadObject):
     text_format  = fields.Field(api_name='textFormat')
     groups       = fields.List(fields.Field())
 
+    rendered_content = fields.Field(api_name="renderedContent")
+    """The content of this asset rendered to HTML. This is currently available only for `Post` and `Page` assets."""
+
     crosspost_accounts = fields.List(fields.Field(), api_name='crosspostAccounts')
     """A list of elsewhere account IDs to crosspost to."""
+
+    permalink_url = fields.Field(api_name='permalinkUrl')
 
     @property
     def can_delete(self):
@@ -715,6 +720,18 @@ class Photo(Asset):
     """An entry in a blog."""
 
     object_type = "tag:api.typepad.com,2009:Photo"
+
+    image_link = fields.Object('ImageLink')
+
+
+class ImageLink(TypePadObject):
+
+    """A link to an image."""
+
+    url          = fields.Field()
+    url_template = fields.Field(api_name="urlTemplate")
+    width        = fields.Field()
+    height       = fields.Field()
 
 
 class Audio(Asset):
