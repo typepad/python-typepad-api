@@ -774,7 +774,7 @@ class Photo(Asset):
 
     object_type = "tag:api.typepad.com,2009:Photo"
 
-    image_link = fields.Object('ImageLink')
+    image_link = fields.Object('ImageLink', api_name="imageLink")
 
 
 class ImageLink(TypePadObject):
