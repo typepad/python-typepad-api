@@ -309,6 +309,17 @@ class TypePadObject(remoteobjects.RemoteObject):
         return super(TypePadObject, self).deliver()
 
 
+class ImageUrl(object):
+
+    def __init__(self, url_template):
+        self.url_template = url_template
+
+    def __getattr__(self, spec):
+        return self.url_template.replace('{spec}', spec)
+
+    __getitem__ = __getattr__
+
+
 class Link(TypePadObject):
 
     """A `TypePadObject` representing a link from to another resource.
@@ -327,6 +338,9 @@ class Link(TypePadObject):
     """
     href            = fields.Field()
     """The absolute URL of the target resource."""
+    url             = fields.Field()
+    """The absolute URL of the target resource."""
+    url_template    = fields.Field(api_name='urlTemplate')
     type            = fields.Field()
     """The MIME media type of the target resource."""
     width           = fields.Field()
@@ -352,6 +366,9 @@ class Link(TypePadObject):
     def __repr__(self):
         """Returns a developer-readable representation of this object."""
         return "<Link %s>" % self.__dict__.get('href', hex(id(self)))
+
+    def url_with_spec(self):
+        return ImageUrl(self.url_template)
 
 
 class LinkSet(set, TypePadObject):
