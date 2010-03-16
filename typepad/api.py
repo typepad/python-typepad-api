@@ -137,6 +137,10 @@ class User(TypePadObject):
     links              = fields.Object('LinkSet')
     """A `LinkSet` containing various URLs and API endpoints related to this
     `User`."""
+
+    avatar_link = fields.Object('Link', api_name='avatarLink')
+    profile_page_url = fields.Field(api_name='profilePageUrl')
+
     relationships      = fields.Link(ListOf('Relationship'))
     events             = fields.Link(ListOf('Event'))
     comments           = fields.Link(ListOf('Comment'), api_name='comments-sent')
@@ -596,7 +600,7 @@ class Asset(TypePadObject):
     text_format  = fields.Field(api_name='textFormat')
     groups       = fields.List(fields.Field())
 
-    rendered_content = fields.Field(api_name="renderedContent")
+    rendered_content = fields.Field(api_name='renderedContent')
     """The content of this asset rendered to HTML. This is currently available only for `Post` and `Page` assets."""
 
     crosspost_accounts = fields.List(fields.Field(), api_name='crosspostAccounts')
@@ -721,17 +725,7 @@ class Photo(Asset):
 
     object_type = "tag:api.typepad.com,2009:Photo"
 
-    image_link = fields.Object('ImageLink', api_name="imageLink")
-
-
-class ImageLink(TypePadObject):
-
-    """A link to an image."""
-
-    url          = fields.Field()
-    url_template = fields.Field(api_name="urlTemplate")
-    width        = fields.Field()
-    height       = fields.Field()
+    image_link = fields.Object('Link', api_name='imageLink')
 
 
 class Audio(Asset):
