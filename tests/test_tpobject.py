@@ -61,7 +61,14 @@ class TestObjects(unittest.TestCase):
         self.assert_(x is y, "two ListOf's the same thing are not only "
                              "equivalent but the same instance")
 
-    def test_links(self):
+    def test_imagelink(self):
+        l = typepad.Link(url_template='http://example.com/blah-{spec}')
+        image = l.url_with_spec()
+        self.assert_(isinstance(image, typepad.ImageUrl))
+        self.assertEquals(image['75si'], 'http://example.com/blah-75si')
+        self.assertEquals(image['pi'], 'http://example.com/blah-pi')
+
+    def test_linkset(self):
 
         replies = {
             'href':  'http://127.0.0.1:8000/assets/1/comments.json',

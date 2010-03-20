@@ -311,6 +311,21 @@ class TypePadObject(remoteobjects.RemoteObject):
 
 class ImageUrl(object):
 
+    """The address of an image that can be sized with an image sizing spec.
+
+    You can request images from TypePad in several sizes, using an *image
+    sizing spec*. For example, the image spec ``pi`` means the original size
+    of the image, whereas ``75si`` means a 75 pixel square.
+
+    An `ImageUrl` instance contains an image URL template to which you can
+    apply an image sizing spec to obtain a real TypePad image URL. Use your
+    spec as a key into the `ImageUrl` instance to obtain the real URL::
+
+        full_url = image_url['pi']
+        thumb_url = image_url['75si']
+
+    """
+
     def __init__(self, url_template):
         self.url_template = url_template
 
@@ -341,6 +356,8 @@ class Link(TypePadObject):
     url             = fields.Field()
     """The absolute URL of the target resource."""
     url_template    = fields.Field(api_name='urlTemplate')
+    """The template for the absolute URLs of alternate versions of the target
+    resource, if such alternates exist (such as for photos)."""
     type            = fields.Field()
     """The MIME media type of the target resource."""
     width           = fields.Field()
@@ -368,6 +385,13 @@ class Link(TypePadObject):
         return "<Link %s>" % self.__dict__.get('href', hex(id(self)))
 
     def url_with_spec(self):
+        """Returns an `ImageUrl` instance representing this `Link`.
+
+        The returned `ImageUrl` instance can be subscripted with the image
+        sizing spec, to generate an URL based on this `Link` instance's
+        `url_template` value.
+
+        """
         return ImageUrl(self.url_template)
 
 
