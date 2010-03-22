@@ -153,6 +153,9 @@ class User(TypePadObject):
     def xid(self):
         return xid_from_atom_id(self.id)
 
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/users/%s.json' % self.url_id)
+
     @classmethod
     def get_self(cls, **kwargs):
         """Returns a `User` instance representing the account as whom the
@@ -238,6 +241,10 @@ class RelationshipStatus(TypePadObject):
     """A list of URIs instances that describe all the
     relationship edges included in this `RelationshipStatus`."""
 
+    def make_self_link(self):
+        # TODO: no url_id so we can't build a URL
+        return
+
 
 class Relationship(TypePadObject):
 
@@ -281,6 +288,11 @@ class Relationship(TypePadObject):
     @property
     def xid(self):
         return xid_from_atom_id(self.id)
+
+    def make_self_link(self):
+        # TODO: the only xid we have here is made up. it doesn't actually
+        # let us query the Relationship from the API, does it?
+        return self.links['self'].href
 
     def _rel_type_updater(uri):
         def update(self):
@@ -364,6 +376,9 @@ class Group(TypePadObject):
     def xid(self):
         return xid_from_atom_id(self.id)
 
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/groups/%s.json' % self.url_id)
+
     @classmethod
     def get_by_id(cls, id, **kwargs):
         """Returns a `Group` instance by their unique identifier.
@@ -392,6 +407,9 @@ class ApiKey(TypePadObject):
     """The consumer key portion for this `ApiKey`."""
     owner   = fields.Object('Application')
 
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/api-keys/%s.json' % self.api_key)
+
     @classmethod
     def get_by_api_key(cls, api_key):
         """Returns an `ApiKey` instance with the given consumer key.
@@ -405,6 +423,10 @@ class AuthToken(TypePadObject):
 
     auth_token = fields.Field(api_name='authToken')
     target     = fields.Object('TypePadObject', api_name='targetObject')
+
+    def make_self_link(self):
+        # TODO: We don't have the API key, so we can't build a self link.
+        return
 
     @classmethod
     def get_by_key_and_token(cls, api_key, auth_token):
@@ -422,6 +444,10 @@ class Application(TypePadObject):
 
     object_type = "tag:api.typepad.com,2009:Application"
 
+    id           = fields.Field()
+    """A URI that uniquely identifies this `Application`."""
+    url_id = fields.Field()
+    """The canonical identifier used to identify this `Application` in URLs."""
     name  = fields.Field()
     """The name of this `Application` as configured by the developer."""
     links = fields.Object('LinkSet')
@@ -450,6 +476,9 @@ class Application(TypePadObject):
         """The endpoint to use for uploading file assets directly to
         TypePad."""
         return urljoin(typepad.client.endpoint, '/browser-upload.json')
+
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/applications/%s.json' % self.url_id)
 
     @classmethod
     def get_by_api_key(cls, api_key, **kwargs):
@@ -514,6 +543,9 @@ class Event(TypePadObject):
     def xid(self):
         return xid_from_atom_id(self.id)
 
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/events/%s.json' % self.url_id)
+
 
 class Provider(TypePadObject):
 
@@ -531,7 +563,6 @@ class Source(TypePadObject):
 
     """Information about an `Asset` instance imported from another service."""
 
-    id       = fields.Field()
     links    = fields.Object('LinkSet')
     provider = fields.Object('Provider')
     """Description of the external service that provided the associated asset."""
@@ -633,6 +664,9 @@ class Asset(TypePadObject):
     @property
     def xid(self):
         return xid_from_atom_id(self.id)
+
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/assets/%s.json' % self.url_id)
 
     @classmethod
     def get_by_id(cls, id, **kwargs):

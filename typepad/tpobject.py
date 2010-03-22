@@ -49,6 +49,7 @@ The module contains:
 from urlparse import urljoin, urlparse, urlunparse
 import cgi
 import inspect
+import logging
 import sys
 import urllib
 
@@ -62,6 +63,8 @@ import httplib2
 import typepad
 from typepad import fields
 
+
+log = logging.getLogger(__name__)
 
 classes_by_object_type = {}
 
@@ -242,6 +245,23 @@ class TypePadObject(remoteobjects.RemoteObject):
         # We're already that class, so go ahead.
         return False
 
+    def make_self_link(self):
+        """Builds the API URL for this `TypePadObject` instance from its data.
+
+        This method returns either the fully absolute URL at which this
+        `TypePadObject` instance can be found in the API, or ``None`` if the
+        `TypePadObject` instance has no API URL. (A `TypePadObject` instance
+        may have no URL if it has not been saved to the API, or if it is an
+        instance of a `TypePadObject` subclass that is only ever used as a
+        field in another class and so cannot be requested by itself.)
+
+        This implementation returns ``None``. As different API objects use
+        different URL schemes, all `TypePadObject` subclasses that can have
+        self links must implement this method themselves.
+
+        """
+        return
+
     def update_from_dict(self, data):
         """Updates this object with the given data, transforming it into an
         instance of a different `TypePadObject` subclass if necessary.
@@ -277,9 +297,10 @@ class TypePadObject(remoteobjects.RemoteObject):
             try:
                 # attempt to assign the _location of this object
                 # to the 'self' link relation's href
-                self._location = self.links['self'].href
-            except (TypeError, KeyError, AttributeError):
-                pass
+                self._location = self.make_self_link()
+            except (TypeError, KeyError, AttributeError), exc:
+                if log.isEnabledFor(logging.DEBUG):
+                    log.exception(exc)
 
     def to_dict(self):
         """Encodes the `TypePadObject` instance to a dictionary."""

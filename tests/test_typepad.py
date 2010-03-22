@@ -1193,8 +1193,10 @@ class TestTypePad(unittest.TestCase):
         self.assertValidRelationship(rel)
 
         typepad.client.batch_request()
-        status = rel.status_obj
-        typepad.client.complete_batch()
+        try:
+            status = rel.status_obj
+        finally:
+            typepad.client.complete_batch()
 
         self.assertValidRelationshipStatus(status)
 
