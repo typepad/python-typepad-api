@@ -2048,31 +2048,13 @@ class TestTypePad(unittest.TestCase):
     def assertValidApplication(self, app):
         self.assert_(isinstance(app, typepad.Application),
             'object %r is not a typepad.Application' % app)
-        self.assert_(app.links)
-        links = ('oauth-request-token-endpoint', 'oauth-authorization-page',
-            'oauth-identification-page', 'signout-page',
-            'session-sync-script', 'oauth-access-token-endpoint',
-            'user-flyouts-script', 'self')
+        links = ('oauth_request_token_url', 'oauth_authorization_url',
+            'oauth_access_token_url', 'oauth_identification_url',
+            'session_sync_script_url', 'signout_url',
+            'user_flyouts_script_url')
         for link in links:
-            self.assert_(link in app.links, 'no %s link present' % link)
-            self.assert_(app.links[link].href, 'no href on %s link' % link)
-            if link.endswith('-script'):
-                self.assertEquals(app.links[link].type, 'text/javascript',
-                    'type %s is invalid for %s link' % \
-                    (app.links[link].type, link))
-            elif link.endswith('-page'):
-                self.assertEquals(app.links[link].type, 'text/html',
-                    'type %s is invalid for %s link' % \
-                    (app.links[link].type, link))
-        self.assert_(app.oauth_request_token)
-        self.assert_(app.oauth_authorization_page)
-        self.assert_(app.oauth_access_token_endpoint)
-        self.assert_(app.session_sync_script)
-        self.assert_(app.oauth_identification_page)
-        self.assert_(app.signout_page)
-        self.assert_(app.user_flyouts_script)
+            self.assert_(getattr(app, link))
         self.assert_(app.browser_upload_endpoint)
-        self.assertEquals(app.links['self'].type, 'application/json')
 
     def assertValidFavorite(self, fav):
         self.assert_(isinstance(fav, typepad.Favorite),

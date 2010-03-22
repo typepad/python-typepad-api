@@ -428,42 +428,22 @@ class Application(TypePadObject):
     """A `LinkSet` containing the API endpoints associated with this
     `Application`."""
 
-    @property
-    def oauth_request_token(self):
-        """The service URL from which to request the OAuth request token."""
-        return self.links['oauth-request-token-endpoint'].href
-
-    @property
-    def oauth_authorization_page(self):
-        """The URL at which end users can authorize the application to access
-        their accounts."""
-        return self.links['oauth-authorization-page'].href
-
-    @property
-    def oauth_access_token_endpoint(self):
-        """The service URL from which to request the OAuth access token."""
-        return self.links['oauth-access-token-endpoint'].href
-
-    @property
-    def session_sync_script(self):
-        """The URL from which to request session sync javascript."""
-        return self.links['session-sync-script'].href
-
-    @property
-    def oauth_identification_page(self):
-        """The URL at which end users can identify themselves to sign into
-        typepad, thereby signing into this site."""
-        return self.links['oauth-identification-page'].href
-
-    @property
-    def signout_page(self):
-        """The URL at which end users can sign out of TypePad."""
-        return self.links['signout-page'].href
-
-    @property
-    def user_flyouts_script(self):
-        """The URL from which to request typepad user flyout javascript."""
-        return self.links['user-flyouts-script'].href
+    oauth_request_token_url = fields.Field(api_name='oauthRequestTokenUrl')
+    """The service URL from which to request the OAuth request token."""
+    oauth_authorization_url = fields.Field(api_name='oauthAuthorizationUrl')
+    """The URL at which end users can authorize the application to access
+    their accounts."""
+    oauth_access_token_url = fields.Field(api_name='oauthAccessTokenUrl')
+    """The service URL from which to request the OAuth access token."""
+    oauth_identification_url = fields.Field(api_name='oauthIdentificationUrl')
+    """The URL at which end users can identify themselves to sign into
+    typepad, thereby signing into this site."""
+    session_sync_script_url = fields.Field(api_name='sessionSyncScriptUrl')
+    """The URL from which to request session sync javascript."""
+    signout_url = fields.Field(api_name='signoutUrl')
+    """The URL at which end users can sign out of TypePad."""
+    user_flyouts_script_url = fields.Field(api_name='userFlyoutsScriptUrl')
+    """The URL from which to request typepad user flyout javascript."""
 
     @property
     def browser_upload_endpoint(self):
