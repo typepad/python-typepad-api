@@ -229,6 +229,16 @@ class ElsewhereAccount(TypePadObject):
         return xid_from_atom_id(self.id)
 
 
+class RelationshipStatus(TypePadObject):
+
+    """A representation of just the relationship types of a relationship,
+    without the associated endpoints."""
+
+    types = fields.List(fields.Field())
+    """A list of URIs instances that describe all the
+    relationship edges included in this `RelationshipStatus`."""
+
+
 class Relationship(TypePadObject):
 
     """The unidirectional relationship between a pair of entities.
@@ -253,6 +263,16 @@ class Relationship(TypePadObject):
     relationship."""
     created = fields.Dict(fields.Datetime())
 
+    status_obj = fields.Link(RelationshipStatus, api_name='status')
+    """A `RelationshipStatus` describing the types of relationship this
+    `Relationship` instance represents.
+
+    Unlike the `RelationshipStatus` instance in the `status` field, this
+    linked `RelationshipsStatus` instance can be updated through ``POST``
+    requests.
+
+    """
+
     @property
     def id(self):
         """A pseudo-id that we use for caching purposes."""
@@ -264,7 +284,7 @@ class Relationship(TypePadObject):
 
     def _rel_type_updater(uri):
         def update(self):
-            rel_status = RelationshipStatus.get(self.status_url(), batch=False)
+            rel_status = RelationshipStatus.get(self.status_obj._location, batch=False)
             if uri:
                 rel_status.types = [uri]
             else:
@@ -284,19 +304,6 @@ class Relationship(TypePadObject):
     is_member  = _rel_type_checker("tag:api.typepad.com,2009:Member")
     is_admin   = _rel_type_checker("tag:api.typepad.com,2009:Admin")
     is_blocked = _rel_type_checker("tag:api.typepad.com,2009:Blocked")
-
-    def status_url(self):
-        return self.links['status'].href
-
-
-class RelationshipStatus(TypePadObject):
-
-    """A representation of just the relationship types of a relationship,
-    without the associated endpoints."""
-
-    types = fields.List(fields.Field())
-    """A list of URIs instances that describe all the
-    relationship edges included in this `RelationshipStatus`."""
 
 
 class Group(TypePadObject):

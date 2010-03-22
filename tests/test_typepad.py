@@ -1192,10 +1192,8 @@ class TestTypePad(unittest.TestCase):
         rel = followers[0]
         self.assertValidRelationship(rel)
 
-        rel_status = rel.links['status'].href
-
         typepad.client.batch_request()
-        status = typepad.RelationshipStatus.get(rel_status)
+        status = rel.status_obj
         typepad.client.complete_batch()
 
         self.assertValidRelationshipStatus(status)
@@ -1228,7 +1226,7 @@ class TestTypePad(unittest.TestCase):
             memberships[0].block()
         elif action == 'unblock':
             self.assert_(memberships[0].is_blocked())
-            status = typepad.RelationshipStatus.get(memberships[0].status_url(), batch=False)
+            status = typepad.RelationshipStatus.get(memberships[0].status_obj._location, batch=False)
             status.types = ["tag:api.typepad.com,2009:Member"]
             status.put()
 
