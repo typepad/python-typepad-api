@@ -616,6 +616,11 @@ class Asset(TypePadObject):
     crosspost_accounts = fields.List(fields.Field(), api_name='crosspostAccounts')
     """A list of elsewhere account IDs to crosspost to."""
 
+    comment_count = fields.Field(api_name='commentCount')
+    """The number of comments left on this `Asset` instance."""
+    favorite_count = fields.Field(api_name='favoriteCount')
+    """The number of times this `Asset` instance has been marked as a favorite."""
+
     permalink_url = fields.Field(api_name='permalinkUrl')
 
     @property
@@ -658,20 +663,7 @@ class Asset(TypePadObject):
         """
         return self.author
 
-    def comment_count(self):
-        try:
-            return self.links['replies'].total
-        except (TypeError, KeyError):
-            return 0
-
     comments = fields.Link(ListOf('Asset'))
-
-    def favorite_count(self):
-        try:
-            return self.links['favorites'].total
-        except (TypeError, KeyError):
-            return 0
-
     favorites = fields.Link(ListOf('Favorite'))
 
     @property
