@@ -517,20 +517,41 @@ class Event(TypePadObject):
 
 class Provider(TypePadObject):
 
+    """An external service that provided an asset."""
+
     name = fields.Field()
+    """The name of the external service."""
     uri  = fields.Field()
+    """The main URL for the external service."""
     icon = fields.Field()
+    """The URL for a 16 by 16 favicon for the external service."""
 
 
 class Source(TypePadObject):
 
+    """Information about an `Asset` instance imported from another service."""
+
     id       = fields.Field()
     links    = fields.Object('LinkSet')
     provider = fields.Object('Provider')
+    """Description of the external service that provided the associated asset."""
     source   = fields.Field()
     by_user  = fields.Field(api_name='byUser')
+    """Whether the associated asset was created on the external service by
+    the TypePad asset's author, as opposed to imported by that TypePad user.
+
+    For example, a YouTube video asset that the TypePad user *created* would
+    have a `by_user` of ``True``. If the TypePad user instead posted someone
+    else's YouTube video, `by_user` would be ``False``. (As far as TypePad is
+    concerned, the TypePad user who posted it is the asset's author in either
+    case.)
+
+    """
+    #permalink_url = fields.Field(api_name='permalinkUrl')
+    """The original URL of the imported asset on the external service."""
 
     def original_link(self):
+        # TODO: switch to self.permalink_url once the API provides that.
         return list(self.links['rel__alternate'])[0]
 
 
@@ -584,6 +605,8 @@ class Asset(TypePadObject):
     which this instance is a comment."""
 
     source       = fields.Object('Source')
+    """If the `Asset` instance was imported from another service, a `Source`
+    instance describing the original asset on the external service."""
     text_format  = fields.Field(api_name='textFormat')
     groups       = fields.List(fields.Field())
 
