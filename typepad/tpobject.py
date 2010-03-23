@@ -384,6 +384,23 @@ class ImageLink(TypePadObject):
         return self.url_template.replace('{spec}', spec)
 
 
+class VideoLink(TypePadObject):
+
+    """A link to a web video."""
+
+    embed_code = fields.Field(api_name='embedCode')
+    """An opaque HTML fragment that, when embedded in an HTML page, will
+    provide an inline player for the video."""
+    permalink_url = fields.Field(api_name='permalinkUrl')
+    """A URL to the HTML permalink page of the video.
+
+    Use this field to specify the video when posting a new `Video` asset.
+    When requesting an existing `Video` instance from the API,
+    `permalink_url` will be ``None``.
+
+    """
+
+
 class Link(TypePadObject):
 
     """A `TypePadObject` representing a link from to another resource.
@@ -416,10 +433,8 @@ class Link(TypePadObject):
     an ``OPTIONS`` or ``GET`` request to determine the available methods.
 
     """
-    html            = fields.Field()
     duration        = fields.Field()
     by_user         = fields.Field(api_name="byUser")
-    embed_code      = fields.Field(api_name="embedCode")
 
     def __repr__(self):
         """Returns a developer-readable representation of this object."""

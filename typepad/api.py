@@ -836,7 +836,7 @@ class Video(Asset):
 
     links = fields.Object('LinkSet')
 
-    video_link = fields.Object('Link', api_name='videoLink')
+    video_link = fields.Object('VideoLink', api_name='videoLink')
     preview_image_link = fields.Object('ImageLink', api_name='previewImageLink')
 
 
