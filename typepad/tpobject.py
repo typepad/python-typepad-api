@@ -345,7 +345,7 @@ class ImageLink(TypePadObject):
     """The natural width of the original image in pixels."""
     height = fields.Field()
     """The natural height of the original image in pixels."""
-    url_template = fields.Object('ImageUrlTemplate', api_name='urlTemplate')
+    url_template = fields.Field(api_name='urlTemplate')
     """If TypePad is able to scale the image, the URL template for making
     resized image URLs.
 
