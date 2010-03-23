@@ -1917,7 +1917,7 @@ class TestTypePad(unittest.TestCase):
             self.fail('asset has an unexpected objectType: %s' % \
                 object_type)
         if asset.source:
-            self.assert_(asset.source.original_link)
+            self.assert_(asset.source.permalink_url)
             self.assert_(asset.source.provider)
 
             self.assert_(asset.source.provider.icon)

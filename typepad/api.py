@@ -628,7 +628,6 @@ class Source(TypePadObject):
 
     """Information about an `Asset` instance imported from another service."""
 
-    links    = fields.Object('LinkSet')
     provider = fields.Object('Provider')
     """Description of the external service that provided the associated asset."""
     source   = fields.Field()
@@ -643,12 +642,8 @@ class Source(TypePadObject):
     case.)
 
     """
-    #permalink_url = fields.Field(api_name='permalinkUrl')
+    permalink_url = fields.Field(api_name='permalinkUrl')
     """The original URL of the imported asset on the external service."""
-
-    def original_link(self):
-        # TODO: switch to self.permalink_url once the API provides that.
-        return list(self.links['rel__alternate'])[0]
 
 
 class Asset(TypePadObject):
