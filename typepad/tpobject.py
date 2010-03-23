@@ -48,6 +48,7 @@ The module contains:
 from urlparse import urljoin, urlparse, urlunparse
 import cgi
 import inspect
+from itertools import chain
 import logging
 import sys
 import urllib
@@ -329,30 +330,58 @@ class TypePadObject(remoteobjects.RemoteObject):
         return super(TypePadObject, self).deliver()
 
 
-class ImageUrl(object):
+class ImageLink(TypePadObject):
 
-    """The address of an image that can be sized with an image sizing spec.
+    """A link to an image.
 
-    You can request images from TypePad in several sizes, using an *image
-    sizing spec*. For example, the image spec ``pi`` means the original size
-    of the image, whereas ``75si`` means a 75 pixel square.
-
-    An `ImageUrl` instance contains an image URL template to which you can
-    apply an image sizing spec to obtain a real TypePad image URL. Use your
-    spec as a key into the `ImageUrl` instance to obtain the real URL::
-
-        full_url = image_url['pi']
-        thumb_url = image_url['75si']
+    Images hosted by TypePad can be resized with image sizing specs. See
+    the `url_template` field and `at_size` method.
 
     """
 
-    def __init__(self, url_template):
-        self.url_template = url_template
+    url = fields.Field()
+    """The URL for the original full-size version of the image."""
+    width = fields.Field()
+    """The natural width of the original image in pixels."""
+    height = fields.Field()
+    """The natural height of the original image in pixels."""
+    url_template = fields.Object('ImageUrlTemplate', api_name='urlTemplate')
+    """If TypePad is able to scale the image, the URL template for making
+    resized image URLs.
 
-    def __getattr__(self, spec):
+    The URL template is combined with an *image sizing spec* to provide
+    an URL to the same image at a different size.
+
+    Only images hosted on TypePad are available in multiple sizes. Images
+    such as Facebook and Twitter userpics are only available in one size.
+    If an image is not resizable, its `url_template` will be ``None``.
+
+    """
+
+    valid_specs = set(chain(
+        ('%dpi' % x for x in (        50, 75,      115, 120,      200,                320, 350,           500,                640,                800,                1024)),
+        ('%dwi' % x for x in (        50, 75, 100, 115, 120, 150, 200,      250, 300, 320, 350, 400, 450, 500, 550, 580, 600, 640, 650, 700, 750, 800, 850, 900, 950, 1024)),
+        ('%dhi' % x for x in (            75,                               250)),
+        ('%dsi' % x for x in (16, 20, 50, 75,      115, 120, 150,      220, 250)),
+        ('pi',),
+    ))
+    """A set of all known valid image sizing specs."""
+
+    def at_size(self, spec):
+        """Returns the URL for the image at size given by `spec`.
+
+        You can request images from TypePad in several sizes, using an
+        *image sizing spec*. For example, the image spec ``pi`` means the
+        original size of the image, whereas ``75si`` means a 75 pixel
+        square.
+
+        If `spec` is not a valid image sizing spec, this method raises a
+        `ValueError`.
+
+        """
+        if spec not in self.valid_specs:
+            raise ValueError('String %r is not a valid image sizing spec' % spec)
         return self.url_template.replace('{spec}', spec)
-
-    __getitem__ = __getattr__
 
 
 class Link(TypePadObject):
@@ -375,17 +404,8 @@ class Link(TypePadObject):
     """The absolute URL of the target resource."""
     url             = fields.Field()
     """The absolute URL of the target resource."""
-    url_template    = fields.Field(api_name='urlTemplate')
-    """The template for the absolute URLs of alternate versions of the target
-    resource, if such alternates exist (such as for photos)."""
     type            = fields.Field()
     """The MIME media type of the target resource."""
-    width           = fields.Field()
-    """Where the link is to a visual media item (a photo, for example), the
-    width of the item in pixels."""
-    height          = fields.Field()
-    """Where the link is to a visual media item (a photo, for example), the
-    height of the item in pixels."""
     total           = fields.Field()
     """Where the link is to a list resource, the total number of items in that list."""
     allowed_methods = fields.List(fields.Field(), api_name='allowedMethods')
@@ -404,16 +424,6 @@ class Link(TypePadObject):
     def __repr__(self):
         """Returns a developer-readable representation of this object."""
         return "<Link %s>" % self.__dict__.get('href', hex(id(self)))
-
-    def url_with_spec(self):
-        """Returns an `ImageUrl` instance representing this `Link`.
-
-        The returned `ImageUrl` instance can be subscripted with the image
-        sizing spec, to generate an URL based on this `Link` instance's
-        `url_template` value.
-
-        """
-        return ImageUrl(self.url_template)
 
 
 class LinkSet(set, TypePadObject):
@@ -476,18 +486,6 @@ class LinkSet(set, TypePadObject):
             # Gimme all matching links.
             key = key[5:]
             return self.__class__([x for x in self if x.rel == key])
-        elif key.startswith('width__'):
-            width = int(key[7:])
-            return self.link_by_width(width)
-        elif key.startswith('size__'):
-            size = int(key[7:])
-            return self.link_by_size(size)
-        elif key.startswith('maxwidth__'):
-            width = int(key[10:])
-            links_by_width = dict([(x.width, x) for x in self if x.width <= width])
-            if links_by_width:
-                return links_by_width.get(max(links_by_width.keys()))
-            return None
 
         # Gimme the first matching link.
         for x in self:

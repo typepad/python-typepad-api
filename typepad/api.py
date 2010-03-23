@@ -129,7 +129,7 @@ class User(TypePadObject):
 
     """
 
-    avatar_link = fields.Object('Link', api_name='avatarLink')
+    avatar_link = fields.Object('ImageLink', api_name='avatarLink')
     """The `Link` instance to the user's avatar picture."""
     profile_page_url = fields.Field(api_name='profilePageUrl')
     """The URL of the user's TypePad profile page."""
@@ -219,7 +219,7 @@ class UserProfile(TypePadObject):
     instead.
 
     """
-    avatar_link = fields.Object('Link', api_name='avatarLink')
+    avatar_link = fields.Object('ImageLink', api_name='avatarLink')
     """The `Link` instance to the related user's avatar picture."""
     profile_page_url = fields.Field(api_name='profilePageUrl')
     """The URL of the related user's TypePad profile page."""
@@ -816,7 +816,7 @@ class Photo(Asset):
 
     object_type = "tag:api.typepad.com,2009:Photo"
 
-    image_link = fields.Object('Link', api_name='imageLink')
+    image_link = fields.Object('ImageLink', api_name='imageLink')
 
 
 class Audio(Asset):
@@ -837,7 +837,7 @@ class Video(Asset):
     links = fields.Object('LinkSet')
 
     video_link = fields.Object('Link', api_name='videoLink')
-    preview_image_link = fields.Object('Link', api_name='previewImageLink')
+    preview_image_link = fields.Object('ImageLink', api_name='previewImageLink')
 
 
 class LinkAsset(Asset):

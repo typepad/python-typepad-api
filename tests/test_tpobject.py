@@ -62,11 +62,15 @@ class TestObjects(unittest.TestCase):
                              "equivalent but the same instance")
 
     def test_imagelink(self):
-        l = typepad.Link(url_template='http://example.com/blah-{spec}')
-        image = l.url_with_spec()
-        self.assert_(isinstance(image, typepad.ImageUrl))
-        self.assertEquals(image['75si'], 'http://example.com/blah-75si')
-        self.assertEquals(image['pi'], 'http://example.com/blah-pi')
+        l = typepad.ImageLink(url_template='http://example.com/blah-{spec}')
+        self.assertEquals(l.at_size('16si'), 'http://example.com/blah-16si')
+        self.assertEquals(l.at_size('pi'), 'http://example.com/blah-pi')
+        self.assertEquals(l.at_size('1024wi'), 'http://example.com/blah-1024wi')
+        self.assertRaises(ValueError, lambda: l.at_size('77moof'))
+        self.assertRaises(ValueError, lambda: l.at_size('blah'))
+        self.assertRaises(ValueError, lambda: l.at_size(''))
+        self.assertRaises(ValueError, lambda: l.at_size('77'))
+        self.assertRaises(ValueError, lambda: l.at_size('220wi'))
 
     def test_linkset(self):
 
@@ -211,67 +215,6 @@ class TestObjects(unittest.TestCase):
             enclosure_7, enclosure_8, enclosure_9 ])
         avatars = sorted(list(ls['rel__avatar']), key=lambda x: x.href)
         self.assertEquals(avatars, [ largest, medium, smallest ])
-
-        # testing link_by_width method:
-        self.assertEquals(ls['rel__avatar'].link_by_width(1000).to_dict(), largest.to_dict())
-        self.assertEquals(ls['rel__avatar'].link_by_width(500), largest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(), largest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(0), largest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(499), largest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(101), largest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(100), medium)
-        self.assertEquals(ls['rel__avatar'].link_by_width(99), medium)
-        self.assertEquals(ls['rel__avatar'].link_by_width(25), smallest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(1), smallest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(-1), smallest)
-
-        # test alternate getitem technique (used in templates)
-        self.assertEquals(ls['rel__avatar']['width__1000'].to_dict(), largest.to_dict())
-        self.assertEquals(ls['rel__avatar']['width__500'], largest)
-        self.assertEquals(ls['rel__avatar']['width__0'], largest)
-        self.assertEquals(ls['rel__avatar']['width__499'], largest)
-        self.assertEquals(ls['rel__avatar']['width__101'], largest)
-        self.assertEquals(ls['rel__avatar']['width__100'], medium)
-        self.assertEquals(ls['rel__avatar']['width__99'], medium)
-        self.assertEquals(ls['rel__avatar']['width__25'], smallest)
-        self.assertEquals(ls['rel__avatar']['width__1'], smallest)
-
-        # testing maxwidth link relation
-        self.assertEquals(ls['rel__avatar']['maxwidth__1000'], largest)
-        self.assertEquals(ls['rel__avatar']['maxwidth__500'], largest)
-        self.assertEquals(ls['rel__avatar']['maxwidth__499'], medium)
-        self.assertEquals(ls['rel__avatar']['maxwidth__101'], medium)
-        self.assertEquals(ls['rel__avatar']['maxwidth__100'], medium)
-        self.assertEquals(ls['rel__avatar']['maxwidth__99'], smallest)
-        self.assertEquals(ls['rel__avatar']['maxwidth__25'], smallest)
-        self.assert_(ls['rel__avatar']['maxwidth__24'] is None)
-        self.assert_(ls['rel__avatar']['maxwidth__20'] is None)
-        self.assert_(ls['rel__avatar']['maxwidth__1'] is None)
-        self.assert_(ls['rel__avatar']['maxwidth__0'] is None)
-
-        # testing enclosure selection for width of 458px
-        # enclosure is the best pick here (459x459)
-        self.assertEquals(ls1['rel__enclosure'].link_by_size(458), enclosure)
-        self.assertEquals(ls1['rel__enclosure'].link_by_size(460), enclosure)
-        self.assertEquals(ls1['rel__enclosure'].link_by_size(470), enclosure)
-        self.assertEquals(ls1['rel__enclosure'].link_by_size(480), enclosure_10)
-        self.assertEquals(ls1['rel__enclosure'].link_by_size(500), enclosure_10)
-
-        # testing enclosure selection for width of 459px
-        # enclosure is the best pick here (459x459)
-        self.assertEquals(ls['rel__enclosure'].link_by_size(459), enclosure)
-
-        # testing enclosure selection for width of 460px
-        # enclosure_2 is the best pick here (460x460)
-        self.assertEquals(ls['rel__enclosure'].link_by_size(460), enclosure_2)
-
-        # testing enclosure selection for width of 461px
-        # enclosure_9 is the best pick here (461x461)
-        self.assertEquals(ls['rel__enclosure'].link_by_size(461), enclosure_9)
-
-        # testing enclosure selection for width of 480px
-        # should NOT select 10000^2 image; best choice is enclosure_10
-        self.assertEquals(ls['rel__enclosure'].link_by_size(480), enclosure_10)
 
         links_list = list(ls)
         self.assertEquals(len(links_list), 15)
