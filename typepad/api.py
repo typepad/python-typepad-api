@@ -121,13 +121,6 @@ class User(TypePadObject):
     """
     email              = fields.Field()
     gender             = fields.Field()
-    about_me           = fields.Field(api_name='aboutMe')
-    """The biographical text provided by the `User`.
-
-    This text is displayed on the user's TypePad Profile page. The string
-    may contain multiple lines of text separated by newline characters.
-
-    """
 
     avatar_link = fields.Object('ImageLink', api_name='avatarLink')
     """The `Link` instance to the user's avatar picture."""
@@ -217,6 +210,13 @@ class UserProfile(TypePadObject):
     This name can be used as an ID to select this user in a transient URL.
     As this name can be changed, use the `url_id` field as a persistent key
     instead.
+
+    """
+    about_me           = fields.Field(api_name='aboutMe')
+    """The biographical text provided by the `User`.
+
+    This text is displayed on the user's TypePad Profile page. The string
+    may contain multiple lines of text separated by newline characters.
 
     """
     avatar_link = fields.Object('ImageLink', api_name='avatarLink')
