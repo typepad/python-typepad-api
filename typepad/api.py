@@ -825,7 +825,7 @@ class Audio(Asset):
 
     object_type = "tag:api.typepad.com,2009:Audio"
 
-    audio_link = fields.Object('Link', api_name='audioLink')
+    audio_link = fields.Object('AudioLink', api_name='audioLink')
 
 
 class Video(Asset):

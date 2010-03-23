@@ -401,6 +401,16 @@ class VideoLink(TypePadObject):
     """
 
 
+class AudioLink(TypePadObject):
+
+    """A link to an audio recording."""
+
+    url = fields.Field()
+    """The URL to the MP3 representation of the audio stream."""
+    duration = fields.Field()
+    """The duration of the audio stream in seconds."""
+
+
 class Link(TypePadObject):
 
     """A `TypePadObject` representing a link from to another resource.
@@ -433,7 +443,6 @@ class Link(TypePadObject):
     an ``OPTIONS`` or ``GET`` request to determine the available methods.
 
     """
-    duration        = fields.Field()
     by_user         = fields.Field(api_name="byUser")
 
     def __repr__(self):
