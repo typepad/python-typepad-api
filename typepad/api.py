@@ -120,9 +120,7 @@ class User(TypePadObject):
 
     """
     email              = fields.Field()
-    location           = fields.Field()
     gender             = fields.Field()
-    homepage           = fields.Field()
     about_me           = fields.Field(api_name='aboutMe')
     """The biographical text provided by the `User`.
 
@@ -130,13 +128,11 @@ class User(TypePadObject):
     may contain multiple lines of text separated by newline characters.
 
     """
-    interests          = fields.List(fields.Field())
-    """A list of strings identifying interests, provided by the `User`."""
-    urls               = fields.List(fields.Field())
-    accounts           = fields.List(fields.Field())
 
     avatar_link = fields.Object('Link', api_name='avatarLink')
+    """The `Link` instance to the user's avatar picture."""
     profile_page_url = fields.Field(api_name='profilePageUrl')
+    """The URL of the user's TypePad profile page."""
 
     relationships      = fields.Link(ListOf('Relationship'))
     events             = fields.Link(ListOf('Event'))
