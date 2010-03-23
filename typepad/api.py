@@ -189,6 +189,30 @@ class User(TypePadObject):
         return u
 
 
+class UserProfile(TypePadObject):
+
+    url_id = fields.Field(api_name='urlId')
+    display_name = fields.Field(api_name='displayName')
+    location = fields.Field()
+    interests = fields.List(fields.Field())
+    preferred_username = fields.Field(api_name='preferredUsername')
+    avatar_link = fields.Object('Link', api_name='avatarLink')
+    profile_page_url = fields.Field(api_name='profilePageUrl')
+    follow_frame_content_url = fields.Field(api_name='followFrameContentUrl')
+    profile_edit_page_url = fields.Field(api_name='profileEditPageUrl')
+    membership_management_page_url = fields.Field(api_name='membershipManagementPageUrl')
+    homepage_url = fields.Field(api_name='homepageUrl')
+
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/users/%s/profile.json' % self.url_id)
+
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        prof = cls.get('/users/%s/profile.json' % url_id, **kwargs)
+        prof.__dict__['url_id'] = url_id
+        return prof
+
+
 class ElsewhereAccount(TypePadObject):
 
     """A user account on an external website."""
