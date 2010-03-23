@@ -353,7 +353,6 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
         self.assertValidAsset(asset)
-        self.assert_(not asset.can_delete)
         self.assertForbidden(asset.delete)
 
     @attr(user='group')
@@ -373,7 +372,6 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
         self.assertValidAsset(asset)
-        self.assert_(not asset.can_delete)
         self.assertForbidden(asset.delete)
 
     @attr(user='admin')
@@ -395,7 +393,6 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
         self.assertValidAsset(asset)
-        self.assert_(asset.can_delete)
         asset.delete()
 
         # now, see if we can select it. hopefully this fails.
@@ -422,7 +419,6 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
         self.assertValidAsset(asset)
-        self.assert_(asset.can_delete)
         asset.delete()
 
         # now, see if we can select it. hopefully this fails.
@@ -445,7 +441,6 @@ class TestTypePad(unittest.TestCase):
             typepad.client.complete_batch()
 
             self.assertValidAsset(asset)
-            self.assert_(asset.can_delete)
             asset.delete()
 
             # now, see if we can select it. hopefully this fails.
@@ -470,7 +465,6 @@ class TestTypePad(unittest.TestCase):
             typepad.client.complete_batch()
 
             self.assertValidAsset(asset)
-            self.assert_(asset.can_delete)
             asset.delete()
 
             # now, see if we can select it. hopefully this fails.
@@ -1165,7 +1159,7 @@ class TestTypePad(unittest.TestCase):
         rel = followers[0]
         self.assertValidRelationship(rel)
 
-        rel_link = rel.links['self'].href
+        rel_link = rel.make_self_link()
 
         typepad.client.batch_request()
         rel2 = typepad.Relationship.get(rel_link)
@@ -1879,46 +1873,30 @@ class TestTypePad(unittest.TestCase):
         object_type = asset.primary_object_type()
         self.assert_(object_type)
         self.assert_(asset.published)
-        self.assert_(len(asset.links) > 0)
-        self.assert_('self' in asset.links)
-        self.assert_(asset.links['self'].href)
-        self.assertEquals(asset.links['self'].type, 'application/json')
-        self.assert_('favorites' in asset.links)
-        self.assert_(asset.links['favorites'].href)
-        self.assert_(asset.links['favorites'].type, 'application/json')
-        self.assert_(asset.links['favorites'].total >= 0)
-        self.assertEquals(asset.links['favorites'].total, asset.favorite_count)
-        self.assert_('replies' in asset.links)
-        self.assert_(asset.links['replies'].href)
-        self.assert_(asset.links['replies'].type, 'application/json')
-        self.assert_(asset.links['replies'].total >= 0)
-        self.assertEquals(asset.links['replies'].total, asset.comment_count)
-        if 'alternate' in asset.links:
-            self.assert_('alternate' in asset.links)
-            self.assert_(asset.links['alternate'].href)
-            self.assertEquals(asset.links['alternate'].type, 'text/html')
+
+        self.assert_(asset.make_self_link())
+        self.assert_(asset.favorite_count is not None)
+        self.assert_(asset.comment_count is not None)
+        # TODO: alternate was optional before, so maybe permalink_url might be None sometimes?
+        self.assert_(asset.permalink_url is not None)
+
         self.assert_(object_type.startswith('tag:api.typepad.com'))
         self.assertValidAssetRef(asset.asset_ref)
         if object_type == 'tag:api.typepad.com,2009:Link':
             # additional properties we expect for link assets
-            self.assert_('target' in asset.links)
-            self.assert_(asset.links['target'].href)
+            self.assert_(asset.target_url is not None)
         elif object_type == 'tag:api.typepad.com,2009:Photo':
             # additional properties we expect for photo assets
-            self.assert_('enclosure' in asset.links)
-            self.assert_(asset.links['enclosure'].href)
-            self.assert_(asset.links['enclosure'].height)
-            self.assert_(asset.links['enclosure'].width)
-            self.assert_(asset.links['enclosure'].type.startswith('image/'))
-            self.assert_('preview' in asset.links)
-            self.assert_(asset.links['preview'].href)
-            self.assert_(asset.links['preview'].height)
-            self.assert_(asset.links['preview'].width)
-            self.assert_(asset.links['preview'].type.startswith('image/'))
+            self.assert_(asset.image_link is not None)
+            self.assert_(asset.image_link.url_template is not None)
+            self.assert_(asset.image_link.width is not None)
+            self.assert_(asset.image_link.height is not None)
         elif object_type == 'tag:api.typepad.com,2009:Audio':
-            self.assert_('enclosure' in asset.links)
-            self.assert_(asset.links['enclosure'].href)
-            self.assert_(asset.links['enclosure'].type.startswith('audio/'))
+            self.assert_(asset.audio_link is not None)
+            self.assert_(asset.audio_link.url is not None)
+            # TODO: duration doesn't seem to be given for our tiny file,
+            # even though duration is not documented as optional.
+            #self.assert_(asset.audio_link.duration is not None)
         elif object_type == 'tag:api.typepad.com,2009:Post':
             pass
         elif object_type == 'tag:api.typepad.com,2009:Comment':
@@ -1927,21 +1905,19 @@ class TestTypePad(unittest.TestCase):
                 self.assert_(asset.in_reply_to)
                 self.assertValidAssetRef(asset.in_reply_to)
         elif object_type == 'tag:api.typepad.com,2009:Video':
-            self.assert_('enclosure' in asset.links)
-            self.assert_(asset.links['enclosure'].html)
-            self.assert_(asset.links['enclosure'].height)
-            self.assert_(asset.links['enclosure'].width)
-            # self.assertEquals(asset.links['enclosure'].type, 'text/html')
+            self.assert_(asset.video_link is not None)
+            self.assert_(asset.video_link.embed_code is not None)
+
+            preview = asset.preview_image_link
+            if preview is not None:
+                self.assert_(preview.url_template is not None)
+                self.assert_(preview.width is not None)
+                self.assert_(preview.height is not None)
         else:
             self.fail('asset has an unexpected objectType: %s' % \
                 object_type)
         if asset.source:
-            self.assert_(asset.source.links)
             self.assert_(asset.source.original_link)
-            self.assert_('alternate' in asset.source.links)
-            self.assert_(asset.source.links['alternate'].href)
-            self.assertEquals(asset.source.links['alternate'].type,
-                'text/html')
             self.assert_(asset.source.provider)
 
             self.assert_(asset.source.provider.icon)
@@ -1962,43 +1938,15 @@ class TestTypePad(unittest.TestCase):
         # this asserts as false when the user's interests is empty
         # self.assert_(user.interests)
 
-        self.assert_(len(user.links) > 0)
-
-        self.assert_('self' in user.links)
-        self.assert_(user.links['self'].href)
-        self.assertEquals(user.links['self'].type, 'application/json')
-
-        self.assert_('elsewhere-accounts' in user.links)
-        self.assert_(user.links['elsewhere-accounts'].href)
-        self.assertEquals(user.links['elsewhere-accounts'].type,
-            'application/json')
-
-        self.assert_(user.links['follow-frame-content'].href)
-        self.assert_(user.links['follow-frame-content'].height)
-        self.assert_(user.links['follow-frame-content'].width)
-        self.assertEquals(user.links['follow-frame-content'].type,
-            'text/html')
-
-        self.assert_('alternate' in user.links)
-        self.assert_(user.links['alternate'].href)
-        self.assertEquals(user.links['alternate'].type, 'text/html')
-
-        # this link is available when a user is accessing their own
-        # user object
-        if 'membership-management-page' in user.links:
-            self.assert_(user.links['membership-management-page'].href)
-            self.assertEquals(user.links['membership-management-page'].type, 'text/html')
-
-        # this link is available when a user is accessing their own
-        # user object
-        if 'profile-edit-page' in user.links:
-            self.assert_(user.links['profile-edit-page'].href)
-            self.assertEquals(user.links['profile-edit-page'].type, 'text/html')
-
-        self.assert_('avatar' in user.links)
-        self.assert_(user.links['avatar'].href)
-        self.assert_(user.links['avatar'].height)
-        self.assert_(user.links['avatar'].width)
+        self.assert_(user.make_self_link())
+        self.assert_(user.profile_page_url is not None)
+        self.assert_(user.avatar_link is not None)
+        try:
+            self.assert_(user.avatar_link.url_template is not None)
+        except AssertionError:
+            self.assert_(user.avatar_link.url is not None)
+        self.assert_(user.avatar_link.width is not None)
+        self.assert_(user.avatar_link.height is not None)
 
     def assertValidEvent(self, event):
         """Checks given asset for properties that should be present on all assets."""
@@ -2009,10 +1957,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(event.xid)
         self.assert_(event.url_id)
         self.assert_(event.published)
-        self.assert_(len(event.links) > 0)
-        self.assert_('self' in event.links)
-        self.assert_(event.links['self'].href)
-        self.assertEquals(event.links['self'].type, 'application/json')
+        self.assert_(event.make_self_link())
         self.assert_(len(event.verbs) > 0)
         m = re.match(r'^tag:api\.typepad\.com,2009:([A-Za-z]+)$',
             event.verbs[0])
@@ -2039,10 +1984,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(group.id)
         self.assert_(group.url_id)
         self.assert_(group.display_name)
-        self.assert_(len(group.links) > 0)
-        self.assert_('self' in group.links)
-        self.assert_(group.links['self'].href)
-        self.assertEquals(group.links['self'].type, 'application/json')
+        self.assert_(group.make_self_link())
         self.assert_(len(group.object_types) > 0)
         self.assertEquals(group.object_types[0],
             'tag:api.typepad.com,2009:Group')
@@ -2055,7 +1997,7 @@ class TestTypePad(unittest.TestCase):
             'session_sync_script_url', 'signout_url',
             'user_flyouts_script_url')
         for link in links:
-            self.assert_(getattr(app, link))
+            self.assert_(getattr(app, link) is not None)
         self.assert_(app.browser_upload_endpoint)
 
     def assertValidFavorite(self, fav):
@@ -2085,10 +2027,7 @@ class TestTypePad(unittest.TestCase):
     def assertValidRelationship(self, rel):
         self.assert_(isinstance(rel, typepad.Relationship),
             'object %r is not a typepad.Relationship' % rel)
-        self.assert_(rel.links)
-        self.assert_('self' in rel.links)
-        self.assert_(rel.links['self'].href)
-        self.assertEquals(rel.links['self'].type, 'application/json')
+        self.assert_(rel.make_self_link())
         self.assert_(rel.status)
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87929
         # Most user-to-user relationships have created and status.types,
@@ -2180,6 +2119,7 @@ class TestTypePad(unittest.TestCase):
 
         video = typepad.Video()
 
+        # TODO: use video.video_link.permalink_url here once that's supported
         rel = typepad.Link()
         rel.href = 'http://www.youtube.com/watch?v=pWdZTqHtJ3U'
         rel.rel = 'enclosure'
@@ -2193,14 +2133,15 @@ class TestTypePad(unittest.TestCase):
     def link_asset(self):
         """Creates a Link asset instance for testing purposes."""
 
+        # TODO: use link.target_url here once that's supported
         link = typepad.LinkAsset()
-        rel = typepad.Link()
-        rel.href = 'http://www.typepad.com/'
-        rel.rel = 'target'
+        #link.target_url = 'http://www.typepad.com/'
         link.title = ''
-        link.links = typepad.LinkSet()
-        link.links.add(rel)
         link.content = 'Test link post'
+
+        link.links = typepad.LinkSet()
+        rel = typepad.Link(rel='target', href='http://www.typepad.com/')
+        link.links.add(rel)
 
         return link
 

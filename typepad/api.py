@@ -115,8 +115,8 @@ class User(TypePadObject):
     environments. TypePad users can change their Profile URLs, so this
     identifier can also change over time for a given user. Use this name
     when constructing a link to the user's profile on your local site.
-    (Use the appropriate `Link` from the `User` instance's `links` for
-    the full TypePad Profile URL.)
+    (Use the `User` instance's `profile_page_url` field for the full
+    TypePad Profile URL.)
 
     """
     email              = fields.Field()
@@ -134,9 +134,6 @@ class User(TypePadObject):
     """A list of strings identifying interests, provided by the `User`."""
     urls               = fields.List(fields.Field())
     accounts           = fields.List(fields.Field())
-    links              = fields.Object('LinkSet')
-    """A `LinkSet` containing various URLs and API endpoints related to this
-    `User`."""
 
     avatar_link = fields.Object('Link', api_name='avatarLink')
     profile_page_url = fields.Field(api_name='profilePageUrl')
@@ -356,9 +353,6 @@ class Group(TypePadObject):
     tagline      = fields.Field()
     """The tagline or subtitle of this `Group`."""
     urls         = fields.List(fields.Field())
-    links        = fields.Object('LinkSet')
-    """A `LinkSet` containing URLs and API endpoints related to this
-    `Group`."""
 
     memberships  = fields.Link(ListOf('Relationship'))
     assets       = fields.Link(ListOf('Asset'))
@@ -450,9 +444,6 @@ class Application(TypePadObject):
     """The canonical identifier used to identify this `Application` in URLs."""
     name  = fields.Field()
     """The name of this `Application` as configured by the developer."""
-    links = fields.Object('LinkSet')
-    """A `LinkSet` containing the API endpoints associated with this
-    `Application`."""
 
     oauth_request_token_url = fields.Field(api_name='oauthRequestTokenUrl')
     """The service URL from which to request the OAuth request token."""
@@ -532,9 +523,6 @@ class Event(TypePadObject):
     ``tag:api.typepad.com,2009:JoinedGroup``.
 
     """
-    links        = fields.Object('LinkSet')
-    """A `LinkSet` containing various URLs and API endpoints related to this
-    `Event`."""
 
     def __unicode__(self):
         return unicode(self.object)
@@ -628,9 +616,6 @@ class Asset(TypePadObject):
     """A list of `Tag` instances associated with the `Asset`."""
     status       = fields.Object('PublicationStatus')
     """The `PublicationStatus` describing the state of the `Asset`."""
-    links        = fields.Object('LinkSet')
-    """A `LinkSet` containing various URLs and API endpoints related to this
-    `Asset`."""
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
     """For comment `Asset` instances, an `AssetRef` describing the asset on
     which this instance is a comment."""
@@ -653,13 +638,6 @@ class Asset(TypePadObject):
     """The number of times this `Asset` instance has been marked as a favorite."""
 
     permalink_url = fields.Field(api_name='permalinkUrl')
-
-    @property
-    def can_delete(self):
-        try:
-            return 'DELETE' in self.links['self'].allowed_methods
-        except:
-            return False
 
     @property
     def xid(self):
@@ -770,6 +748,8 @@ class Audio(Asset):
 
     object_type = "tag:api.typepad.com,2009:Audio"
 
+    audio_link = fields.Object('Link', api_name='audioLink')
+
 
 class Video(Asset):
 
@@ -777,12 +757,21 @@ class Video(Asset):
 
     object_type = "tag:api.typepad.com,2009:Video"
 
+    links = fields.Object('LinkSet')
+
+    video_link = fields.Object('Link', api_name='videoLink')
+    preview_image_link = fields.Object('Link', api_name='previewImageLink')
+
 
 class LinkAsset(Asset):
 
     """A shared link to some URL."""
 
     object_type = "tag:api.typepad.com,2009:Link"
+
+    links = fields.Object('LinkSet')
+
+    target_url = fields.Field(api_name='targetUrl')
 
 
 class Document(Asset):

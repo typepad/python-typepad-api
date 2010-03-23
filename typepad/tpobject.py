@@ -38,8 +38,7 @@ The module contains:
 * the `TypePadObject` class, a `RemoteObject` subclass that enforces batch
   requesting and ``objectTypes`` behavior
 
-* the `Link` and `LinkSet` classes, implementing the TypePad API's common link
-  mechanism using objects' ``links`` attributes
+* the `Link` class, implementing the TypePad API's common link object
 
 * the `ListObject` class and `ListOf` metaclass, providing an interface for
   working with the TypePad API's list endpoints
@@ -400,6 +399,7 @@ class Link(TypePadObject):
     html            = fields.Field()
     duration        = fields.Field()
     by_user         = fields.Field(api_name="byUser")
+    embed_code      = fields.Field(api_name="embedCode")
 
     def __repr__(self):
         """Returns a developer-readable representation of this object."""
@@ -496,74 +496,6 @@ class LinkSet(set, TypePadObject):
 
         raise KeyError('No such link %r in this set' % key)
 
-    def link_by_width(self, width=0):
-        """Returns the `Link` instance from this `LinkSet` that best matches
-        the requested display width.
-
-        If optional parameter `width` is specified, the `Link` instance
-        representing the smallest image wider or matching the `width`
-        specified is returned. If there is no such image, or if `width` is
-        not specified, the `Link` for the widest image is returned.
-
-        If there are no images in this `LinkSet`, returns `None`.
-
-        """
-
-        if width == 0:
-            # Select the widest link
-            better = lambda x: best is None or best.width < x.width
-        else:
-            # Select the image with the specified width or just greater
-            better = lambda x: width <= x.width and (best is None or x.width < best.width)
-
-        best = None
-        for x in self:
-            if better(x):
-                best = x
-
-        if best is None and width != 0:
-            # Try again, this time just return the widest image available
-            return self.link_by_width()
-
-        return best
-
-    def link_by_size(self, size=0):
-        """Returns the `Link` instance from this `LinkSet` that best matches
-        the requested display size.
-
-        If optional parameter `size` is specified, the `Link` instance
-        representing the smallest image bigger or matching the `size`
-        specified is returned. If there is no such image, or if `size` is
-        not specified, the `Link` for the biggest image is returned.
-
-        If there are no images in this `LinkSet`, returns `None`.
-
-        """
-
-        # highest resolution image that still fits in bounding box
-        fits = None
-        # smallest resolution image that is bigger than bounding box
-        oversize = None
-        # highest resolution image
-        original = None
-
-        for image in self:
-            # logic for assigning 'oversize'
-            if image.width > size or image.height > size:
-                if oversize is None or (oversize.width > image.width or oversize.height > image.height):
-                    oversize = image
-            else:
-                # logic for assigning 'fits'
-                if fits is None or (fits.width < image.width or fits.height < image.height):
-                    fits = image
-            if original is None or (original.width < image.width or original.height < image.height):
-                original = image
-
-        if size == 0:
-            return original
-        else:
-            return fits or oversize or original
-
 
 class ListOf(remoteobjects.listobject.PageOf, TypePadObjectMetaclass):
 
@@ -605,8 +537,6 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
     The first item in the list has index 1.
 
     """
-    links         = fields.Object('LinkSet')
-    """A `LinkSet` of links related to this list resource."""
     entries       = fields.List(fields.Field())
     """A list of items in this list resource."""
 
