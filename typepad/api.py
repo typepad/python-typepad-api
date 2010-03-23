@@ -97,7 +97,7 @@ class User(TypePadObject):
 
     A user's `url_id` is unique only across groups in one TypePad
     environment, so you should use `id`, not `url_id`, to associate data
-    with a `User`. When constructing URLs to API resources in a given
+    with a `User`. When constructing URLs to API resources in one particular
     TypePad environment, however, use `url_id`.
 
     """
@@ -191,23 +191,80 @@ class User(TypePadObject):
 
 class UserProfile(TypePadObject):
 
+    """Additional profile information about a TypePad user.
+
+    This additional information is useful when showing information about a
+    TypePad account directly, but is generally not required when linking to
+    an ancillary TypePad account, such as the author of a post.
+
+    """
+
     url_id = fields.Field(api_name='urlId')
+    """An identifier for this `UserProfile` that can be used in URLs.
+
+    A user's `url_id` is unique only across groups in one TypePad
+    environment, so you should use `id`, not `url_id`, to associate data
+    with a `User` (or `UserProfile`). When constructing URLs to API resources
+    in one particular TypePad environment, however, use `url_id`.
+
+    """
     display_name = fields.Field(api_name='displayName')
+    """The related user's chosen display name."""
     location = fields.Field()
+    """The related user's location, as a free-form string provided by the user."""
     interests = fields.List(fields.Field())
+    """A list of interests provided by the related user for display on their
+    TypePad profile."""
     preferred_username = fields.Field(api_name='preferredUsername')
+    """The name the related user chose for use in their TypePad profile URL.
+
+    This name can be used as an ID to select this user in a transient URL.
+    As this name can be changed, use the `url_id` field as a persistent key
+    instead.
+
+    """
     avatar_link = fields.Object('Link', api_name='avatarLink')
+    """The `Link` instance to the related user's avatar picture."""
     profile_page_url = fields.Field(api_name='profilePageUrl')
+    """The URL of the related user's TypePad profile page."""
     follow_frame_content_url = fields.Field(api_name='followFrameContentUrl')
+    """The URL of the related user's following widget.
+
+    Use this URL in an HTML iframe to provide an interface for following
+    this user. The iframe should be 300 pixels wide and 125 pixels high.
+
+    """
     profile_edit_page_url = fields.Field(api_name='profileEditPageUrl')
+    """The URL of a page where the user can edit their profile information.
+
+    This URL is only present when the `UserProfile` is requested on behalf
+    of the related user. That is, the `profile_edit_page_url` is ``None``
+    unless the user is viewing their own profile.
+
+    """
     membership_management_page_url = fields.Field(api_name='membershipManagementPageUrl')
+    """The URL of a page where the user can manage their community
+    memberships.
+
+    This URL is only present when the `UserProfile` is requested on behalf
+    of the related user. That is, the `membership_management_page_url` is
+    ``None`` unless the user is viewing their own profile.
+
+    """
     homepage_url = fields.Field(api_name='homepageUrl')
+    """The URL the related user has specified as an external website URL.
+
+    If the related user has not specified an external website URL,
+    `homepage_url` will be ``None``.
+
+    """
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/users/%s/profile.json' % self.url_id)
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
+        """Returns the `UserProfile` instance with the given URL identifier."""
         prof = cls.get('/users/%s/profile.json' % url_id, **kwargs)
         prof.__dict__['url_id'] = url_id
         return prof
