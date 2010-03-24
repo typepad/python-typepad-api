@@ -2027,6 +2027,7 @@ class TestTypePad(unittest.TestCase):
     def assertValidRelationship(self, rel):
         self.assert_(isinstance(rel, typepad.Relationship),
             'object %r is not a typepad.Relationship' % rel)
+        self.assert_(rel.url_id)
         self.assert_(rel.make_self_link())
         self.assert_(rel.status)
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87929

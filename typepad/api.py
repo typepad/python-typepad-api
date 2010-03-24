@@ -315,10 +315,6 @@ class RelationshipStatus(TypePadObject):
     """A list of URIs instances that describe all the
     relationship edges included in this `RelationshipStatus`."""
 
-    def make_self_link(self):
-        # TODO: no url_id so we can't build a URL
-        return
-
 
 class Relationship(TypePadObject):
 
@@ -331,6 +327,10 @@ class Relationship(TypePadObject):
 
     """
 
+    id = fields.Field()
+    """A URI that uniquely identifies this `Relationship` instance."""
+    url_id = fields.Field(api_name='urlId')
+    """An identifier for this `Relationship` that can be used in URLs."""
     source  = fields.Object('TypePadObject')
     """The entity (`User` or `Group`) from which this `Relationship` arises."""
     target  = fields.Object('TypePadObject')
@@ -339,9 +339,6 @@ class Relationship(TypePadObject):
     status  = fields.Object('RelationshipStatus')
     """A `RelationshipStatus` describing the types of relationship this
     `Relationship` instance represents."""
-    links   = fields.Object('LinkSet')
-    """A `LinkSet` containing other URLs and API endpoints related to this
-    relationship."""
     created = fields.Dict(fields.Datetime())
 
     status_obj = fields.Link(RelationshipStatus, api_name='status')
@@ -355,18 +352,11 @@ class Relationship(TypePadObject):
     """
 
     @property
-    def id(self):
-        """A pseudo-id that we use for caching purposes."""
-        return "tag:api.typepad.com,2009:%s%s" % (self.source.xid, self.target.xid)
-
-    @property
     def xid(self):
         return xid_from_atom_id(self.id)
 
     def make_self_link(self):
-        # TODO: the only xid we have here is made up. it doesn't actually
-        # let us query the Relationship from the API, does it?
-        return self.links['self'].href
+        return urljoin(typepad.client.endpoint, '/relationships/%s.json' % self.url_id)
 
     def _rel_type_updater(uri):
         def update(self):
