@@ -2114,33 +2114,19 @@ class TestTypePad(unittest.TestCase):
 
     def video_asset(self):
         """Creates a Video asset instance for testing purposes."""
-
         video = typepad.Video()
-
-        # TODO: use video.video_link.permalink_url here once that's supported
-        rel = typepad.Link()
-        rel.href = 'http://www.youtube.com/watch?v=pWdZTqHtJ3U'
-        rel.rel = 'enclosure'
         video.title = ''
-        video.links = typepad.LinkSet()
-        video.links.add(rel)
+        video.video_link = typepad.VideoLink(
+            permalink_url='http://www.youtube.com/watch?v=pWdZTqHtJ3U')
         video.content = 'Test video post'
-
         return video
 
     def link_asset(self):
         """Creates a Link asset instance for testing purposes."""
-
-        # TODO: use link.target_url here once that's supported
         link = typepad.LinkAsset()
-        #link.target_url = 'http://www.typepad.com/'
+        link.target_url = 'http://www.typepad.com/'
         link.title = ''
         link.content = 'Test link post'
-
-        link.links = typepad.LinkSet()
-        rel = typepad.Link(rel='target', href='http://www.typepad.com/')
-        link.links.add(rel)
-
         return link
 
 if __name__ == '__main__':
