@@ -265,6 +265,12 @@ class UserProfile(TypePadObject):
         prof.__dict__['url_id'] = url_id
         return prof
 
+    @property
+    def user(self):
+        """Returns a `User` instance for the TypePad member whose
+        `UserProfile` this is."""
+        return User.get_by_url_id(self.url_id)
+
 
 class ElsewhereAccount(TypePadObject):
 
