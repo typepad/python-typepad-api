@@ -1961,16 +1961,18 @@ class TestTypePad(unittest.TestCase):
         self.assert_(m,
             "%s does not match '^tag:api\.typepad\.com,2009:[A-Za-z]+$'" \
             % event.verbs[0])
-        self.assert_(m.groups()[0] in ('AddedFavorite', 'NewAsset',
-            'JoinedGroup', 'AddedNeighbor'),
-            "Event type %s is not recognized" % m.groups()[0])
+        event_type = m.group(1)
         self.assert_(event.actor)
         self.assertValidUser(event.actor)
         # FIXME: https://intranet.sixapart.com/bugs/default.asp?87911
-        # self.assert_(event.object)
-        # self.assertValidAsset(event.object)
-        if event.object is not None:
+        if event.object is None:
+            pass
+        elif event_type in ('AddedFavorite', 'NewAsset'):
             self.assertValidAsset(event.object)
+        elif event_type in ('JoinedGroup', 'AddedNeighbor'):
+            self.assertValidUser(event.object)
+        else:
+            self.fail("Event type %s is not recognized" % event_type)
 
     def assertValidGroup(self, group):
         """Checks given asset for properties that should be present on all assets.
