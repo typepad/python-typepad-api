@@ -2078,13 +2078,19 @@ class TestTypePad(unittest.TestCase):
         (full, slice1, slice2, slice3, slice4) = listset
         self.assert_(isinstance(full, typepad.ListObject),
             'object %r is not a typepad.ListObject' % full)
-        # api result set should never exceed 50 entries
-        self.assert_(len(full.entries) <= 50)
-        self.assert_(full.total_results > 1,
-            'list must have more than 1 item to test start-index query parameter')
-        self.assertEquals(len(slice2.entries), 1)
-        self.assertEquals(len(slice3.entries), 1)
-        self.assertEquals(len(slice4.entries), 0)
+
+        self.assert_(len(full.entries) <= 50, 'API result exceeded 50 entries')
+
+        self.assertEquals(len(slice2.entries), 1, 'Slice %r had %d entries (expected 1)'
+            % (slice2, len(slice2.entries)))
+        if full.total_results > 1:
+            self.assertEquals(len(slice3.entries), 1, 'Slice %r had %d entries (expected 1)'
+                % (slice3, len(slice3.entries)))
+        else:
+            self.assertEquals(len(slice3.entries), 0, 'Slice %r had %d entries (expected 0)'
+                % (slice3, len(slice3.entries)))
+        self.assertEquals(len(slice4.entries), 0, 'Slice %r had %d entries (expected 0)'
+            % (slice4, len(slice4.entries)))
 
     def assertForbidden(self, *args, **kwargs):
         self.assertRaises(HttpObject.Forbidden, *args, **kwargs)

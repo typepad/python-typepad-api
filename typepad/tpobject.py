@@ -664,3 +664,6 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
             args['max_results'] = key.stop
         return self.filter(**args)
 
+    def __repr__(self):
+        return '<%s.%s %r>' % (type(self).__module__, type(self).__name__,
+            getattr(self, '_location', None))
