@@ -1894,9 +1894,6 @@ class TestTypePad(unittest.TestCase):
         elif object_type == 'tag:api.typepad.com,2009:Audio':
             self.assert_(asset.audio_link is not None)
             self.assert_(asset.audio_link.url is not None)
-            # TODO: duration doesn't seem to be given for our tiny file,
-            # even though duration is not documented as optional.
-            #self.assert_(asset.audio_link.duration is not None)
         elif object_type == 'tag:api.typepad.com,2009:Post':
             pass
         elif object_type == 'tag:api.typepad.com,2009:Comment':
