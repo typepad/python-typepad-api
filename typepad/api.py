@@ -188,6 +188,8 @@ class UserProfile(TypePadObject):
 
     """
 
+    id = fields.Field()
+    """A URI that uniquely identifies the `User` associated with this `UserProfile`."""
     url_id = fields.Field(api_name='urlId')
     """An identifier for this `UserProfile` that can be used in URLs.
 
@@ -199,6 +201,8 @@ class UserProfile(TypePadObject):
     """
     display_name = fields.Field(api_name='displayName')
     """The related user's chosen display name."""
+    email = fields.Field()
+    gender = fields.Field()
     location = fields.Field()
     """The related user's location, as a free-form string provided by the user."""
     interests = fields.List(fields.Field())
