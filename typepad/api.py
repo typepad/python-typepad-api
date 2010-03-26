@@ -273,7 +273,7 @@ class UserProfile(TypePadObject):
     def user(self):
         """Returns a `User` instance for the TypePad member whose
         `UserProfile` this is."""
-        return User.get_by_url_id(self.url_id)
+        return find_by_name('User').get_by_url_id(self.url_id)
 
 
 class ElsewhereAccount(TypePadObject):
