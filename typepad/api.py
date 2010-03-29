@@ -805,6 +805,214 @@ class Post(Asset):
     object_type = "tag:api.typepad.com,2009:Post"
 
 
+class ImageLink(TypePadObject):
+
+    """A link to an image.
+
+    Images hosted by TypePad can be resized with image sizing specs. See
+    the `url_template` field and `at_size` method.
+
+    """
+
+    url = fields.Field()
+    """The URL for the original full-size version of the image."""
+    width = fields.Field()
+    """The natural width of the original image in pixels."""
+    height = fields.Field()
+    """The natural height of the original image in pixels."""
+    url_template = fields.Field(api_name='urlTemplate')
+    """If TypePad is able to scale the image, the URL template for making
+    resized image URLs.
+
+    The URL template is combined with an *image sizing spec* to provide
+    an URL to the same image at a different size.
+
+    Only images hosted on TypePad are available in multiple sizes. Images
+    such as Facebook and Twitter userpics are only available in one size.
+    If an image is not resizable, its `url_template` will be ``None``.
+
+    """
+
+    _PI = (        50, 75,      115, 120,      200,                320, 350,           500,                640,                800,                1024)
+    _WI = (        50, 75, 100, 115, 120, 150, 200,      250, 300, 320, 350, 400, 450, 500, 550, 580, 600, 640, 650, 700, 750, 800, 850, 900, 950, 1024)
+    _HI = (            75,                               250)
+    _SI = (16, 20, 50, 75,      115, 120, 150,      220, 250)
+
+    valid_specs = set(chain(
+        ('%dpi' % x for x in _PI),
+        ('%dwi' % x for x in _WI),
+        ('%dhi' % x for x in _HI),
+        ('%dsi' % x for x in _SI),
+        ('pi',),
+    ))
+    """A set of all known valid image sizing specs."""
+
+    # selection algorithm to scale to fit both dimensions
+    def inscribe(self, size):
+        """Given a size, return an `ImageLink` of an image that is no taller
+        or wider than the requested size.
+
+        This mode takes the largest dimension (either width or height) and
+        scales the image so that dimension is the size specified in the spec.
+        The other dimension is scaled to maintain the image's aspect ratio.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None: size = max(self.width, self.height)
+
+        if self.width > self.height:
+            if size > self.width:
+                size = self.width
+        else:
+            if size > self.height:
+                size = self.height
+
+        pi = size
+        if pi not in self._PI:
+            pi = self._PI[-1]
+            if size > pi:
+                size = pi
+            else:
+                for x in self._PI:
+                    if x > size:
+                        pi = x
+                        break
+
+        if self.height > self.width:
+            # scale by height
+            new_height = size
+            new_width = int(self.width * (new_height / float(self.height)))
+        else:
+            # scale by width
+            new_width = size
+            new_height = int(self.height * (new_width / float(self.width)))
+
+        url = copy(self)
+        url.width = new_width
+        url.height = new_height
+        url.url = self.at_size('%dpi' % pi)
+        return url
+
+    # selection algorithm to scale to fit width
+    def by_width(self, size):
+        """Given a size, return an `ImageLink` of an image that is no wider
+        than the requested size.
+
+        This mode scales the image such that the width is the size specified
+        in the spec, and the height is scaled to maintain the image's aspect
+        ratio.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None or size > self.width: size = self.width
+
+        wi = size
+        if size not in self._WI:
+            wi = self._WI[-1]
+            if size > wi:
+                size = wi
+            else:
+                for x in self._WI:
+                    if x > size:
+                        wi = x
+                        break
+
+        url = copy(self)
+        url.width = size
+        url.height = int(self.height * (size / float(self.width)))
+        url.url = self.at_size('%dwi' % wi)
+        return url
+
+    # selection algorithm to scale to fit height
+    def by_height(self, size):
+        """Given a size, return an `ImageLink` of an image that is no
+        taller than the requested size.
+
+        This mode scales the image such that the height is the size specified
+        in the spec, and the width is scaled to maintain the image's aspect
+        ratio.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None or size > self.height: size = self.height
+
+        hi = size
+        if size not in self._HI:
+            hi = self._HI[-1]
+            if size > hi:
+                size = hi
+            else:
+                for x in self._HI:
+                    if x > size:
+                        hi = x
+                        break
+
+        url = copy(self)
+        url.height = size
+        url.width = int(self.width * (size / float(self.height)))
+        url.url = self.at_size('%dhi' % hi)
+        return url
+
+    # selection algorithm to scale and crop to square
+    def square(self, size):
+        """Given a size, return an `ImageLink` of an image that fits within a
+        square of the requested size.
+
+        This results in a square image whose width and height are both the
+        size specified. If the original image isn't square, the image is
+        cropped across its longest dimension, showing only the central portion
+        which fits inside the square.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None: size = max(self.width, self.height)
+        if self.width > self.height:
+            if size > self.width:
+                size = self.width
+        else:
+            if size > self.height:
+                size = self.height
+
+        si = size
+        if si not in self._SI:
+            si = self._SI[-1]
+            if size > si:
+                size = si
+            else:
+                for x in self._SI:
+                    if x > size:
+                        si = x
+                        break
+
+        url = copy(self)
+        url.width = size
+        url.height = size
+        url.url = self.at_size('%dsi' % si)
+        return url
+
+    def at_size(self, spec):
+        """Returns the URL for the image at size given by `spec`.
+
+        You can request images from TypePad in several sizes, using an
+        *image sizing spec*. For example, the image spec ``pi`` means the
+        original size of the image, whereas ``75si`` means a 75 pixel
+        square.
+
+        If `spec` is not a valid image sizing spec, this method raises a
+        `ValueError`.
+
+        """
+        if self.url_template is None: return self.url
+        if spec not in self.valid_specs:
+            raise ValueError('String %r is not a valid image sizing spec' % spec)
+        return self.url_template.replace('{spec}', spec)
+
+    @property
+    def href(self):
+        """This is a deprecated property; use `url` instead."""
+        return self.url
+
+
 class Photo(Asset):
 
     """An entry in a blog."""
@@ -812,6 +1020,16 @@ class Photo(Asset):
     object_type = "tag:api.typepad.com,2009:Photo"
 
     image_link = fields.Object('ImageLink', api_name='imageLink')
+
+
+class AudioLink(TypePadObject):
+
+    """A link to an audio recording."""
+
+    url = fields.Field()
+    """The URL to the MP3 representation of the audio stream."""
+    duration = fields.Field()
+    """The duration of the audio stream in seconds."""
 
 
 class Audio(Asset):
@@ -823,13 +1041,79 @@ class Audio(Asset):
     audio_link = fields.Object('AudioLink', api_name='audioLink')
 
 
+class VideoLink(TypePadObject):
+
+    """A link to a web video."""
+
+    embed_code = fields.Field(api_name='embedCode')
+    """An opaque HTML fragment that, when embedded in an HTML page, will
+    provide an inline player for the video."""
+    permalink_url = fields.Field(api_name='permalinkUrl')
+    """A URL to the HTML permalink page of the video.
+
+    Use this field to specify the video when posting a new `Video` asset.
+    When requesting an existing `Video` instance from the API,
+    `permalink_url` will be ``None``.
+
+    """
+
+    _width = None
+    _height = None
+
+    def get_width(self):
+        if self._width is None:
+            match = re.search('\swidth="(\d+)"', self.embed_code)
+            if match:
+                self._width = int(match.group(1))
+        return self._width
+
+    def get_height(self):
+        if self._height is None:
+            match = re.search('\sheight="(\d+)"', self.embed_code)
+            if match:
+                self._height = int(match.group(1))
+        return self._height
+
+    def set_width(self, width):
+        self._width = width
+        self._update_embed()
+
+    def set_height(self, height):
+        self._height = height
+        self._update_embed()
+
+    width = property(get_width, set_width)
+    height = property(get_height, set_height)
+
+    def _update_embed(self):
+        self.embed_code = re.sub('(\swidth=)"\d+"', '\\1"%d"' % self.width, self.embed_code)
+        self.embed_code = re.sub('(\sheight=)"\d+"', '\\1"%d"' % self.height, self.embed_code)
+
+    # selection algorithm to scale to fit width
+    def by_width(self, size):
+        """Given a size, return a `VideoLink` of a video that is as wide
+        as the requested size.
+
+        This mode scales the video such that the width is the size specified
+        and the height is scaled to maintain the video's aspect ratio.
+
+        """
+        vid = copy(self)
+        vid.width = size
+        vid.height = int(self.height * (size / float(self.width)))
+        return vid
+
+    @property
+    def html(self):
+        """This is a deprecated property; use `embed_code` instead."""
+        return self.embed_code
+
+
 class Video(Asset):
 
     """An entry in a blog."""
 
     object_type = "tag:api.typepad.com,2009:Video"
-
-    links = fields.Object('LinkSet')
 
     video_link = fields.Object('VideoLink', api_name='videoLink')
     preview_image_link = fields.Object('ImageLink', api_name='previewImageLink')
@@ -840,8 +1124,6 @@ class LinkAsset(Asset):
     """A shared link to some URL."""
 
     object_type = "tag:api.typepad.com,2009:Link"
-
-    links = fields.Object('LinkSet')
 
     target_url = fields.Field(api_name='targetUrl')
 
