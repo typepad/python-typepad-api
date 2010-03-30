@@ -559,6 +559,13 @@ class Application(TypePadObject):
             'Application.get_by_api_key is deprecated')
         return cls.get('/applications/%s.json' % api_key, **kwargs)
 
+    @property
+    def user_flyouts_script(self):
+        import logging
+        logging.getLogger("typepad.api").warn(
+            'Application.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead')
+        return self.user_flyouts_script_url
+
 
 class Event(TypePadObject):
 
@@ -1009,7 +1016,9 @@ class ImageLink(TypePadObject):
 
     @property
     def href(self):
-        """This is a deprecated property; use `url` instead."""
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.href is deprecated; use %s.url instead' % self.__class__.__name__)
         return self.url
 
 
@@ -1105,7 +1114,9 @@ class VideoLink(TypePadObject):
 
     @property
     def html(self):
-        """This is a deprecated property; use `embed_code` instead."""
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.html is deprecated; use %s.embed_code instead' % self.__class__.__name__)
         return self.embed_code
 
 
