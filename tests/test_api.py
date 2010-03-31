@@ -191,6 +191,7 @@ class TestAsset(unittest.TestCase):
             raise Exception('No such mock request %s' % (callername,))
 
         mock = utils.mock_http(*req)
+        mock.endpoint = 'http://api.typepad.com'
         typepad.client = mock
 
         return mock
