@@ -36,7 +36,7 @@ content objects provided in the TypePad API.
 
 import base64
 from cStringIO import StringIO
-from datetime import datetime
+from datetime import datetime, date
 try:
     from email.message import Message
     from email.generator import Generator, _make_boundary
@@ -141,6 +141,7 @@ class User(TypePadObject):
     avatar_link = fields.Object('Link', api_name='avatarLink')
     profile_page_url = fields.Field(api_name='profilePageUrl')
 
+    blogs = fields.Link(ListOf('Blog'))
     relationships      = fields.Link(ListOf('Relationship'))
     events             = fields.Link(ListOf('Event'))
     comments           = fields.Link(ListOf('Comment'), api_name='comments-sent')
@@ -189,6 +190,18 @@ class User(TypePadObject):
         return u
 
 
+class BlogStats(TypePadObject):
+
+    total_page_views = fields.Field(api_name='totalPageViews')
+    daily_page_views = fields.Field(api_name='dailyPageViews')
+    """A mapping of page view counts, keyed on ISO format datestamps."""
+
+    @property
+    def views_today(self):
+        today = date.today().isoformat()
+        return self.daily_page_views.get(today, 0)
+
+
 class Blog(TypePadObject):
 
     """A TypePad blog."""
@@ -219,9 +232,11 @@ class Blog(TypePadObject):
     owner              = fields.Object('User')
     """The owner of this blog."""
 
+    links = fields.Object('LinkSet')
     post_assets        = fields.Link(ListOf('Asset'), api_name="post-assets")
     page_assets        = fields.Link(ListOf('Asset'), api_name="page-assets")
     comments           = fields.Link(ListOf('Asset'))
+    stats = fields.Link(BlogStats)
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -240,6 +255,11 @@ class Blog(TypePadObject):
         u = cls.get('/blogs/%s.json' % url_id, **kwargs)
         u.__dict__['url_id'] = url_id
         return u
+
+    @property
+    def permalink_url(self):
+        for link in self.links['rel__alternate']:
+            return link.href
 
 
 class ElsewhereAccount(TypePadObject):
