@@ -717,7 +717,7 @@ class TestTypePad(unittest.TestCase):
 
             self.testdata['assets_created'].append(posted_asset.xid)
         else: # test for a failure
-            self.assertEquals(int(params['status'][0]), httplib.UNAUTHORIZED)
+            self.assertEquals(int(params['status'][0]), httplib.FORBIDDEN)
 
     @attr(user='member')
     def test_5_POST_browser_upload__photo__by_member(self):
