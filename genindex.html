@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Index &mdash; typepad v1.1 documentation</title>
+    <title>Index &mdash; typepad v1.1.1 documentation</title>
     <link rel="stylesheet" href="static/default.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1',
+        VERSION:     '1.1.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="typepad v1.1 documentation" href="index.html" /> 
+    <link rel="top" title="typepad v1.1.1 documentation" href="index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -31,7 +31,7 @@
         <li class="right" >
           <a href="modindex.html" title="Global Module Index"
              accesskey="M">modules</a> |</li>
-        <li><a href="index.html">typepad v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">typepad v1.1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -52,26 +52,31 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="api.html#typepad.api.User.about_me">about_me (typepad.api.User attribute)</a></dt>
-<dt><a href="api.html#typepad.api.User.accounts">accounts (typepad.api.User attribute)</a></dt>
+<dt><a href="api.html#typepad.api.UserProfile.about_me">about_me (typepad.api.UserProfile attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.actor">actor (typepad.api.Asset attribute)</a></dt>
   <dd><dl>
     <dt><a href="api.html#typepad.api.Event.actor">(typepad.api.Event attribute)</a></dt>
   </dl></dd>
 <dt><a href="oauthclient.html#typepad.oauthclient.OAuthHttp.add_credentials">add_credentials() (typepad.oauthclient.OAuthHttp method)</a></dt>
-<dt><a href="tpobject.html#typepad.tpobject.Link.allowed_methods">allowed_methods (typepad.tpobject.Link attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Application">Application (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.Asset">Asset (class in typepad.api)</a></dt>
-<dt><a href="api.html#typepad.api.Asset.asset_ref">asset_ref (typepad.api.Asset attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api.html#typepad.api.Asset.asset_ref">asset_ref (typepad.api.Asset attribute)</a></dt>
 <dt><a href="api.html#typepad.api.AssetRef">AssetRef (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.Group.assets">assets() (typepad.api.Group method)</a></dt>
+<dt><a href="api.html#typepad.api.ImageLink.at_size">at_size() (typepad.api.ImageLink method)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="api.html#typepad.api.Audio">Audio (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.Group.audio_assets">audio_assets() (typepad.api.Group method)</a></dt>
+<dt><a href="api.html#typepad.api.Audio.audio_link">audio_link (typepad.api.Audio attribute)</a></dt>
+<dt><a href="api.html#typepad.api.AudioLink">AudioLink (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.author">author (typepad.api.Asset attribute)</a></dt>
   <dd><dl>
     <dt><a href="api.html#typepad.api.AssetRef.author">(typepad.api.AssetRef attribute)</a></dt>
   </dl></dd>
 <dt><a href="oauthclient.html#typepad.oauthclient.OAuthClient.authorize_token">authorize_token() (typepad.oauthclient.OAuthClient method)</a></dt>
+<dt><a href="api.html#typepad.api.User.avatar_link">avatar_link (typepad.api.User attribute)</a></dt>
+  <dd><dl>
+    <dt><a href="api.html#typepad.api.UserProfile.avatar_link">(typepad.api.UserProfile attribute)</a></dt>
+  </dl></dd>
 </dl></td></tr></table>
 
 <h2 id="B">B</h2>
@@ -79,7 +84,12 @@
 <dl>
 
 <dt><a href="api.html#typepad.api.Application.browser_upload_endpoint">browser_upload_endpoint (typepad.api.Application attribute)</a></dt>
-<dt><a href="tpobject.html#typepad.tpobject.Link.by_user">by_user (typepad.tpobject.Link attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api.html#typepad.api.ImageLink.by_height">by_height() (typepad.api.ImageLink method)</a></dt>
+<dt><a href="api.html#typepad.api.Source.by_user">by_user (typepad.api.Source attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api.html#typepad.api.ImageLink.by_width">by_width() (typepad.api.ImageLink method)</a></dt>
+  <dd><dl>
+    <dt><a href="api.html#typepad.api.VideoLink.by_width">(typepad.api.VideoLink method)</a></dt>
+  </dl></dd>
 </dl></td></tr></table>
 
 <h2 id="C">C</h2>
@@ -88,6 +98,7 @@
 
 <dt><a href="api.html#typepad.api.Asset.categories">categories (typepad.api.Asset attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Comment">Comment (class in typepad.api)</a></dt>
+<dt><a href="api.html#typepad.api.Asset.comment_count">comment_count (typepad.api.Asset attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.comments">comments() (typepad.api.Asset method)</a></dt>
   <dd><dl>
     <dt><a href="api.html#typepad.api.Group.comments">(typepad.api.Group method)</a></dt>
@@ -110,10 +121,11 @@
 <dt><a href="api.html#typepad.api.Group.display_name">display_name (typepad.api.Group attribute)</a></dt>
   <dd><dl>
     <dt><a href="api.html#typepad.api.User.display_name">(typepad.api.User attribute)</a></dt>
+    <dt><a href="api.html#typepad.api.UserProfile.display_name">(typepad.api.UserProfile attribute)</a></dt>
   </dl></dd></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="api.html#typepad.api.Document">Document (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.ElsewhereAccount.domain">domain (typepad.api.ElsewhereAccount attribute)</a></dt>
-<dt><a href="tpobject.html#typepad.tpobject.Link.duration">duration (typepad.tpobject.Link attribute)</a></dt>
+<dt><a href="api.html#typepad.api.AudioLink.duration">duration (typepad.api.AudioLink attribute)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="E">E</h2>
@@ -123,7 +135,11 @@
 <dt><a href="api.html#typepad.api.User.elsewhere_accounts">elsewhere_accounts() (typepad.api.User method)</a></dt>
 <dt><a href="api.html#typepad.api.ElsewhereAccount">ElsewhereAccount (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.User.email">email (typepad.api.User attribute)</a></dt>
-<dt><a href="tpobject.html#typepad.tpobject.ListObject.entries">entries (typepad.tpobject.ListObject attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
+  <dd><dl>
+    <dt><a href="api.html#typepad.api.UserProfile.email">(typepad.api.UserProfile attribute)</a></dt>
+  </dl></dd>
+<dt><a href="api.html#typepad.api.VideoLink.embed_code">embed_code (typepad.api.VideoLink attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="tpobject.html#typepad.tpobject.ListObject.entries">entries (typepad.tpobject.ListObject attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Event">Event (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.Group.events">events() (typepad.api.Group method)</a></dt>
   <dd><dl>
@@ -136,11 +152,13 @@
 <dl>
 
 <dt><a href="api.html#typepad.api.Favorite">Favorite (class in typepad.api)</a></dt>
+<dt><a href="api.html#typepad.api.Asset.favorite_count">favorite_count (typepad.api.Asset attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.favorites">favorites() (typepad.api.Asset method)</a></dt>
   <dd><dl>
     <dt><a href="api.html#typepad.api.User.favorites">(typepad.api.User method)</a></dt>
   </dl></dd></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="tpobject.html#typepad.tpobject.ListObject.filter">filter() (typepad.tpobject.ListObject method)</a></dt>
+<dt><a href="api.html#typepad.api.UserProfile.follow_frame_content_url">follow_frame_content_url (typepad.api.UserProfile attribute)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="G">G</h2>
@@ -148,6 +166,9 @@
 <dl>
 
 <dt><a href="api.html#typepad.api.User.gender">gender (typepad.api.User attribute)</a></dt>
+  <dd><dl>
+    <dt><a href="api.html#typepad.api.UserProfile.gender">(typepad.api.UserProfile attribute)</a></dt>
+  </dl></dd>
 <dt><a href="tpobject.html#typepad.tpobject.TypePadObject.get">get() (typepad.tpobject.TypePadObject class method)</a></dt>
 <dt><a href="api.html#typepad.api.Application.get_by_api_key">get_by_api_key() (typepad.api.Application class method)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.get_by_id">get_by_id() (typepad.api.Asset class method)</a></dt>
@@ -159,6 +180,7 @@
   <dd><dl>
     <dt><a href="api.html#typepad.api.Group.get_by_url_id">(typepad.api.Group class method)</a></dt>
     <dt><a href="api.html#typepad.api.User.get_by_url_id">(typepad.api.User class method)</a></dt>
+    <dt><a href="api.html#typepad.api.UserProfile.get_by_url_id">(typepad.api.UserProfile class method)</a></dt>
   </dl></dd></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="oauthclient.html#typepad.oauthclient.OAuthClient.get_file_upload_url">get_file_upload_url() (typepad.oauthclient.OAuthClient method)</a></dt>
 <dt><a href="api.html#typepad.api.User.get_self">get_self() (typepad.api.User class method)</a></dt>
@@ -170,29 +192,31 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="tpobject.html#typepad.tpobject.Link.height">height (typepad.tpobject.Link attribute)</a></dt>
-<dt><a href="api.html#typepad.api.User.homepage">homepage (typepad.api.User attribute)</a></dt>
+<dt><a href="api.html#typepad.api.ImageLink.height">height (typepad.api.ImageLink attribute)</a></dt>
+<dt><a href="api.html#typepad.api.UserProfile.homepage_url">homepage_url (typepad.api.UserProfile attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="api.html#typepad.api.AssetRef.href">href (typepad.api.AssetRef attribute)</a></dt>
-  <dd><dl>
-    <dt><a href="tpobject.html#typepad.tpobject.Link.href">(typepad.tpobject.Link attribute)</a></dt>
-  </dl></dd></dl></td><td width="33%" valign="top"><dl>
-<dt><a href="tpobject.html#typepad.tpobject.Link.html">html (typepad.tpobject.Link attribute)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="I">I</h2>
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="api.html#typepad.api.Asset.id">id (typepad.api.Asset attribute)</a></dt>
+<dt><a href="api.html#typepad.api.Provider.icon">icon (typepad.api.Provider attribute)</a></dt>
+<dt><a href="api.html#typepad.api.Application.id">id (typepad.api.Application attribute)</a></dt>
   <dd><dl>
+    <dt><a href="api.html#typepad.api.Asset.id">(typepad.api.Asset attribute)</a></dt>
     <dt><a href="api.html#typepad.api.ElsewhereAccount.id">(typepad.api.ElsewhereAccount attribute)</a></dt>
     <dt><a href="api.html#typepad.api.Event.id">(typepad.api.Event attribute)</a></dt>
     <dt><a href="api.html#typepad.api.Group.id">(typepad.api.Group attribute)</a></dt>
     <dt><a href="api.html#typepad.api.Relationship.id">(typepad.api.Relationship attribute)</a></dt>
     <dt><a href="api.html#typepad.api.User.id">(typepad.api.User attribute)</a></dt>
+    <dt><a href="api.html#typepad.api.UserProfile.id">(typepad.api.UserProfile attribute)</a></dt>
   </dl></dd></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api.html#typepad.api.Photo.image_link">image_link (typepad.api.Photo attribute)</a></dt>
+<dt><a href="api.html#typepad.api.ImageLink">ImageLink (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.in_reply_to">in_reply_to (typepad.api.Asset attribute)</a></dt>
-<dt><a href="api.html#typepad.api.User.interests">interests (typepad.api.User attribute)</a></dt>
+<dt><a href="api.html#typepad.api.ImageLink.inscribe">inscribe() (typepad.api.ImageLink method)</a></dt>
+<dt><a href="api.html#typepad.api.UserProfile.interests">interests (typepad.api.UserProfile attribute)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="L">L</h2>
@@ -200,31 +224,18 @@
 <dl>
 
 <dt><a href="fields.html#typepad.fields.Link">Link (class in typepad.fields)</a></dt>
-  <dd><dl>
-    <dt><a href="tpobject.html#typepad.tpobject.Link">(class in typepad.tpobject)</a></dt>
-  </dl></dd>
 <dt><a href="api.html#typepad.api.Group.link_assets">link_assets() (typepad.api.Group method)</a></dt>
-<dt><a href="tpobject.html#typepad.tpobject.LinkSet.link_by_size">link_by_size() (typepad.tpobject.LinkSet method)</a></dt>
-<dt><a href="tpobject.html#typepad.tpobject.LinkSet.link_by_width">link_by_width() (typepad.tpobject.LinkSet method)</a></dt>
-<dt><a href="api.html#typepad.api.LinkAsset">LinkAsset (class in typepad.api)</a></dt>
-<dt><a href="api.html#typepad.api.Application.links">links (typepad.api.Application attribute)</a></dt>
-  <dd><dl>
-    <dt><a href="api.html#typepad.api.Asset.links">(typepad.api.Asset attribute)</a></dt>
-    <dt><a href="api.html#typepad.api.Event.links">(typepad.api.Event attribute)</a></dt>
-    <dt><a href="api.html#typepad.api.Group.links">(typepad.api.Group attribute)</a></dt>
-    <dt><a href="api.html#typepad.api.Relationship.links">(typepad.api.Relationship attribute)</a></dt>
-    <dt><a href="api.html#typepad.api.User.links">(typepad.api.User attribute)</a></dt>
-    <dt><a href="tpobject.html#typepad.tpobject.ListObject.links">(typepad.tpobject.ListObject attribute)</a></dt>
-  </dl></dd></dl></td><td width="33%" valign="top"><dl>
-<dt><a href="tpobject.html#typepad.tpobject.LinkSet">LinkSet (class in typepad.tpobject)</a></dt>
+<dt><a href="api.html#typepad.api.LinkAsset">LinkAsset (class in typepad.api)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="tpobject.html#typepad.tpobject.ListObject">ListObject (class in typepad.tpobject)</a></dt>
-<dt><a href="api.html#typepad.api.User.location">location (typepad.api.User attribute)</a></dt>
+<dt><a href="api.html#typepad.api.UserProfile.location">location (typepad.api.UserProfile attribute)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="M">M</h2>
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
+<dt><a href="tpobject.html#typepad.tpobject.TypePadObject.make_self_link">make_self_link() (typepad.tpobject.TypePadObject method)</a></dt>
+<dt><a href="api.html#typepad.api.UserProfile.membership_management_page_url">membership_management_page_url (typepad.api.UserProfile attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Group.memberships">memberships() (typepad.api.Group method)</a></dt>
   <dd><dl>
     <dt><a href="api.html#typepad.api.User.memberships">(typepad.api.User method)</a></dt>
@@ -236,17 +247,20 @@
 <dl>
 
 <dt><a href="api.html#typepad.api.Application.name">name (typepad.api.Application attribute)</a></dt>
-<dt><a href="api.html#typepad.api.User.notifications">notifications() (typepad.api.User method)</a></dt></dl></td><td width="33%" valign="top"><dl>
+  <dd><dl>
+    <dt><a href="api.html#typepad.api.Provider.name">(typepad.api.Provider attribute)</a></dt>
+  </dl></dd></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api.html#typepad.api.User.notifications">notifications() (typepad.api.User method)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="O">O</h2>
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="api.html#typepad.api.Application.oauth_access_token_endpoint">oauth_access_token_endpoint (typepad.api.Application attribute)</a></dt>
-<dt><a href="api.html#typepad.api.Application.oauth_authorization_page">oauth_authorization_page (typepad.api.Application attribute)</a></dt>
-<dt><a href="api.html#typepad.api.Application.oauth_identification_page">oauth_identification_page (typepad.api.Application attribute)</a></dt>
-<dt><a href="api.html#typepad.api.Application.oauth_request_token">oauth_request_token (typepad.api.Application attribute)</a></dt>
+<dt><a href="api.html#typepad.api.Application.oauth_access_token_url">oauth_access_token_url (typepad.api.Application attribute)</a></dt>
+<dt><a href="api.html#typepad.api.Application.oauth_authorization_url">oauth_authorization_url (typepad.api.Application attribute)</a></dt>
+<dt><a href="api.html#typepad.api.Application.oauth_identification_url">oauth_identification_url (typepad.api.Application attribute)</a></dt>
+<dt><a href="api.html#typepad.api.Application.oauth_request_token_url">oauth_request_token_url (typepad.api.Application attribute)</a></dt>
 <dt><a href="oauthclient.html#typepad.oauthclient.OAuthAuthentication">OAuthAuthentication (class in typepad.oauthclient)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="oauthclient.html#typepad.oauthclient.OAuthClient">OAuthClient (class in typepad.oauthclient)</a></dt>
 <dt><a href="oauthclient.html#typepad.oauthclient.OAuthHttp">OAuthHttp (class in typepad.oauthclient)</a></dt>
@@ -258,14 +272,30 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
+<dt><a href="api.html#typepad.api.Asset.permalink_url">permalink_url (typepad.api.Asset attribute)</a></dt>
+  <dd><dl>
+    <dt><a href="api.html#typepad.api.Source.permalink_url">(typepad.api.Source attribute)</a></dt>
+    <dt><a href="api.html#typepad.api.VideoLink.permalink_url">(typepad.api.VideoLink attribute)</a></dt>
+  </dl></dd>
 <dt><a href="api.html#typepad.api.Photo">Photo (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.Group.photo_assets">photo_assets() (typepad.api.Group method)</a></dt>
 <dt><a href="api.html#typepad.api.Post">Post (class in typepad.api)</a></dt>
 <dt><a href="tpobject.html#typepad.tpobject.TypePadObject.post">post() (typepad.tpobject.TypePadObject method)</a></dt>
 <dt><a href="api.html#typepad.api.Group.post_assets">post_assets() (typepad.api.Group method)</a></dt>
 <dt><a href="api.html#typepad.api.User.preferred_username">preferred_username (typepad.api.User attribute)</a></dt>
+  <dd><dl>
+    <dt><a href="api.html#typepad.api.UserProfile.preferred_username">(typepad.api.UserProfile attribute)</a></dt>
+  </dl></dd>
+<dt><a href="api.html#typepad.api.Video.preview_image_link">preview_image_link (typepad.api.Video attribute)</a></dt>
+<dt><a href="api.html#typepad.api.UserProfile.profile_edit_page_url">profile_edit_page_url (typepad.api.UserProfile attribute)</a></dt>
+<dt><a href="api.html#typepad.api.User.profile_page_url">profile_page_url (typepad.api.User attribute)</a></dt>
+  <dd><dl>
+    <dt><a href="api.html#typepad.api.UserProfile.profile_page_url">(typepad.api.UserProfile attribute)</a></dt>
+  </dl></dd></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api.html#typepad.api.Provider">Provider (class in typepad.api)</a></dt>
+<dt><a href="api.html#typepad.api.Source.provider">provider (typepad.api.Source attribute)</a></dt>
 <dt><a href="api.html#typepad.api.ElsewhereAccount.provider_icon_url">provider_icon_url (typepad.api.ElsewhereAccount attribute)</a></dt>
-<dt><a href="api.html#typepad.api.ElsewhereAccount.provider_name">provider_name (typepad.api.ElsewhereAccount attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api.html#typepad.api.ElsewhereAccount.provider_name">provider_name (typepad.api.ElsewhereAccount attribute)</a></dt>
 <dt><a href="api.html#typepad.api.ElsewhereAccount.provider_url">provider_url (typepad.api.ElsewhereAccount attribute)</a></dt>
 <dt><a href="api.html#typepad.api.PublicationStatus">PublicationStatus (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.published">published (typepad.api.Asset attribute)</a></dt>
@@ -285,10 +315,10 @@
     <dt><a href="tpobject.html#typepad.tpobject.TypePadObject.reclass_for_data">(typepad.tpobject.TypePadObject method)</a></dt>
   </dl></dd>
 <dt><a href="api.html#typepad.api.AssetRef.ref">ref (typepad.api.AssetRef attribute)</a></dt>
-<dt><a href="tpobject.html#typepad.tpobject.Link.rel">rel (typepad.tpobject.Link attribute)</a></dt>
-<dt><a href="api.html#typepad.api.Relationship">Relationship (class in typepad.api)</a></dt></dl></td><td width="33%" valign="top"><dl>
-<dt><a href="api.html#typepad.api.User.relationships">relationships() (typepad.api.User method)</a></dt>
+<dt><a href="api.html#typepad.api.Relationship">Relationship (class in typepad.api)</a></dt>
+<dt><a href="api.html#typepad.api.User.relationships">relationships() (typepad.api.User method)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="api.html#typepad.api.RelationshipStatus">RelationshipStatus (class in typepad.api)</a></dt>
+<dt><a href="api.html#typepad.api.Asset.rendered_content">rendered_content (typepad.api.Asset attribute)</a></dt>
 <dt><a href="oauthclient.html#typepad.oauthclient.OAuthAuthentication.request">request() (typepad.oauthclient.OAuthAuthentication method)</a></dt>
 </dl></td></tr></table>
 
@@ -296,22 +326,26 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="api.html#typepad.api.Application.session_sync_script">session_sync_script (typepad.api.Application attribute)</a></dt>
+<dt><a href="api.html#typepad.api.Application.session_sync_script_url">session_sync_script_url (typepad.api.Application attribute)</a></dt>
 <dt><a href="oauthclient.html#typepad.oauthclient.OAuthAuthentication.signed_request">signed_request() (typepad.oauthclient.OAuthAuthentication method)</a></dt>
   <dd><dl>
     <dt><a href="oauthclient.html#typepad.oauthclient.OAuthHttp.signed_request">(typepad.oauthclient.OAuthHttp method)</a></dt>
   </dl></dd>
-<dt><a href="api.html#typepad.api.Application.signout_page">signout_page (typepad.api.Application attribute)</a></dt>
+<dt><a href="api.html#typepad.api.Application.signout_url">signout_url (typepad.api.Application attribute)</a></dt>
+<dt><a href="api.html#typepad.api.Source">Source (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.source">source (typepad.api.Asset attribute)</a></dt>
   <dd><dl>
     <dt><a href="api.html#typepad.api.Relationship.source">(typepad.api.Relationship attribute)</a></dt>
+    <dt><a href="api.html#typepad.api.Source.source">(typepad.api.Source attribute)</a></dt>
   </dl></dd></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="api.html#typepad.api.PublicationStatus.spam">spam (typepad.api.PublicationStatus attribute)</a></dt>
+<dt><a href="api.html#typepad.api.ImageLink.square">square() (typepad.api.ImageLink method)</a></dt>
 <dt><a href="tpobject.html#typepad.tpobject.ListObject.start_index">start_index (typepad.tpobject.ListObject attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.status">status (typepad.api.Asset attribute)</a></dt>
   <dd><dl>
     <dt><a href="api.html#typepad.api.Relationship.status">(typepad.api.Relationship attribute)</a></dt>
   </dl></dd>
+<dt><a href="api.html#typepad.api.Relationship.status_obj">status_obj() (typepad.api.Relationship method)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.summary">summary (typepad.api.Asset attribute)</a></dt>
 </dl></td></tr></table>
 
@@ -322,19 +356,13 @@
 <dt><a href="api.html#typepad.api.Tag">Tag (class in typepad.api)</a></dt>
 <dt><a href="api.html#typepad.api.Group.tagline">tagline (typepad.api.Group attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Relationship.target">target (typepad.api.Relationship attribute)</a></dt>
+<dt><a href="api.html#typepad.api.LinkAsset.target_url">target_url (typepad.api.LinkAsset attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Tag.term">term (typepad.api.Tag attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.text_format">text_format (typepad.api.Asset attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.title">title (typepad.api.Asset attribute)</a></dt>
-<dt><a href="tpobject.html#typepad.tpobject.LinkSet.to_dict">to_dict() (typepad.tpobject.LinkSet method)</a></dt>
-  <dd><dl>
-    <dt><a href="tpobject.html#typepad.tpobject.TypePadObject.to_dict">(typepad.tpobject.TypePadObject method)</a></dt>
-  </dl></dd>
-<dt><a href="tpobject.html#typepad.tpobject.Link.total">total (typepad.tpobject.Link attribute)</a></dt>
+<dt><a href="tpobject.html#typepad.tpobject.TypePadObject.to_dict">to_dict() (typepad.tpobject.TypePadObject method)</a></dt>
 <dt><a href="tpobject.html#typepad.tpobject.ListObject.total_results">total_results (typepad.tpobject.ListObject attribute)</a></dt>
-<dt><a href="api.html#typepad.api.AssetRef.type">type (typepad.api.AssetRef attribute)</a></dt>
-  <dd><dl>
-    <dt><a href="tpobject.html#typepad.tpobject.Link.type">(typepad.tpobject.Link attribute)</a></dt>
-  </dl></dd></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api.html#typepad.api.AssetRef.type">type (typepad.api.AssetRef attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
 <dt><a href="index.html#module-typepad">typepad (module)</a></dt>
 <dt><a href="api.html#module-typepad.api">typepad.api (module)</a></dt>
 <dt><a href="fields.html#module-typepad.fields">typepad.fields (module)</a></dt>
@@ -349,43 +377,51 @@
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="tpobject.html#typepad.tpobject.LinkSet.update_from_dict">update_from_dict() (typepad.tpobject.LinkSet method)</a></dt>
-  <dd><dl>
-    <dt><a href="tpobject.html#typepad.tpobject.TypePadObject.update_from_dict">(typepad.tpobject.TypePadObject method)</a></dt>
-  </dl></dd>
+<dt><a href="tpobject.html#typepad.tpobject.TypePadObject.update_from_dict">update_from_dict() (typepad.tpobject.TypePadObject method)</a></dt>
 <dt><a href="api.html#typepad.api.Asset.updated">updated (typepad.api.Asset attribute)</a></dt>
-<dt><a href="api.html#typepad.api.ElsewhereAccount.url">url (typepad.api.ElsewhereAccount attribute)</a></dt>
-<dt><a href="api.html#typepad.api.Asset.url_id">url_id (typepad.api.Asset attribute)</a></dt>
+<dt><a href="api.html#typepad.api.Provider.uri">uri (typepad.api.Provider attribute)</a></dt>
+<dt><a href="api.html#typepad.api.AudioLink.url">url (typepad.api.AudioLink attribute)</a></dt>
   <dd><dl>
+    <dt><a href="api.html#typepad.api.ElsewhereAccount.url">(typepad.api.ElsewhereAccount attribute)</a></dt>
+    <dt><a href="api.html#typepad.api.ImageLink.url">(typepad.api.ImageLink attribute)</a></dt>
+  </dl></dd>
+<dt><a href="api.html#typepad.api.Application.url_id">url_id (typepad.api.Application attribute)</a></dt>
+  <dd><dl>
+    <dt><a href="api.html#typepad.api.Asset.url_id">(typepad.api.Asset attribute)</a></dt>
     <dt><a href="api.html#typepad.api.AssetRef.url_id">(typepad.api.AssetRef attribute)</a></dt>
     <dt><a href="api.html#typepad.api.Event.url_id">(typepad.api.Event attribute)</a></dt>
     <dt><a href="api.html#typepad.api.Group.url_id">(typepad.api.Group attribute)</a></dt>
+    <dt><a href="api.html#typepad.api.Relationship.url_id">(typepad.api.Relationship attribute)</a></dt>
     <dt><a href="api.html#typepad.api.User.url_id">(typepad.api.User attribute)</a></dt>
+    <dt><a href="api.html#typepad.api.UserProfile.url_id">(typepad.api.UserProfile attribute)</a></dt>
   </dl></dd></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api.html#typepad.api.ImageLink.url_template">url_template (typepad.api.ImageLink attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Group.urls">urls (typepad.api.Group attribute)</a></dt>
-  <dd><dl>
-    <dt><a href="api.html#typepad.api.User.urls">(typepad.api.User attribute)</a></dt>
-  </dl></dd>
 <dt><a href="api.html#typepad.api.User">User (class in typepad.api)</a></dt>
-<dt><a href="api.html#typepad.api.Application.user_flyouts_script">user_flyouts_script (typepad.api.Application attribute)</a></dt>
+<dt><a href="api.html#typepad.api.UserProfile.user">user (typepad.api.UserProfile attribute)</a></dt>
+<dt><a href="api.html#typepad.api.Application.user_flyouts_script_url">user_flyouts_script_url (typepad.api.Application attribute)</a></dt>
 <dt><a href="api.html#typepad.api.ElsewhereAccount.user_id">user_id (typepad.api.ElsewhereAccount attribute)</a></dt>
 <dt><a href="api.html#typepad.api.ElsewhereAccount.username">username (typepad.api.ElsewhereAccount attribute)</a></dt>
+<dt><a href="api.html#typepad.api.UserProfile">UserProfile (class in typepad.api)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="V">V</h2>
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
+<dt><a href="api.html#typepad.api.ImageLink.valid_specs">valid_specs (typepad.api.ImageLink attribute)</a></dt>
 <dt><a href="api.html#typepad.api.Event.verbs">verbs (typepad.api.Event attribute)</a></dt>
-<dt><a href="api.html#typepad.api.Video">Video (class in typepad.api)</a></dt></dl></td><td width="33%" valign="top"><dl>
-<dt><a href="api.html#typepad.api.Group.video_assets">video_assets() (typepad.api.Group method)</a></dt>
+<dt><a href="api.html#typepad.api.Video">Video (class in typepad.api)</a></dt>
+<dt><a href="api.html#typepad.api.Group.video_assets">video_assets() (typepad.api.Group method)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api.html#typepad.api.Video.video_link">video_link (typepad.api.Video attribute)</a></dt>
+<dt><a href="api.html#typepad.api.VideoLink">VideoLink (class in typepad.api)</a></dt>
 </dl></td></tr></table>
 
 <h2 id="W">W</h2>
 <table width="100%" class="indextable"><tr><td width="33%" valign="top">
 <dl>
 
-<dt><a href="tpobject.html#typepad.tpobject.Link.width">width (typepad.tpobject.Link attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
+<dt><a href="api.html#typepad.api.ImageLink.width">width (typepad.api.ImageLink attribute)</a></dt></dl></td><td width="33%" valign="top"><dl>
 </dl></td></tr></table>
 
 <h2 id="X">X</h2>
@@ -431,12 +467,12 @@
         <li class="right" >
           <a href="modindex.html" title="Global Module Index"
              >modules</a> |</li>
-        <li><a href="index.html">typepad v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">typepad v1.1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Six Apart Ltd..
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
     </div>
   </body>
 </html>

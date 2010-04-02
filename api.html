@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>TypePad Content Objects &mdash; typepad v1.1 documentation</title>
+    <title>TypePad Content Objects &mdash; typepad v1.1.1 documentation</title>
     <link rel="stylesheet" href="static/default.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1',
+        VERSION:     '1.1.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="typepad v1.1 documentation" href="index.html" />
+    <link rel="top" title="typepad v1.1.1 documentation" href="index.html" />
     <link rel="next" title="TypePad Object Fields" href="fields.html" />
     <link rel="prev" title="The TypePad Object" href="tpobject.html" /> 
   </head>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="tpobject.html" title="The TypePad Object"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">typepad v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">typepad v1.1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -54,7 +54,8 @@
 content objects provided in the TypePad API.</p>
 <dl class="class">
 <dt id="typepad.api.Application">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Application</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Application" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Application</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Application" title="Permalink to this definition">¶</a></dt>
 <dd><p>An application that can authenticate to the TypePad API using OAuth.</p>
 <p>An application is identified by its OAuth consumer key, which in the case
 of a hosted group is the same as the identifier for the group itself.</p>
@@ -66,16 +67,16 @@ TypePad.</dd></dl>
 
 <dl class="classmethod">
 <dt id="typepad.api.Application.get_by_api_key">
-<em class="property">classmethod </em><tt class="descname">get_by_api_key</tt><big>(</big><em>api_key</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Application.get_by_api_key" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+classmethod </em><tt class="descname">get_by_api_key</tt><big>(</big><em>api_key</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Application.get_by_api_key" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an <cite>Application</cite> instance by the API key.</p>
 <p>Asserts that the api_key parameter matches ^w+$.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Application.links">
-<tt class="descname">links</tt><a class="headerlink" href="#typepad.api.Application.links" title="Permalink to this definition">¶</a></dt>
-<dd>A <cite>LinkSet</cite> containing the API endpoints associated with this
-<cite>Application</cite>.</dd></dl>
+<dt id="typepad.api.Application.id">
+<tt class="descname">id</tt><a class="headerlink" href="#typepad.api.Application.id" title="Permalink to this definition">¶</a></dt>
+<dd>A URI that uniquely identifies this <cite>Application</cite>.</dd></dl>
 
 <dl class="attribute">
 <dt id="typepad.api.Application.name">
@@ -83,47 +84,53 @@ TypePad.</dd></dl>
 <dd>The name of this <cite>Application</cite> as configured by the developer.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Application.oauth_access_token_endpoint">
-<tt class="descname">oauth_access_token_endpoint</tt><a class="headerlink" href="#typepad.api.Application.oauth_access_token_endpoint" title="Permalink to this definition">¶</a></dt>
+<dt id="typepad.api.Application.oauth_access_token_url">
+<tt class="descname">oauth_access_token_url</tt><a class="headerlink" href="#typepad.api.Application.oauth_access_token_url" title="Permalink to this definition">¶</a></dt>
 <dd>The service URL from which to request the OAuth access token.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Application.oauth_authorization_page">
-<tt class="descname">oauth_authorization_page</tt><a class="headerlink" href="#typepad.api.Application.oauth_authorization_page" title="Permalink to this definition">¶</a></dt>
+<dt id="typepad.api.Application.oauth_authorization_url">
+<tt class="descname">oauth_authorization_url</tt><a class="headerlink" href="#typepad.api.Application.oauth_authorization_url" title="Permalink to this definition">¶</a></dt>
 <dd>The URL at which end users can authorize the application to access
 their accounts.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Application.oauth_identification_page">
-<tt class="descname">oauth_identification_page</tt><a class="headerlink" href="#typepad.api.Application.oauth_identification_page" title="Permalink to this definition">¶</a></dt>
+<dt id="typepad.api.Application.oauth_identification_url">
+<tt class="descname">oauth_identification_url</tt><a class="headerlink" href="#typepad.api.Application.oauth_identification_url" title="Permalink to this definition">¶</a></dt>
 <dd>The URL at which end users can identify themselves to sign into
 typepad, thereby signing into this site.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Application.oauth_request_token">
-<tt class="descname">oauth_request_token</tt><a class="headerlink" href="#typepad.api.Application.oauth_request_token" title="Permalink to this definition">¶</a></dt>
+<dt id="typepad.api.Application.oauth_request_token_url">
+<tt class="descname">oauth_request_token_url</tt><a class="headerlink" href="#typepad.api.Application.oauth_request_token_url" title="Permalink to this definition">¶</a></dt>
 <dd>The service URL from which to request the OAuth request token.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Application.session_sync_script">
-<tt class="descname">session_sync_script</tt><a class="headerlink" href="#typepad.api.Application.session_sync_script" title="Permalink to this definition">¶</a></dt>
+<dt id="typepad.api.Application.session_sync_script_url">
+<tt class="descname">session_sync_script_url</tt><a class="headerlink" href="#typepad.api.Application.session_sync_script_url" title="Permalink to this definition">¶</a></dt>
 <dd>The URL from which to request session sync javascript.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Application.signout_page">
-<tt class="descname">signout_page</tt><a class="headerlink" href="#typepad.api.Application.signout_page" title="Permalink to this definition">¶</a></dt>
+<dt id="typepad.api.Application.signout_url">
+<tt class="descname">signout_url</tt><a class="headerlink" href="#typepad.api.Application.signout_url" title="Permalink to this definition">¶</a></dt>
 <dd>The URL at which end users can sign out of TypePad.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Application.user_flyouts_script">
-<tt class="descname">user_flyouts_script</tt><a class="headerlink" href="#typepad.api.Application.user_flyouts_script" title="Permalink to this definition">¶</a></dt>
+<dt id="typepad.api.Application.url_id">
+<tt class="descname">url_id</tt><a class="headerlink" href="#typepad.api.Application.url_id" title="Permalink to this definition">¶</a></dt>
+<dd>The canonical identifier used to identify this <cite>Application</cite> in URLs.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Application.user_flyouts_script_url">
+<tt class="descname">user_flyouts_script_url</tt><a class="headerlink" href="#typepad.api.Application.user_flyouts_script_url" title="Permalink to this definition">¶</a></dt>
 <dd>The URL from which to request typepad user flyout javascript.</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="typepad.api.Asset">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Asset</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Asset" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Asset</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Asset" title="Permalink to this definition">¶</a></dt>
 <dd><p>An item of content generated by a user.</p>
 <dl class="attribute">
 <dt id="typepad.api.Asset.actor">
@@ -148,6 +155,11 @@ instances in templates.</p>
 <tt class="descname">categories</tt><a class="headerlink" href="#typepad.api.Asset.categories" title="Permalink to this definition">¶</a></dt>
 <dd>A list of <cite>Tag</cite> instances associated with the <cite>Asset</cite>.</dd></dl>
 
+<dl class="attribute">
+<dt id="typepad.api.Asset.comment_count">
+<tt class="descname">comment_count</tt><a class="headerlink" href="#typepad.api.Asset.comment_count" title="Permalink to this definition">¶</a></dt>
+<dd>The number of comments left on this <cite>Asset</cite> instance.</dd></dl>
+
 <dl class="method">
 <dt id="typepad.api.Asset.comments">
 <tt class="descname">comments</tt><big>(</big><big>)</big><a class="headerlink" href="#typepad.api.Asset.comments" title="Permalink to this definition">¶</a></dt>
@@ -168,6 +180,11 @@ the TypePad API URL scheme. That is, a <cite>Link</cite> on <tt class="docutils 
 <tt class="descname">crosspost_accounts</tt><a class="headerlink" href="#typepad.api.Asset.crosspost_accounts" title="Permalink to this definition">¶</a></dt>
 <dd>A list of elsewhere account IDs to crosspost to.</dd></dl>
 
+<dl class="attribute">
+<dt id="typepad.api.Asset.favorite_count">
+<tt class="descname">favorite_count</tt><a class="headerlink" href="#typepad.api.Asset.favorite_count" title="Permalink to this definition">¶</a></dt>
+<dd>The number of times this <cite>Asset</cite> instance has been marked as a favorite.</dd></dl>
+
 <dl class="method">
 <dt id="typepad.api.Asset.favorites">
 <tt class="descname">favorites</tt><big>(</big><big>)</big><a class="headerlink" href="#typepad.api.Asset.favorites" title="Permalink to this definition">¶</a></dt>
@@ -180,14 +197,16 @@ the TypePad API URL scheme. That is, a <cite>Link</cite> on <tt class="docutils 
 
 <dl class="classmethod">
 <dt id="typepad.api.Asset.get_by_id">
-<em class="property">classmethod </em><tt class="descname">get_by_id</tt><big>(</big><em>id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Asset.get_by_id" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+classmethod </em><tt class="descname">get_by_id</tt><big>(</big><em>id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Asset.get_by_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an <cite>Asset</cite> instance by the identifier for the asset.</p>
 <p>Asserts that the url_id parameter matches ^w+$.</p>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="typepad.api.Asset.get_by_url_id">
-<em class="property">classmethod </em><tt class="descname">get_by_url_id</tt><big>(</big><em>url_id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Asset.get_by_url_id" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+classmethod </em><tt class="descname">get_by_url_id</tt><big>(</big><em>url_id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Asset.get_by_url_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an <cite>Asset</cite> instance by the url id for the asset.</p>
 <p>Asserts that the url_id parameter matches ^w+$.</p>
 </dd></dl>
@@ -212,10 +231,23 @@ the <cite>List</cite> is declared.</p>
 which this instance is a comment.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Asset.links">
-<tt class="descname">links</tt><a class="headerlink" href="#typepad.api.Asset.links" title="Permalink to this definition">¶</a></dt>
-<dd>A <cite>LinkSet</cite> containing various URLs and API endpoints related to this
-<cite>Asset</cite>.</dd></dl>
+<dt id="typepad.api.Asset.permalink_url">
+<tt class="descname">permalink_url</tt><a class="headerlink" href="#typepad.api.Asset.permalink_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>A property for encoding object attributes as dictionary values and
+decoding dictionary values into object attributes.</p>
+<p>Declare a <cite>Field</cite> instance for each attribute of a <cite>DataObject</cite> that
+should be encoded to or decoded from a dictionary.</p>
+<p>Use a <cite>Field</cite> instance directly for simple <cite>DataObject</cite> attributes that
+can be the same type as their dictionary values. That is, use <cite>Field</cite>
+fields for strings, numbers, and boolean values. If your attribute data
+does need converted, use one of the <cite>Field</cite> subclasses from the
+<cite>remoteobjects.fields</cite> module to encode and decode your data as
+appropriate.</p>
+<p>If your attribute needs converted specially, override the <cite>decode()</cite> and
+<cite>encode()</cite> methods in a new subclass of <cite>Field</cite>. For example, the
+<cite>fields.Datetime</cite> subclass of <cite>Field</cite> encodes Python <cite>datetime.datetime</cite>
+instances in a dictionary as timestamp strings.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="typepad.api.Asset.published">
@@ -223,9 +255,15 @@ which this instance is a comment.</dd></dl>
 <dd>A <cite>datetime.datetime</cite> indicating when the <cite>Asset</cite> was created.</dd></dl>
 
 <dl class="attribute">
+<dt id="typepad.api.Asset.rendered_content">
+<tt class="descname">rendered_content</tt><a class="headerlink" href="#typepad.api.Asset.rendered_content" title="Permalink to this definition">¶</a></dt>
+<dd>The content of this asset rendered to HTML. This is currently available only for <cite>Post</cite> and <cite>Page</cite> assets.</dd></dl>
+
+<dl class="attribute">
 <dt id="typepad.api.Asset.source">
 <tt class="descname">source</tt><a class="headerlink" href="#typepad.api.Asset.source" title="Permalink to this definition">¶</a></dt>
-<dd>A field representing a nested <cite>DataObject</cite>.</dd></dl>
+<dd>If the <cite>Asset</cite> instance was imported from another service, a <cite>Source</cite>
+instance describing the original asset on the external service.</dd></dl>
 
 <dl class="attribute">
 <dt id="typepad.api.Asset.status">
@@ -279,7 +317,8 @@ indicates the asset has no title.</p>
 
 <dl class="class">
 <dt id="typepad.api.AssetRef">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">AssetRef</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.AssetRef" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">AssetRef</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.AssetRef" title="Permalink to this definition">¶</a></dt>
 <dd><p>A structure that refers to an asset without including its full
 content.</p>
 <dl class="attribute">
@@ -327,22 +366,49 @@ field.</p>
 
 <dl class="class">
 <dt id="typepad.api.Audio">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Audio</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Audio" title="Permalink to this definition">¶</a></dt>
-<dd>An entry in a blog.</dd></dl>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Audio</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Audio" title="Permalink to this definition">¶</a></dt>
+<dd><p>An entry in a blog.</p>
+<dl class="attribute">
+<dt id="typepad.api.Audio.audio_link">
+<tt class="descname">audio_link</tt><a class="headerlink" href="#typepad.api.Audio.audio_link" title="Permalink to this definition">¶</a></dt>
+<dd>A field representing a nested <cite>DataObject</cite>.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="typepad.api.AudioLink">
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">AudioLink</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.AudioLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>A link to an audio recording.</p>
+<dl class="attribute">
+<dt id="typepad.api.AudioLink.duration">
+<tt class="descname">duration</tt><a class="headerlink" href="#typepad.api.AudioLink.duration" title="Permalink to this definition">¶</a></dt>
+<dd>The duration of the audio stream in seconds.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.AudioLink.url">
+<tt class="descname">url</tt><a class="headerlink" href="#typepad.api.AudioLink.url" title="Permalink to this definition">¶</a></dt>
+<dd>The URL to the MP3 representation of the audio stream.</dd></dl>
+
+</dd></dl>
 
 <dl class="class">
 <dt id="typepad.api.Comment">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Comment</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Comment" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Comment</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Comment" title="Permalink to this definition">¶</a></dt>
 <dd>A text comment posted in reply to some other asset.</dd></dl>
 
 <dl class="class">
 <dt id="typepad.api.Document">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Document</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Document" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Document</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Document" title="Permalink to this definition">¶</a></dt>
 <dd>A shared link to some URL.</dd></dl>
 
 <dl class="class">
 <dt id="typepad.api.ElsewhereAccount">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">ElsewhereAccount</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.ElsewhereAccount" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">ElsewhereAccount</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.ElsewhereAccount" title="Permalink to this definition">¶</a></dt>
 <dd><p>A user account on an external website.</p>
 <dl class="attribute">
 <dt id="typepad.api.ElsewhereAccount.crosspostable">
@@ -401,7 +467,8 @@ attributes.</p>
 
 <dl class="class">
 <dt id="typepad.api.Event">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Event</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Event" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Event</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Event" title="Permalink to this definition">¶</a></dt>
 <dd><p>An action that a user or group did.</p>
 <p>An event has an <cite>actor</cite>, which is the user or group that did the action; a
 set of <cite>verbs</cite> that describe what kind of action occured; and an <cite>object</cite>
@@ -420,12 +487,6 @@ event.</p>
 <dt id="typepad.api.Event.id">
 <tt class="descname">id</tt><a class="headerlink" href="#typepad.api.Event.id" title="Permalink to this definition">¶</a></dt>
 <dd>A URI that uniquely identifies this <cite>Event</cite>.</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.api.Event.links">
-<tt class="descname">links</tt><a class="headerlink" href="#typepad.api.Event.links" title="Permalink to this definition">¶</a></dt>
-<dd>A <cite>LinkSet</cite> containing various URLs and API endpoints related to this
-<cite>Event</cite>.</dd></dl>
 
 <dl class="attribute">
 <dt id="typepad.api.Event.object">
@@ -459,14 +520,16 @@ described <cite>Event</cite>.</p>
 
 <dl class="class">
 <dt id="typepad.api.Favorite">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Favorite</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Favorite" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Favorite</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Favorite" title="Permalink to this definition">¶</a></dt>
 <dd><p>A favorite of some other asset.</p>
 <p>Asserts that the user_id and asset_id parameter match ^w+$.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="typepad.api.Group">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Group</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Group" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Group</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Group" title="Permalink to this definition">¶</a></dt>
 <dd><p>A group that users can join, and to which users can post assets.</p>
 <p>TypePad API social applications are represented as groups.</p>
 <dl class="method">
@@ -519,14 +582,16 @@ the TypePad API URL scheme. That is, a <cite>Link</cite> on <tt class="docutils 
 
 <dl class="classmethod">
 <dt id="typepad.api.Group.get_by_id">
-<em class="property">classmethod </em><tt class="descname">get_by_id</tt><big>(</big><em>id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Group.get_by_id" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+classmethod </em><tt class="descname">get_by_id</tt><big>(</big><em>id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Group.get_by_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a <cite>Group</cite> instance by their unique identifier.</p>
 <p>Asserts that the id parameter is valid.</p>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="typepad.api.Group.get_by_url_id">
-<em class="property">classmethod </em><tt class="descname">get_by_url_id</tt><big>(</big><em>url_id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Group.get_by_url_id" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+classmethod </em><tt class="descname">get_by_url_id</tt><big>(</big><em>url_id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Group.get_by_url_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a <cite>Group</cite> instance by the group&#8217;s url identifier.</p>
 <p>Asserts that the url_id parameter matches ^w+$.</p>
 </dd></dl>
@@ -549,12 +614,6 @@ object to another.</p>
 the TypePad API URL scheme. That is, a <cite>Link</cite> on <tt class="docutils literal"><span class="pre">/asset/1.json</span></tt> called
 <tt class="docutils literal"><span class="pre">events</span></tt> links to <tt class="docutils literal"><span class="pre">/asset/1/events.json</span></tt>.</p>
 </dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.api.Group.links">
-<tt class="descname">links</tt><a class="headerlink" href="#typepad.api.Group.links" title="Permalink to this definition">¶</a></dt>
-<dd>A <cite>LinkSet</cite> containing URLs and API endpoints related to this
-<cite>Group</cite>.</dd></dl>
 
 <dl class="method">
 <dt id="typepad.api.Group.memberships">
@@ -622,23 +681,169 @@ the TypePad API URL scheme. That is, a <cite>Link</cite> on <tt class="docutils 
 </dd></dl>
 
 <dl class="class">
+<dt id="typepad.api.ImageLink">
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">ImageLink</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.ImageLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>A link to an image.</p>
+<p>Images hosted by TypePad can be resized with image sizing specs. See
+the <cite>url_template</cite> field and <cite>at_size</cite> method.</p>
+<dl class="method">
+<dt id="typepad.api.ImageLink.at_size">
+<tt class="descname">at_size</tt><big>(</big><em>spec</em><big>)</big><a class="headerlink" href="#typepad.api.ImageLink.at_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the URL for the image at size given by <cite>spec</cite>.</p>
+<p>You can request images from TypePad in several sizes, using an
+<em>image sizing spec</em>. For example, the image spec <tt class="docutils literal"><span class="pre">pi</span></tt> means the
+original size of the image, whereas <tt class="docutils literal"><span class="pre">75si</span></tt> means a 75 pixel
+square.</p>
+<p>If <cite>spec</cite> is not a valid image sizing spec, this method raises a
+<cite>ValueError</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="typepad.api.ImageLink.by_height">
+<tt class="descname">by_height</tt><big>(</big><em>size</em><big>)</big><a class="headerlink" href="#typepad.api.ImageLink.by_height" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a size, return an <cite>ImageLink</cite> of an image that is no
+taller than the requested size.</p>
+<p>This mode scales the image such that the height is the size specified
+in the spec, and the width is scaled to maintain the image&#8217;s aspect
+ratio.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="typepad.api.ImageLink.by_width">
+<tt class="descname">by_width</tt><big>(</big><em>size</em><big>)</big><a class="headerlink" href="#typepad.api.ImageLink.by_width" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a size, return an <cite>ImageLink</cite> of an image that is no wider
+than the requested size.</p>
+<p>This mode scales the image such that the width is the size specified
+in the spec, and the height is scaled to maintain the image&#8217;s aspect
+ratio.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.ImageLink.height">
+<tt class="descname">height</tt><a class="headerlink" href="#typepad.api.ImageLink.height" title="Permalink to this definition">¶</a></dt>
+<dd>The natural height of the original image in pixels.</dd></dl>
+
+<dl class="method">
+<dt id="typepad.api.ImageLink.inscribe">
+<tt class="descname">inscribe</tt><big>(</big><em>size</em><big>)</big><a class="headerlink" href="#typepad.api.ImageLink.inscribe" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a size, return an <cite>ImageLink</cite> of an image that is no taller
+or wider than the requested size.</p>
+<p>This mode takes the largest dimension (either width or height) and
+scales the image so that dimension is the size specified in the spec.
+The other dimension is scaled to maintain the image&#8217;s aspect ratio.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="typepad.api.ImageLink.square">
+<tt class="descname">square</tt><big>(</big><em>size</em><big>)</big><a class="headerlink" href="#typepad.api.ImageLink.square" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a size, return an <cite>ImageLink</cite> of an image that fits within a
+square of the requested size.</p>
+<p>This results in a square image whose width and height are both the
+size specified. If the original image isn&#8217;t square, the image is
+cropped across its longest dimension, showing only the central portion
+which fits inside the square.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.ImageLink.url">
+<tt class="descname">url</tt><a class="headerlink" href="#typepad.api.ImageLink.url" title="Permalink to this definition">¶</a></dt>
+<dd>The URL for the original full-size version of the image.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.ImageLink.url_template">
+<tt class="descname">url_template</tt><a class="headerlink" href="#typepad.api.ImageLink.url_template" title="Permalink to this definition">¶</a></dt>
+<dd><p>If TypePad is able to scale the image, the URL template for making
+resized image URLs.</p>
+<p>The URL template is combined with an <em>image sizing spec</em> to provide
+an URL to the same image at a different size.</p>
+<p>Only images hosted on TypePad are available in multiple sizes. Images
+such as Facebook and Twitter userpics are only available in one size.
+If an image is not resizable, its <cite>url_template</cite> will be <tt class="xref docutils literal"><span class="pre">None</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.ImageLink.valid_specs">
+<tt class="descname">valid_specs</tt><a class="headerlink" href="#typepad.api.ImageLink.valid_specs" title="Permalink to this definition">¶</a></dt>
+<dd>A set of all known valid image sizing specs.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.ImageLink.width">
+<tt class="descname">width</tt><a class="headerlink" href="#typepad.api.ImageLink.width" title="Permalink to this definition">¶</a></dt>
+<dd>The natural width of the original image in pixels.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="typepad.api.LinkAsset">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">LinkAsset</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.LinkAsset" title="Permalink to this definition">¶</a></dt>
-<dd>A shared link to some URL.</dd></dl>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">LinkAsset</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.LinkAsset" title="Permalink to this definition">¶</a></dt>
+<dd><p>A shared link to some URL.</p>
+<dl class="attribute">
+<dt id="typepad.api.LinkAsset.target_url">
+<tt class="descname">target_url</tt><a class="headerlink" href="#typepad.api.LinkAsset.target_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>A property for encoding object attributes as dictionary values and
+decoding dictionary values into object attributes.</p>
+<p>Declare a <cite>Field</cite> instance for each attribute of a <cite>DataObject</cite> that
+should be encoded to or decoded from a dictionary.</p>
+<p>Use a <cite>Field</cite> instance directly for simple <cite>DataObject</cite> attributes that
+can be the same type as their dictionary values. That is, use <cite>Field</cite>
+fields for strings, numbers, and boolean values. If your attribute data
+does need converted, use one of the <cite>Field</cite> subclasses from the
+<cite>remoteobjects.fields</cite> module to encode and decode your data as
+appropriate.</p>
+<p>If your attribute needs converted specially, override the <cite>decode()</cite> and
+<cite>encode()</cite> methods in a new subclass of <cite>Field</cite>. For example, the
+<cite>fields.Datetime</cite> subclass of <cite>Field</cite> encodes Python <cite>datetime.datetime</cite>
+instances in a dictionary as timestamp strings.</p>
+</dd></dl>
+
+</dd></dl>
 
 <dl class="class">
 <dt id="typepad.api.Photo">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Photo</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Photo" title="Permalink to this definition">¶</a></dt>
-<dd>An entry in a blog.</dd></dl>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Photo</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Photo" title="Permalink to this definition">¶</a></dt>
+<dd><p>An entry in a blog.</p>
+<dl class="attribute">
+<dt id="typepad.api.Photo.image_link">
+<tt class="descname">image_link</tt><a class="headerlink" href="#typepad.api.Photo.image_link" title="Permalink to this definition">¶</a></dt>
+<dd>A field representing a nested <cite>DataObject</cite>.</dd></dl>
+
+</dd></dl>
 
 <dl class="class">
 <dt id="typepad.api.Post">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Post</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Post" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Post</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Post" title="Permalink to this definition">¶</a></dt>
 <dd>An entry in a blog.</dd></dl>
 
 <dl class="class">
+<dt id="typepad.api.Provider">
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Provider</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Provider" title="Permalink to this definition">¶</a></dt>
+<dd><p>An external service that provided an asset.</p>
+<dl class="attribute">
+<dt id="typepad.api.Provider.icon">
+<tt class="descname">icon</tt><a class="headerlink" href="#typepad.api.Provider.icon" title="Permalink to this definition">¶</a></dt>
+<dd>The URL for a 16 by 16 favicon for the external service.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Provider.name">
+<tt class="descname">name</tt><a class="headerlink" href="#typepad.api.Provider.name" title="Permalink to this definition">¶</a></dt>
+<dd>The name of the external service.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Provider.uri">
+<tt class="descname">uri</tt><a class="headerlink" href="#typepad.api.Provider.uri" title="Permalink to this definition">¶</a></dt>
+<dd>The main URL for the external service.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="typepad.api.PublicationStatus">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">PublicationStatus</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.PublicationStatus" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">PublicationStatus</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.PublicationStatus" title="Permalink to this definition">¶</a></dt>
 <dd><p>A container for the flags that represent an asset&#8217;s publication status.</p>
 <p>Publication status is currently represented by two flags: published and
 spam. The published flag is false when an asset is held for moderation,
@@ -663,7 +868,8 @@ or a site moderator (<tt class="xref docutils literal"><span class="pre">True</s
 
 <dl class="class">
 <dt id="typepad.api.Relationship">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Relationship</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Relationship" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Relationship</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Relationship" title="Permalink to this definition">¶</a></dt>
 <dd><p>The unidirectional relationship between a pair of entities.</p>
 <p>A Relationship can be between a user and a user (a contact relationship),
 or a user and a group (a membership). In either case, the relationship&#8217;s
@@ -680,13 +886,7 @@ when the <cite>Dict</cite> is declared.</p>
 <dl class="attribute">
 <dt id="typepad.api.Relationship.id">
 <tt class="descname">id</tt><a class="headerlink" href="#typepad.api.Relationship.id" title="Permalink to this definition">¶</a></dt>
-<dd>A pseudo-id that we use for caching purposes.</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.api.Relationship.links">
-<tt class="descname">links</tt><a class="headerlink" href="#typepad.api.Relationship.links" title="Permalink to this definition">¶</a></dt>
-<dd>A <cite>LinkSet</cite> containing other URLs and API endpoints related to this
-relationship.</dd></dl>
+<dd>A URI that uniquely identifies this <cite>Relationship</cite> instance.</dd></dl>
 
 <dl class="attribute">
 <dt id="typepad.api.Relationship.source">
@@ -699,17 +899,33 @@ relationship.</dd></dl>
 <dd>A <cite>RelationshipStatus</cite> describing the types of relationship this
 <cite>Relationship</cite> instance represents.</dd></dl>
 
+<dl class="method">
+<dt id="typepad.api.Relationship.status_obj">
+<tt class="descname">status_obj</tt><big>(</big><big>)</big><a class="headerlink" href="#typepad.api.Relationship.status_obj" title="Permalink to this definition">¶</a></dt>
+<dd><p>A <cite>RelationshipStatus</cite> describing the types of relationship this
+<cite>Relationship</cite> instance represents.</p>
+<p>Unlike the <cite>RelationshipStatus</cite> instance in the <cite>status</cite> field, this
+linked <cite>RelationshipsStatus</cite> instance can be updated through <tt class="docutils literal"><span class="pre">POST</span></tt>
+requests.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="typepad.api.Relationship.target">
 <tt class="descname">target</tt><a class="headerlink" href="#typepad.api.Relationship.target" title="Permalink to this definition">¶</a></dt>
 <dd>The entity (<cite>User</cite> or <cite>Group</cite>) that is the object of this
 <cite>Relationship</cite>.</dd></dl>
 
+<dl class="attribute">
+<dt id="typepad.api.Relationship.url_id">
+<tt class="descname">url_id</tt><a class="headerlink" href="#typepad.api.Relationship.url_id" title="Permalink to this definition">¶</a></dt>
+<dd>An identifier for this <cite>Relationship</cite> that can be used in URLs.</dd></dl>
+
 </dd></dl>
 
 <dl class="class">
 <dt id="typepad.api.RelationshipStatus">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">RelationshipStatus</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.RelationshipStatus" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">RelationshipStatus</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.RelationshipStatus" title="Permalink to this definition">¶</a></dt>
 <dd><p>A representation of just the relationship types of a relationship,
 without the associated endpoints.</p>
 <dl class="attribute">
@@ -721,8 +937,57 @@ relationship edges included in this <cite>RelationshipStatus</cite>.</dd></dl>
 </dd></dl>
 
 <dl class="class">
+<dt id="typepad.api.Source">
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Source</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Source" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about an <cite>Asset</cite> instance imported from another service.</p>
+<dl class="attribute">
+<dt id="typepad.api.Source.by_user">
+<tt class="descname">by_user</tt><a class="headerlink" href="#typepad.api.Source.by_user" title="Permalink to this definition">¶</a></dt>
+<dd><p>Whether the associated asset was created on the external service by
+the TypePad asset&#8217;s author, as opposed to imported by that TypePad user.</p>
+<p>For example, a YouTube video asset that the TypePad user <em>created</em> would
+have a <cite>by_user</cite> of <tt class="xref docutils literal"><span class="pre">True</span></tt>. If the TypePad user instead posted someone
+else&#8217;s YouTube video, <cite>by_user</cite> would be <tt class="xref docutils literal"><span class="pre">False</span></tt>. (As far as TypePad is
+concerned, the TypePad user who posted it is the asset&#8217;s author in either
+case.)</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Source.permalink_url">
+<tt class="descname">permalink_url</tt><a class="headerlink" href="#typepad.api.Source.permalink_url" title="Permalink to this definition">¶</a></dt>
+<dd>The original URL of the imported asset on the external service.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Source.provider">
+<tt class="descname">provider</tt><a class="headerlink" href="#typepad.api.Source.provider" title="Permalink to this definition">¶</a></dt>
+<dd>Description of the external service that provided the associated asset.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Source.source">
+<tt class="descname">source</tt><a class="headerlink" href="#typepad.api.Source.source" title="Permalink to this definition">¶</a></dt>
+<dd><p>A property for encoding object attributes as dictionary values and
+decoding dictionary values into object attributes.</p>
+<p>Declare a <cite>Field</cite> instance for each attribute of a <cite>DataObject</cite> that
+should be encoded to or decoded from a dictionary.</p>
+<p>Use a <cite>Field</cite> instance directly for simple <cite>DataObject</cite> attributes that
+can be the same type as their dictionary values. That is, use <cite>Field</cite>
+fields for strings, numbers, and boolean values. If your attribute data
+does need converted, use one of the <cite>Field</cite> subclasses from the
+<cite>remoteobjects.fields</cite> module to encode and decode your data as
+appropriate.</p>
+<p>If your attribute needs converted specially, override the <cite>decode()</cite> and
+<cite>encode()</cite> methods in a new subclass of <cite>Field</cite>. For example, the
+<cite>fields.Datetime</cite> subclass of <cite>Field</cite> encodes Python <cite>datetime.datetime</cite>
+instances in a dictionary as timestamp strings.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="typepad.api.Tag">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Tag</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Tag" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Tag</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Tag" title="Permalink to this definition">¶</a></dt>
 <dd><p>A textual tag applied to an asset by its author.</p>
 <dl class="attribute">
 <dt id="typepad.api.Tag.count">
@@ -745,26 +1010,16 @@ the tag has been applied to that asset.</p>
 
 <dl class="class">
 <dt id="typepad.api.User">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">User</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.User" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">User</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.User" title="Permalink to this definition">¶</a></dt>
 <dd><p>A TypePad user.</p>
 <p>This includes those who own TypePad blogs, those who use TypePad Connect
 and registered commenters who have either created a TypePad account or
 signed in with OpenID.</p>
 <dl class="attribute">
-<dt id="typepad.api.User.about_me">
-<tt class="descname">about_me</tt><a class="headerlink" href="#typepad.api.User.about_me" title="Permalink to this definition">¶</a></dt>
-<dd><p>The biographical text provided by the <cite>User</cite>.</p>
-<p>This text is displayed on the user&#8217;s TypePad Profile page. The string
-may contain multiple lines of text separated by newline characters.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.api.User.accounts">
-<tt class="descname">accounts</tt><a class="headerlink" href="#typepad.api.User.accounts" title="Permalink to this definition">¶</a></dt>
-<dd><p>A field representing a homogeneous list of data.</p>
-<p>The elements of the list are decoded through another field specified when
-the <cite>List</cite> is declared.</p>
-</dd></dl>
+<dt id="typepad.api.User.avatar_link">
+<tt class="descname">avatar_link</tt><a class="headerlink" href="#typepad.api.User.avatar_link" title="Permalink to this definition">¶</a></dt>
+<dd>The <cite>Link</cite> instance to the user&#8217;s avatar picture.</dd></dl>
 
 <dl class="method">
 <dt id="typepad.api.User.comments">
@@ -854,14 +1109,16 @@ instances in a dictionary as timestamp strings.</p>
 
 <dl class="classmethod">
 <dt id="typepad.api.User.get_by_id">
-<em class="property">classmethod </em><tt class="descname">get_by_id</tt><big>(</big><em>id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.User.get_by_id" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+classmethod </em><tt class="descname">get_by_id</tt><big>(</big><em>id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.User.get_by_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a <cite>User</cite> instance by their unique identifier.</p>
 <p>Asserts that the id parameter is valid.</p>
 </dd></dl>
 
 <dl class="classmethod">
 <dt id="typepad.api.User.get_by_url_id">
-<em class="property">classmethod </em><tt class="descname">get_by_url_id</tt><big>(</big><em>url_id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.User.get_by_url_id" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+classmethod </em><tt class="descname">get_by_url_id</tt><big>(</big><em>url_id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.User.get_by_url_id" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a <cite>User</cite> instance by their url identifier.</p>
 <p>Profile URL identifiers must contain only letters, numbers, and
 underscores.</p>
@@ -869,28 +1126,10 @@ underscores.</p>
 
 <dl class="classmethod">
 <dt id="typepad.api.User.get_self">
-<em class="property">classmethod </em><tt class="descname">get_self</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.User.get_self" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+classmethod </em><tt class="descname">get_self</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.User.get_self" title="Permalink to this definition">¶</a></dt>
 <dd>Returns a <cite>User</cite> instance representing the account as whom the
 client library is authenticating.</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.api.User.homepage">
-<tt class="descname">homepage</tt><a class="headerlink" href="#typepad.api.User.homepage" title="Permalink to this definition">¶</a></dt>
-<dd><p>A property for encoding object attributes as dictionary values and
-decoding dictionary values into object attributes.</p>
-<p>Declare a <cite>Field</cite> instance for each attribute of a <cite>DataObject</cite> that
-should be encoded to or decoded from a dictionary.</p>
-<p>Use a <cite>Field</cite> instance directly for simple <cite>DataObject</cite> attributes that
-can be the same type as their dictionary values. That is, use <cite>Field</cite>
-fields for strings, numbers, and boolean values. If your attribute data
-does need converted, use one of the <cite>Field</cite> subclasses from the
-<cite>remoteobjects.fields</cite> module to encode and decode your data as
-appropriate.</p>
-<p>If your attribute needs converted specially, override the <cite>decode()</cite> and
-<cite>encode()</cite> methods in a new subclass of <cite>Field</cite>. For example, the
-<cite>fields.Datetime</cite> subclass of <cite>Field</cite> encodes Python <cite>datetime.datetime</cite>
-instances in a dictionary as timestamp strings.</p>
-</dd></dl>
 
 <dl class="attribute">
 <dt id="typepad.api.User.id">
@@ -899,36 +1138,6 @@ instances in a dictionary as timestamp strings.</p>
 <p>A user&#8217;s <cite>id</cite> URI is unique across groups, TypePad environments, and
 time. When associating local content to a user, use this identifier
 as the &#8220;foreign key&#8221; to an API user.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.api.User.interests">
-<tt class="descname">interests</tt><a class="headerlink" href="#typepad.api.User.interests" title="Permalink to this definition">¶</a></dt>
-<dd>A list of strings identifying interests, provided by the <cite>User</cite>.</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.api.User.links">
-<tt class="descname">links</tt><a class="headerlink" href="#typepad.api.User.links" title="Permalink to this definition">¶</a></dt>
-<dd>A <cite>LinkSet</cite> containing various URLs and API endpoints related to this
-<cite>User</cite>.</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.api.User.location">
-<tt class="descname">location</tt><a class="headerlink" href="#typepad.api.User.location" title="Permalink to this definition">¶</a></dt>
-<dd><p>A property for encoding object attributes as dictionary values and
-decoding dictionary values into object attributes.</p>
-<p>Declare a <cite>Field</cite> instance for each attribute of a <cite>DataObject</cite> that
-should be encoded to or decoded from a dictionary.</p>
-<p>Use a <cite>Field</cite> instance directly for simple <cite>DataObject</cite> attributes that
-can be the same type as their dictionary values. That is, use <cite>Field</cite>
-fields for strings, numbers, and boolean values. If your attribute data
-does need converted, use one of the <cite>Field</cite> subclasses from the
-<cite>remoteobjects.fields</cite> module to encode and decode your data as
-appropriate.</p>
-<p>If your attribute needs converted specially, override the <cite>decode()</cite> and
-<cite>encode()</cite> methods in a new subclass of <cite>Field</cite>. For example, the
-<cite>fields.Datetime</cite> subclass of <cite>Field</cite> encodes Python <cite>datetime.datetime</cite>
-instances in a dictionary as timestamp strings.</p>
 </dd></dl>
 
 <dl class="method">
@@ -959,9 +1168,14 @@ the TypePad API URL scheme. That is, a <cite>Link</cite> on <tt class="docutils 
 environments. TypePad users can change their Profile URLs, so this
 identifier can also change over time for a given user. Use this name
 when constructing a link to the user&#8217;s profile on your local site.
-(Use the appropriate <cite>Link</cite> from the <cite>User</cite> instance&#8217;s <cite>links</cite> for
-the full TypePad Profile URL.)</p>
+(Use the <cite>User</cite> instance&#8217;s <cite>profile_page_url</cite> field for the full
+TypePad Profile URL.)</p>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.profile_page_url">
+<tt class="descname">profile_page_url</tt><a class="headerlink" href="#typepad.api.User.profile_page_url" title="Permalink to this definition">¶</a></dt>
+<dd>The URL of the user&#8217;s TypePad profile page.</dd></dl>
 
 <dl class="method">
 <dt id="typepad.api.User.relationships">
@@ -979,24 +1193,212 @@ the TypePad API URL scheme. That is, a <cite>Link</cite> on <tt class="docutils 
 <dd><p>An identifier for this <cite>User</cite> that can be used in URLs.</p>
 <p>A user&#8217;s <cite>url_id</cite> is unique only across groups in one TypePad
 environment, so you should use <cite>id</cite>, not <cite>url_id</cite>, to associate data
-with a <cite>User</cite>. When constructing URLs to API resources in a given
+with a <cite>User</cite>. When constructing URLs to API resources in one particular
 TypePad environment, however, use <cite>url_id</cite>.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.api.User.urls">
-<tt class="descname">urls</tt><a class="headerlink" href="#typepad.api.User.urls" title="Permalink to this definition">¶</a></dt>
-<dd><p>A field representing a homogeneous list of data.</p>
-<p>The elements of the list are decoded through another field specified when
-the <cite>List</cite> is declared.</p>
 </dd></dl>
 
 </dd></dl>
 
 <dl class="class">
+<dt id="typepad.api.UserProfile">
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">UserProfile</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.UserProfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Additional profile information about a TypePad user.</p>
+<p>This additional information is useful when showing information about a
+TypePad account directly, but is generally not required when linking to
+an ancillary TypePad account, such as the author of a post.</p>
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.about_me">
+<tt class="descname">about_me</tt><a class="headerlink" href="#typepad.api.UserProfile.about_me" title="Permalink to this definition">¶</a></dt>
+<dd><p>The biographical text provided by the <cite>User</cite>.</p>
+<p>This text is displayed on the user&#8217;s TypePad Profile page. The string
+may contain multiple lines of text separated by newline characters.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.avatar_link">
+<tt class="descname">avatar_link</tt><a class="headerlink" href="#typepad.api.UserProfile.avatar_link" title="Permalink to this definition">¶</a></dt>
+<dd>The <cite>Link</cite> instance to the related user&#8217;s avatar picture.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.display_name">
+<tt class="descname">display_name</tt><a class="headerlink" href="#typepad.api.UserProfile.display_name" title="Permalink to this definition">¶</a></dt>
+<dd>The related user&#8217;s chosen display name.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.email">
+<tt class="descname">email</tt><a class="headerlink" href="#typepad.api.UserProfile.email" title="Permalink to this definition">¶</a></dt>
+<dd><p>A property for encoding object attributes as dictionary values and
+decoding dictionary values into object attributes.</p>
+<p>Declare a <cite>Field</cite> instance for each attribute of a <cite>DataObject</cite> that
+should be encoded to or decoded from a dictionary.</p>
+<p>Use a <cite>Field</cite> instance directly for simple <cite>DataObject</cite> attributes that
+can be the same type as their dictionary values. That is, use <cite>Field</cite>
+fields for strings, numbers, and boolean values. If your attribute data
+does need converted, use one of the <cite>Field</cite> subclasses from the
+<cite>remoteobjects.fields</cite> module to encode and decode your data as
+appropriate.</p>
+<p>If your attribute needs converted specially, override the <cite>decode()</cite> and
+<cite>encode()</cite> methods in a new subclass of <cite>Field</cite>. For example, the
+<cite>fields.Datetime</cite> subclass of <cite>Field</cite> encodes Python <cite>datetime.datetime</cite>
+instances in a dictionary as timestamp strings.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.follow_frame_content_url">
+<tt class="descname">follow_frame_content_url</tt><a class="headerlink" href="#typepad.api.UserProfile.follow_frame_content_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The URL of the related user&#8217;s following widget.</p>
+<p>Use this URL in an HTML iframe to provide an interface for following
+this user. The iframe should be 300 pixels wide and 125 pixels high.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.gender">
+<tt class="descname">gender</tt><a class="headerlink" href="#typepad.api.UserProfile.gender" title="Permalink to this definition">¶</a></dt>
+<dd><p>A property for encoding object attributes as dictionary values and
+decoding dictionary values into object attributes.</p>
+<p>Declare a <cite>Field</cite> instance for each attribute of a <cite>DataObject</cite> that
+should be encoded to or decoded from a dictionary.</p>
+<p>Use a <cite>Field</cite> instance directly for simple <cite>DataObject</cite> attributes that
+can be the same type as their dictionary values. That is, use <cite>Field</cite>
+fields for strings, numbers, and boolean values. If your attribute data
+does need converted, use one of the <cite>Field</cite> subclasses from the
+<cite>remoteobjects.fields</cite> module to encode and decode your data as
+appropriate.</p>
+<p>If your attribute needs converted specially, override the <cite>decode()</cite> and
+<cite>encode()</cite> methods in a new subclass of <cite>Field</cite>. For example, the
+<cite>fields.Datetime</cite> subclass of <cite>Field</cite> encodes Python <cite>datetime.datetime</cite>
+instances in a dictionary as timestamp strings.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="typepad.api.UserProfile.get_by_url_id">
+<em class="property">
+classmethod </em><tt class="descname">get_by_url_id</tt><big>(</big><em>url_id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.UserProfile.get_by_url_id" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the <cite>UserProfile</cite> instance with the given URL identifier.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.homepage_url">
+<tt class="descname">homepage_url</tt><a class="headerlink" href="#typepad.api.UserProfile.homepage_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The URL the related user has specified as an external website URL.</p>
+<p>If the related user has not specified an external website URL,
+<cite>homepage_url</cite> will be <tt class="xref docutils literal"><span class="pre">None</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.id">
+<tt class="descname">id</tt><a class="headerlink" href="#typepad.api.UserProfile.id" title="Permalink to this definition">¶</a></dt>
+<dd>A URI that uniquely identifies the <cite>User</cite> associated with this <cite>UserProfile</cite>.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.interests">
+<tt class="descname">interests</tt><a class="headerlink" href="#typepad.api.UserProfile.interests" title="Permalink to this definition">¶</a></dt>
+<dd>A list of interests provided by the related user for display on their
+TypePad profile.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.location">
+<tt class="descname">location</tt><a class="headerlink" href="#typepad.api.UserProfile.location" title="Permalink to this definition">¶</a></dt>
+<dd>The related user&#8217;s location, as a free-form string provided by the user.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.membership_management_page_url">
+<tt class="descname">membership_management_page_url</tt><a class="headerlink" href="#typepad.api.UserProfile.membership_management_page_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The URL of a page where the user can manage their community
+memberships.</p>
+<p>This URL is only present when the <cite>UserProfile</cite> is requested on behalf
+of the related user. That is, the <cite>membership_management_page_url</cite> is
+<tt class="xref docutils literal"><span class="pre">None</span></tt> unless the user is viewing their own profile.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.preferred_username">
+<tt class="descname">preferred_username</tt><a class="headerlink" href="#typepad.api.UserProfile.preferred_username" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name the related user chose for use in their TypePad profile URL.</p>
+<p>This name can be used as an ID to select this user in a transient URL.
+As this name can be changed, use the <cite>url_id</cite> field as a persistent key
+instead.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.profile_edit_page_url">
+<tt class="descname">profile_edit_page_url</tt><a class="headerlink" href="#typepad.api.UserProfile.profile_edit_page_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>The URL of a page where the user can edit their profile information.</p>
+<p>This URL is only present when the <cite>UserProfile</cite> is requested on behalf
+of the related user. That is, the <cite>profile_edit_page_url</cite> is <tt class="xref docutils literal"><span class="pre">None</span></tt>
+unless the user is viewing their own profile.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.profile_page_url">
+<tt class="descname">profile_page_url</tt><a class="headerlink" href="#typepad.api.UserProfile.profile_page_url" title="Permalink to this definition">¶</a></dt>
+<dd>The URL of the related user&#8217;s TypePad profile page.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.url_id">
+<tt class="descname">url_id</tt><a class="headerlink" href="#typepad.api.UserProfile.url_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>An identifier for this <cite>UserProfile</cite> that can be used in URLs.</p>
+<p>A user&#8217;s <cite>url_id</cite> is unique only across groups in one TypePad
+environment, so you should use <cite>id</cite>, not <cite>url_id</cite>, to associate data
+with a <cite>User</cite> (or <cite>UserProfile</cite>). When constructing URLs to API resources
+in one particular TypePad environment, however, use <cite>url_id</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.UserProfile.user">
+<tt class="descname">user</tt><a class="headerlink" href="#typepad.api.UserProfile.user" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a <cite>User</cite> instance for the TypePad member whose
+<cite>UserProfile</cite> this is.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="typepad.api.Video">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Video</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Video" title="Permalink to this definition">¶</a></dt>
-<dd>An entry in a blog.</dd></dl>
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Video</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Video" title="Permalink to this definition">¶</a></dt>
+<dd><p>An entry in a blog.</p>
+<dl class="attribute">
+<dt id="typepad.api.Video.preview_image_link">
+<tt class="descname">preview_image_link</tt><a class="headerlink" href="#typepad.api.Video.preview_image_link" title="Permalink to this definition">¶</a></dt>
+<dd>A field representing a nested <cite>DataObject</cite>.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Video.video_link">
+<tt class="descname">video_link</tt><a class="headerlink" href="#typepad.api.Video.video_link" title="Permalink to this definition">¶</a></dt>
+<dd>A field representing a nested <cite>DataObject</cite>.</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="typepad.api.VideoLink">
+<em class="property">
+class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">VideoLink</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.VideoLink" title="Permalink to this definition">¶</a></dt>
+<dd><p>A link to a web video.</p>
+<dl class="method">
+<dt id="typepad.api.VideoLink.by_width">
+<tt class="descname">by_width</tt><big>(</big><em>size</em><big>)</big><a class="headerlink" href="#typepad.api.VideoLink.by_width" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a size, return a <cite>VideoLink</cite> of a video that is as wide
+as the requested size.</p>
+<p>This mode scales the video such that the width is the size specified
+and the height is scaled to maintain the video&#8217;s aspect ratio.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.VideoLink.embed_code">
+<tt class="descname">embed_code</tt><a class="headerlink" href="#typepad.api.VideoLink.embed_code" title="Permalink to this definition">¶</a></dt>
+<dd>An opaque HTML fragment that, when embedded in an HTML page, will
+provide an inline player for the video.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.VideoLink.permalink_url">
+<tt class="descname">permalink_url</tt><a class="headerlink" href="#typepad.api.VideoLink.permalink_url" title="Permalink to this definition">¶</a></dt>
+<dd><p>A URL to the HTML permalink page of the video.</p>
+<p>Use this field to specify the video when posting a new <cite>Video</cite> asset.
+When requesting an existing <cite>Video</cite> instance from the API,
+<cite>permalink_url</cite> will be <tt class="xref docutils literal"><span class="pre">None</span></tt>.</p>
+</dd></dl>
+
+</dd></dl>
 
 <dl class="function">
 <dt id="typepad.api.xid_from_atom_id">
@@ -1058,12 +1460,12 @@ Atom ID, returns <tt class="xref docutils literal"><span class="pre">None</span>
         <li class="right" >
           <a href="tpobject.html" title="The TypePad Object"
              >previous</a> |</li>
-        <li><a href="index.html">typepad v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">typepad v1.1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Six Apart Ltd..
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
     </div>
   </body>
 </html>

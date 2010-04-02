@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The TypePad Object &mdash; typepad v1.1 documentation</title>
+    <title>The TypePad Object &mdash; typepad v1.1.1 documentation</title>
     <link rel="stylesheet" href="static/default.css" type="text/css" />
     <link rel="stylesheet" href="static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '1.1',
+        VERSION:     '1.1.1',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="static/jquery.js"></script>
     <script type="text/javascript" src="static/doctools.js"></script>
-    <link rel="top" title="typepad v1.1 documentation" href="index.html" />
+    <link rel="top" title="typepad v1.1.1 documentation" href="index.html" />
     <link rel="next" title="TypePad Content Objects" href="api.html" />
     <link rel="prev" title="typepad" href="index.html" /> 
   </head>
@@ -39,7 +39,7 @@
         <li class="right" >
           <a href="index.html" title="typepad"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">typepad v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">typepad v1.1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -57,168 +57,14 @@ TypePad API.</p>
 <ul class="simple">
 <li>the <cite>TypePadObject</cite> class, a <cite>RemoteObject</cite> subclass that enforces batch
 requesting and <tt class="docutils literal"><span class="pre">objectTypes</span></tt> behavior</li>
-<li>the <cite>Link</cite> and <cite>LinkSet</cite> classes, implementing the TypePad API&#8217;s common link
-mechanism using objects&#8217; <tt class="docutils literal"><span class="pre">links</span></tt> attributes</li>
+<li>the <cite>Link</cite> class, implementing the TypePad API&#8217;s common link object</li>
 <li>the <cite>ListObject</cite> class and <cite>ListOf</cite> metaclass, providing an interface for
 working with the TypePad API&#8217;s list endpoints</li>
 </ul>
 <dl class="class">
-<dt id="typepad.tpobject.Link">
-<em class="property">class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">Link</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.Link" title="Permalink to this definition">¶</a></dt>
-<dd><p>A <cite>TypePadObject</cite> representing a link from to another resource.</p>
-<p>The target of a <cite>Link</cite> object may be something other than an API resource,
-such as a <cite>User</cite> instance&#8217;s avatar image.</p>
-<dl class="attribute">
-<dt id="typepad.tpobject.Link.allowed_methods">
-<tt class="descname">allowed_methods</tt><a class="headerlink" href="#typepad.tpobject.Link.allowed_methods" title="Permalink to this definition">¶</a></dt>
-<dd><p>If present, a list of HTTP methods that the TypePad user who requested
-the containing resource is allowed to perform on the target resource.</p>
-<p>An empty list indicates no methods are allowed. If no list is present, use
-an <tt class="docutils literal"><span class="pre">OPTIONS</span></tt> or <tt class="docutils literal"><span class="pre">GET</span></tt> request to determine the available methods.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.tpobject.Link.by_user">
-<tt class="descname">by_user</tt><a class="headerlink" href="#typepad.tpobject.Link.by_user" title="Permalink to this definition">¶</a></dt>
-<dd><p>A property for encoding object attributes as dictionary values and
-decoding dictionary values into object attributes.</p>
-<p>Declare a <cite>Field</cite> instance for each attribute of a <cite>DataObject</cite> that
-should be encoded to or decoded from a dictionary.</p>
-<p>Use a <cite>Field</cite> instance directly for simple <cite>DataObject</cite> attributes that
-can be the same type as their dictionary values. That is, use <cite>Field</cite>
-fields for strings, numbers, and boolean values. If your attribute data
-does need converted, use one of the <cite>Field</cite> subclasses from the
-<cite>remoteobjects.fields</cite> module to encode and decode your data as
-appropriate.</p>
-<p>If your attribute needs converted specially, override the <cite>decode()</cite> and
-<cite>encode()</cite> methods in a new subclass of <cite>Field</cite>. For example, the
-<cite>fields.Datetime</cite> subclass of <cite>Field</cite> encodes Python <cite>datetime.datetime</cite>
-instances in a dictionary as timestamp strings.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.tpobject.Link.duration">
-<tt class="descname">duration</tt><a class="headerlink" href="#typepad.tpobject.Link.duration" title="Permalink to this definition">¶</a></dt>
-<dd><p>A property for encoding object attributes as dictionary values and
-decoding dictionary values into object attributes.</p>
-<p>Declare a <cite>Field</cite> instance for each attribute of a <cite>DataObject</cite> that
-should be encoded to or decoded from a dictionary.</p>
-<p>Use a <cite>Field</cite> instance directly for simple <cite>DataObject</cite> attributes that
-can be the same type as their dictionary values. That is, use <cite>Field</cite>
-fields for strings, numbers, and boolean values. If your attribute data
-does need converted, use one of the <cite>Field</cite> subclasses from the
-<cite>remoteobjects.fields</cite> module to encode and decode your data as
-appropriate.</p>
-<p>If your attribute needs converted specially, override the <cite>decode()</cite> and
-<cite>encode()</cite> methods in a new subclass of <cite>Field</cite>. For example, the
-<cite>fields.Datetime</cite> subclass of <cite>Field</cite> encodes Python <cite>datetime.datetime</cite>
-instances in a dictionary as timestamp strings.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.tpobject.Link.height">
-<tt class="descname">height</tt><a class="headerlink" href="#typepad.tpobject.Link.height" title="Permalink to this definition">¶</a></dt>
-<dd>Where the link is to a visual media item (a photo, for example), the
-height of the item in pixels.</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.tpobject.Link.href">
-<tt class="descname">href</tt><a class="headerlink" href="#typepad.tpobject.Link.href" title="Permalink to this definition">¶</a></dt>
-<dd>The absolute URL of the target resource.</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.tpobject.Link.html">
-<tt class="descname">html</tt><a class="headerlink" href="#typepad.tpobject.Link.html" title="Permalink to this definition">¶</a></dt>
-<dd><p>A property for encoding object attributes as dictionary values and
-decoding dictionary values into object attributes.</p>
-<p>Declare a <cite>Field</cite> instance for each attribute of a <cite>DataObject</cite> that
-should be encoded to or decoded from a dictionary.</p>
-<p>Use a <cite>Field</cite> instance directly for simple <cite>DataObject</cite> attributes that
-can be the same type as their dictionary values. That is, use <cite>Field</cite>
-fields for strings, numbers, and boolean values. If your attribute data
-does need converted, use one of the <cite>Field</cite> subclasses from the
-<cite>remoteobjects.fields</cite> module to encode and decode your data as
-appropriate.</p>
-<p>If your attribute needs converted specially, override the <cite>decode()</cite> and
-<cite>encode()</cite> methods in a new subclass of <cite>Field</cite>. For example, the
-<cite>fields.Datetime</cite> subclass of <cite>Field</cite> encodes Python <cite>datetime.datetime</cite>
-instances in a dictionary as timestamp strings.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.tpobject.Link.rel">
-<tt class="descname">rel</tt><a class="headerlink" href="#typepad.tpobject.Link.rel" title="Permalink to this definition">¶</a></dt>
-<dd><p>A keyword representing the relationship type of the link.</p>
-<p>See the Link Relationship Keywords section of the API documentation for
-possible values and their meanings.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.tpobject.Link.total">
-<tt class="descname">total</tt><a class="headerlink" href="#typepad.tpobject.Link.total" title="Permalink to this definition">¶</a></dt>
-<dd>Where the link is to a list resource, the total number of items in that list.</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.tpobject.Link.type">
-<tt class="descname">type</tt><a class="headerlink" href="#typepad.tpobject.Link.type" title="Permalink to this definition">¶</a></dt>
-<dd>The MIME media type of the target resource.</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.tpobject.Link.width">
-<tt class="descname">width</tt><a class="headerlink" href="#typepad.tpobject.Link.width" title="Permalink to this definition">¶</a></dt>
-<dd>Where the link is to a visual media item (a photo, for example), the
-width of the item in pixels.</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="typepad.tpobject.LinkSet">
-<em class="property">class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">LinkSet</tt><a class="headerlink" href="#typepad.tpobject.LinkSet" title="Permalink to this definition">¶</a></dt>
-<dd><p>A <cite>TypePadObject</cite> representing a set of <cite>Link</cite> objects.</p>
-<p><cite>LinkSet</cite> provides convenience methods for slicing the set of <cite>Link</cite>
-objects by their content. For example, the <cite>Link</cite> with <cite>rel=&#8221;avatar&#8221;</cite> can
-be selected with <cite>linkset[&#8216;rel__avatar&#8217;]</cite>.</p>
-<dl class="method">
-<dt id="typepad.tpobject.LinkSet.link_by_size">
-<tt class="descname">link_by_size</tt><big>(</big><em>size=0</em><big>)</big><a class="headerlink" href="#typepad.tpobject.LinkSet.link_by_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the <cite>Link</cite> instance from this <cite>LinkSet</cite> that best matches
-the requested display size.</p>
-<p>If optional parameter <cite>size</cite> is specified, the <cite>Link</cite> instance
-representing the smallest image bigger or matching the <cite>size</cite>
-specified is returned. If there is no such image, or if <cite>size</cite> is
-not specified, the <cite>Link</cite> for the biggest image is returned.</p>
-<p>If there are no images in this <cite>LinkSet</cite>, returns <cite>None</cite>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="typepad.tpobject.LinkSet.link_by_width">
-<tt class="descname">link_by_width</tt><big>(</big><em>width=0</em><big>)</big><a class="headerlink" href="#typepad.tpobject.LinkSet.link_by_width" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the <cite>Link</cite> instance from this <cite>LinkSet</cite> that best matches
-the requested display width.</p>
-<p>If optional parameter <cite>width</cite> is specified, the <cite>Link</cite> instance
-representing the smallest image wider or matching the <cite>width</cite>
-specified is returned. If there is no such image, or if <cite>width</cite> is
-not specified, the <cite>Link</cite> for the widest image is returned.</p>
-<p>If there are no images in this <cite>LinkSet</cite>, returns <cite>None</cite>.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="typepad.tpobject.LinkSet.to_dict">
-<tt class="descname">to_dict</tt><big>(</big><big>)</big><a class="headerlink" href="#typepad.tpobject.LinkSet.to_dict" title="Permalink to this definition">¶</a></dt>
-<dd>Returns a list of dictionary-ized representations of the <cite>Link</cite>
-instances contained in this <cite>LinkSet</cite>.</dd></dl>
-
-<dl class="method">
-<dt id="typepad.tpobject.LinkSet.update_from_dict">
-<tt class="descname">update_from_dict</tt><big>(</big><em>data</em><big>)</big><a class="headerlink" href="#typepad.tpobject.LinkSet.update_from_dict" title="Permalink to this definition">¶</a></dt>
-<dd>Fills this <cite>LinkSet</cite> with <cite>Link</cite> instances representing the given
-data.</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
 <dt id="typepad.tpobject.ListObject">
-<em class="property">class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">ListObject</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.ListObject" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">ListObject</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.ListObject" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <cite>TypePadObject</cite> representing a list of other <cite>TypePadObject</cite>
 instances.</p>
 <p>Endpoints in the TypePad API can be either objects themselves or sets of
@@ -257,11 +103,6 @@ filters are not added in as query parameters but as path components.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.tpobject.ListObject.links">
-<tt class="descname">links</tt><a class="headerlink" href="#typepad.tpobject.ListObject.links" title="Permalink to this definition">¶</a></dt>
-<dd>A <cite>LinkSet</cite> of links related to this list resource.</dd></dl>
-
-<dl class="attribute">
 <dt id="typepad.tpobject.ListObject.start_index">
 <tt class="descname">start_index</tt><a class="headerlink" href="#typepad.tpobject.ListObject.start_index" title="Permalink to this definition">¶</a></dt>
 <dd><p>The index in the overall list resource of the first item in this
@@ -279,7 +120,8 @@ filters are not added in as query parameters but as path components.</p>
 
 <dl class="class">
 <dt id="typepad.tpobject.TypePadObject">
-<em class="property">class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">TypePadObject</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.TypePadObject" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">TypePadObject</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.TypePadObject" title="Permalink to this definition">¶</a></dt>
 <dd><p>A <cite>RemoteObject</cite> representing an object in the TypePad API.</p>
 <p>All HTTP requests made for a <cite>TypePadObject</cite> are made through the
 <cite>typepad.client</cite> user agent instance. Unlike other <cite>PromiseObject</cite>
@@ -305,7 +147,8 @@ enabled for <cite>TypePadObject</cite> instances.</p>
 
 <dl class="classmethod">
 <dt id="typepad.tpobject.TypePadObject.get">
-<em class="property">classmethod </em><tt class="descname">get</tt><big>(</big><em>url</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.TypePadObject.get" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+classmethod </em><tt class="descname">get</tt><big>(</big><em>url</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.TypePadObject.get" title="Permalink to this definition">¶</a></dt>
 <dd><p>Promises a new <cite>TypePadObject</cite> instance for the named resource.</p>
 <p>If parameter <cite>url</cite> is not an absolute URL, the resulting instance will
 reference the given URL relative to the TypePad API&#8217;s base address.</p>
@@ -315,6 +158,21 @@ reference the given URL relative to the TypePad API&#8217;s base address.</p>
 active batch request, a <cite>PromiseError</cite> will be raised. The <cite>batch</cite>
 parameter can be used to force a non-batch request if batch
 requests are enabled.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="typepad.tpobject.TypePadObject.make_self_link">
+<tt class="descname">make_self_link</tt><big>(</big><big>)</big><a class="headerlink" href="#typepad.tpobject.TypePadObject.make_self_link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds the API URL for this <cite>TypePadObject</cite> instance from its data.</p>
+<p>This method returns either the fully absolute URL at which this
+<cite>TypePadObject</cite> instance can be found in the API, or <tt class="xref docutils literal"><span class="pre">None</span></tt> if the
+<cite>TypePadObject</cite> instance has no API URL. (A <cite>TypePadObject</cite> instance
+may have no URL if it has not been saved to the API, or if it is an
+instance of a <cite>TypePadObject</cite> subclass that is only ever used as a
+field in another class and so cannot be requested by itself.)</p>
+<p>This implementation returns <tt class="xref docutils literal"><span class="pre">None</span></tt>. As different API objects use
+different URL schemes, all <cite>TypePadObject</cite> subclasses that can have
+self links must implement this method themselves.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -395,7 +253,8 @@ modified to be of a different subclass.</p>
 
 <dl class="class">
 <dt id="typepad.tpobject.TypePadObjectMetaclass">
-<em class="property">class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">TypePadObjectMetaclass</tt><a class="headerlink" href="#typepad.tpobject.TypePadObjectMetaclass" title="Permalink to this definition">¶</a></dt>
+<em class="property">
+class </em><tt class="descclassname">typepad.tpobject.</tt><tt class="descname">TypePadObjectMetaclass</tt><a class="headerlink" href="#typepad.tpobject.TypePadObjectMetaclass" title="Permalink to this definition">¶</a></dt>
 <dd><p>A metaclass for creating new <cite>TypePadObject</cite> classes.</p>
 <p>In addition to the normal behavior of <cite>RemoteObject</cite> class creation,
 classes created by <cite>TypePadObjectMetaclass</cite> are classified by their
@@ -454,12 +313,12 @@ classes created by <cite>TypePadObjectMetaclass</cite> are classified by their
         <li class="right" >
           <a href="index.html" title="typepad"
              >previous</a> |</li>
-        <li><a href="index.html">typepad v1.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">typepad v1.1.1 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
-      &copy; Copyright 2009, Six Apart Ltd..
-      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
     </div>
   </body>
 </html>
