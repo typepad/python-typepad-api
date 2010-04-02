@@ -97,7 +97,7 @@ class User(TypePadObject):
 
     A user's `url_id` is unique only across groups in one TypePad
     environment, so you should use `id`, not `url_id`, to associate data
-    with a `User`. When constructing URLs to API resources in a given
+    with a `User`. When constructing URLs to API resources in one particular
     TypePad environment, however, use `url_id`.
 
     """
@@ -115,28 +115,18 @@ class User(TypePadObject):
     environments. TypePad users can change their Profile URLs, so this
     identifier can also change over time for a given user. Use this name
     when constructing a link to the user's profile on your local site.
-    (Use the appropriate `Link` from the `User` instance's `links` for
-    the full TypePad Profile URL.)
+    (Use the `User` instance's `profile_page_url` field for the full
+    TypePad Profile URL.)
 
     """
     email              = fields.Field()
-    location           = fields.Field()
     gender             = fields.Field()
-    homepage           = fields.Field()
-    about_me           = fields.Field(api_name='aboutMe')
-    """The biographical text provided by the `User`.
 
-    This text is displayed on the user's TypePad Profile page. The string
-    may contain multiple lines of text separated by newline characters.
+    avatar_link = fields.Object('ImageLink', api_name='avatarLink')
+    """The `Link` instance to the user's avatar picture."""
+    profile_page_url = fields.Field(api_name='profilePageUrl')
+    """The URL of the user's TypePad profile page."""
 
-    """
-    interests          = fields.List(fields.Field())
-    """A list of strings identifying interests, provided by the `User`."""
-    urls               = fields.List(fields.Field())
-    accounts           = fields.List(fields.Field())
-    links              = fields.Object('LinkSet')
-    """A `LinkSet` containing various URLs and API endpoints related to this
-    `User`."""
     relationships      = fields.Link(ListOf('Relationship'))
     events             = fields.Link(ListOf('Event'))
     comments           = fields.Link(ListOf('Comment'), api_name='comments-sent')
@@ -148,6 +138,9 @@ class User(TypePadObject):
     @property
     def xid(self):
         return xid_from_atom_id(self.id)
+
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/users/%s.json' % self.url_id)
 
     @classmethod
     def get_self(cls, **kwargs):
@@ -183,6 +176,104 @@ class User(TypePadObject):
         u = cls.get('/users/%s.json' % url_id, **kwargs)
         u.__dict__['url_id'] = url_id
         return u
+
+
+class UserProfile(TypePadObject):
+
+    """Additional profile information about a TypePad user.
+
+    This additional information is useful when showing information about a
+    TypePad account directly, but is generally not required when linking to
+    an ancillary TypePad account, such as the author of a post.
+
+    """
+
+    id = fields.Field()
+    """A URI that uniquely identifies the `User` associated with this `UserProfile`."""
+    url_id = fields.Field(api_name='urlId')
+    """An identifier for this `UserProfile` that can be used in URLs.
+
+    A user's `url_id` is unique only across groups in one TypePad
+    environment, so you should use `id`, not `url_id`, to associate data
+    with a `User` (or `UserProfile`). When constructing URLs to API resources
+    in one particular TypePad environment, however, use `url_id`.
+
+    """
+    display_name = fields.Field(api_name='displayName')
+    """The related user's chosen display name."""
+    email = fields.Field()
+    gender = fields.Field()
+    location = fields.Field()
+    """The related user's location, as a free-form string provided by the user."""
+    interests = fields.List(fields.Field())
+    """A list of interests provided by the related user for display on their
+    TypePad profile."""
+    preferred_username = fields.Field(api_name='preferredUsername')
+    """The name the related user chose for use in their TypePad profile URL.
+
+    This name can be used as an ID to select this user in a transient URL.
+    As this name can be changed, use the `url_id` field as a persistent key
+    instead.
+
+    """
+    about_me           = fields.Field(api_name='aboutMe')
+    """The biographical text provided by the `User`.
+
+    This text is displayed on the user's TypePad Profile page. The string
+    may contain multiple lines of text separated by newline characters.
+
+    """
+    avatar_link = fields.Object('ImageLink', api_name='avatarLink')
+    """The `Link` instance to the related user's avatar picture."""
+    profile_page_url = fields.Field(api_name='profilePageUrl')
+    """The URL of the related user's TypePad profile page."""
+    follow_frame_content_url = fields.Field(api_name='followFrameContentUrl')
+    """The URL of the related user's following widget.
+
+    Use this URL in an HTML iframe to provide an interface for following
+    this user. The iframe should be 300 pixels wide and 125 pixels high.
+
+    """
+    profile_edit_page_url = fields.Field(api_name='profileEditPageUrl')
+    """The URL of a page where the user can edit their profile information.
+
+    This URL is only present when the `UserProfile` is requested on behalf
+    of the related user. That is, the `profile_edit_page_url` is ``None``
+    unless the user is viewing their own profile.
+
+    """
+    membership_management_page_url = fields.Field(api_name='membershipManagementPageUrl')
+    """The URL of a page where the user can manage their community
+    memberships.
+
+    This URL is only present when the `UserProfile` is requested on behalf
+    of the related user. That is, the `membership_management_page_url` is
+    ``None`` unless the user is viewing their own profile.
+
+    """
+    homepage_url = fields.Field(api_name='homepageUrl')
+    """The URL the related user has specified as an external website URL.
+
+    If the related user has not specified an external website URL,
+    `homepage_url` will be ``None``.
+
+    """
+
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/users/%s/profile.json' % self.url_id)
+
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        """Returns the `UserProfile` instance with the given URL identifier."""
+        prof = cls.get('/users/%s/profile.json' % url_id, **kwargs)
+        prof.__dict__['url_id'] = url_id
+        return prof
+
+    @property
+    def user(self):
+        """Returns a `User` instance for the TypePad member whose
+        `UserProfile` this is."""
+        return find_by_name('User').get_by_url_id(self.url_id)
 
 
 class ElsewhereAccount(TypePadObject):
@@ -225,6 +316,16 @@ class ElsewhereAccount(TypePadObject):
         return xid_from_atom_id(self.id)
 
 
+class RelationshipStatus(TypePadObject):
+
+    """A representation of just the relationship types of a relationship,
+    without the associated endpoints."""
+
+    types = fields.List(fields.Field())
+    """A list of URIs instances that describe all the
+    relationship edges included in this `RelationshipStatus`."""
+
+
 class Relationship(TypePadObject):
 
     """The unidirectional relationship between a pair of entities.
@@ -236,6 +337,10 @@ class Relationship(TypePadObject):
 
     """
 
+    id = fields.Field()
+    """A URI that uniquely identifies this `Relationship` instance."""
+    url_id = fields.Field(api_name='urlId')
+    """An identifier for this `Relationship` that can be used in URLs."""
     source  = fields.Object('TypePadObject')
     """The entity (`User` or `Group`) from which this `Relationship` arises."""
     target  = fields.Object('TypePadObject')
@@ -244,23 +349,28 @@ class Relationship(TypePadObject):
     status  = fields.Object('RelationshipStatus')
     """A `RelationshipStatus` describing the types of relationship this
     `Relationship` instance represents."""
-    links   = fields.Object('LinkSet')
-    """A `LinkSet` containing other URLs and API endpoints related to this
-    relationship."""
     created = fields.Dict(fields.Datetime())
 
-    @property
-    def id(self):
-        """A pseudo-id that we use for caching purposes."""
-        return "tag:api.typepad.com,2009:%s%s" % (self.source.xid, self.target.xid)
+    status_obj = fields.Link(RelationshipStatus, api_name='status')
+    """A `RelationshipStatus` describing the types of relationship this
+    `Relationship` instance represents.
+
+    Unlike the `RelationshipStatus` instance in the `status` field, this
+    linked `RelationshipsStatus` instance can be updated through ``POST``
+    requests.
+
+    """
 
     @property
     def xid(self):
         return xid_from_atom_id(self.id)
 
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/relationships/%s.json' % self.url_id)
+
     def _rel_type_updater(uri):
         def update(self):
-            rel_status = RelationshipStatus.get(self.status_url(), batch=False)
+            rel_status = RelationshipStatus.get(self.status_obj._location, batch=False)
             if uri:
                 rel_status.types = [uri]
             else:
@@ -280,19 +390,6 @@ class Relationship(TypePadObject):
     is_member  = _rel_type_checker("tag:api.typepad.com,2009:Member")
     is_admin   = _rel_type_checker("tag:api.typepad.com,2009:Admin")
     is_blocked = _rel_type_checker("tag:api.typepad.com,2009:Blocked")
-
-    def status_url(self):
-        return self.links['status'].href
-
-
-class RelationshipStatus(TypePadObject):
-
-    """A representation of just the relationship types of a relationship,
-    without the associated endpoints."""
-
-    types = fields.List(fields.Field())
-    """A list of URIs instances that describe all the
-    relationship edges included in this `RelationshipStatus`."""
 
 
 class Group(TypePadObject):
@@ -333,9 +430,6 @@ class Group(TypePadObject):
     tagline      = fields.Field()
     """The tagline or subtitle of this `Group`."""
     urls         = fields.List(fields.Field())
-    links        = fields.Object('LinkSet')
-    """A `LinkSet` containing URLs and API endpoints related to this
-    `Group`."""
 
     memberships  = fields.Link(ListOf('Relationship'))
     assets       = fields.Link(ListOf('Asset'))
@@ -352,6 +446,9 @@ class Group(TypePadObject):
     @property
     def xid(self):
         return xid_from_atom_id(self.id)
+
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/groups/%s.json' % self.url_id)
 
     @classmethod
     def get_by_id(cls, id, **kwargs):
@@ -381,6 +478,9 @@ class ApiKey(TypePadObject):
     """The consumer key portion for this `ApiKey`."""
     owner   = fields.Object('Application')
 
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/api-keys/%s.json' % self.api_key)
+
     @classmethod
     def get_by_api_key(cls, api_key):
         """Returns an `ApiKey` instance with the given consumer key.
@@ -394,6 +494,10 @@ class AuthToken(TypePadObject):
 
     auth_token = fields.Field(api_name='authToken')
     target     = fields.Object('TypePadObject', api_name='targetObject')
+
+    def make_self_link(self):
+        # TODO: We don't have the API key, so we can't build a self link.
+        return
 
     @classmethod
     def get_by_key_and_token(cls, api_key, auth_token):
@@ -411,54 +515,38 @@ class Application(TypePadObject):
 
     object_type = "tag:api.typepad.com,2009:Application"
 
+    id           = fields.Field()
+    """A URI that uniquely identifies this `Application`."""
+    url_id = fields.Field()
+    """The canonical identifier used to identify this `Application` in URLs."""
     name  = fields.Field()
     """The name of this `Application` as configured by the developer."""
-    links = fields.Object('LinkSet')
-    """A `LinkSet` containing the API endpoints associated with this
-    `Application`."""
 
-    @property
-    def oauth_request_token(self):
-        """The service URL from which to request the OAuth request token."""
-        return self.links['oauth-request-token-endpoint'].href
-
-    @property
-    def oauth_authorization_page(self):
-        """The URL at which end users can authorize the application to access
-        their accounts."""
-        return self.links['oauth-authorization-page'].href
-
-    @property
-    def oauth_access_token_endpoint(self):
-        """The service URL from which to request the OAuth access token."""
-        return self.links['oauth-access-token-endpoint'].href
-
-    @property
-    def session_sync_script(self):
-        """The URL from which to request session sync javascript."""
-        return self.links['session-sync-script'].href
-
-    @property
-    def oauth_identification_page(self):
-        """The URL at which end users can identify themselves to sign into
-        typepad, thereby signing into this site."""
-        return self.links['oauth-identification-page'].href
-
-    @property
-    def signout_page(self):
-        """The URL at which end users can sign out of TypePad."""
-        return self.links['signout-page'].href
-
-    @property
-    def user_flyouts_script(self):
-        """The URL from which to request typepad user flyout javascript."""
-        return self.links['user-flyouts-script'].href
+    oauth_request_token_url = fields.Field(api_name='oauthRequestTokenUrl')
+    """The service URL from which to request the OAuth request token."""
+    oauth_authorization_url = fields.Field(api_name='oauthAuthorizationUrl')
+    """The URL at which end users can authorize the application to access
+    their accounts."""
+    oauth_access_token_url = fields.Field(api_name='oauthAccessTokenUrl')
+    """The service URL from which to request the OAuth access token."""
+    oauth_identification_url = fields.Field(api_name='oauthIdentificationUrl')
+    """The URL at which end users can identify themselves to sign into
+    typepad, thereby signing into this site."""
+    session_sync_script_url = fields.Field(api_name='sessionSyncScriptUrl')
+    """The URL from which to request session sync javascript."""
+    signout_url = fields.Field(api_name='signoutUrl')
+    """The URL at which end users can sign out of TypePad."""
+    user_flyouts_script_url = fields.Field(api_name='userFlyoutsScriptUrl')
+    """The URL from which to request typepad user flyout javascript."""
 
     @property
     def browser_upload_endpoint(self):
         """The endpoint to use for uploading file assets directly to
         TypePad."""
         return urljoin(typepad.client.endpoint, '/browser-upload.json')
+
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/applications/%s.json' % self.url_id)
 
     @classmethod
     def get_by_api_key(cls, api_key, **kwargs):
@@ -470,6 +558,13 @@ class Application(TypePadObject):
         logging.getLogger("typepad.api").warn(
             'Application.get_by_api_key is deprecated')
         return cls.get('/applications/%s.json' % api_key, **kwargs)
+
+    @property
+    def user_flyouts_script(self):
+        import logging
+        logging.getLogger("typepad.api").warn(
+            'Application.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead')
+        return self.user_flyouts_script_url
 
 
 class Event(TypePadObject):
@@ -512,9 +607,6 @@ class Event(TypePadObject):
     ``tag:api.typepad.com,2009:JoinedGroup``.
 
     """
-    links        = fields.Object('LinkSet')
-    """A `LinkSet` containing various URLs and API endpoints related to this
-    `Event`."""
 
     def __unicode__(self):
         return unicode(self.object)
@@ -523,24 +615,42 @@ class Event(TypePadObject):
     def xid(self):
         return xid_from_atom_id(self.id)
 
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/events/%s.json' % self.url_id)
+
 
 class Provider(TypePadObject):
 
+    """An external service that provided an asset."""
+
     name = fields.Field()
+    """The name of the external service."""
     uri  = fields.Field()
+    """The main URL for the external service."""
     icon = fields.Field()
+    """The URL for a 16 by 16 favicon for the external service."""
 
 
 class Source(TypePadObject):
 
-    id       = fields.Field()
-    links    = fields.Object('LinkSet')
+    """Information about an `Asset` instance imported from another service."""
+
     provider = fields.Object('Provider')
+    """Description of the external service that provided the associated asset."""
     source   = fields.Field()
     by_user  = fields.Field(api_name='byUser')
+    """Whether the associated asset was created on the external service by
+    the TypePad asset's author, as opposed to imported by that TypePad user.
 
-    def original_link(self):
-        return list(self.links['rel__alternate'])[0]
+    For example, a YouTube video asset that the TypePad user *created* would
+    have a `by_user` of ``True``. If the TypePad user instead posted someone
+    else's YouTube video, `by_user` would be ``False``. (As far as TypePad is
+    concerned, the TypePad user who posted it is the asset's author in either
+    case.)
+
+    """
+    permalink_url = fields.Field(api_name='permalinkUrl')
+    """The original URL of the imported asset on the external service."""
 
 
 class Asset(TypePadObject):
@@ -585,30 +695,35 @@ class Asset(TypePadObject):
     """A list of `Tag` instances associated with the `Asset`."""
     status       = fields.Object('PublicationStatus')
     """The `PublicationStatus` describing the state of the `Asset`."""
-    links        = fields.Object('LinkSet')
-    """A `LinkSet` containing various URLs and API endpoints related to this
-    `Asset`."""
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
     """For comment `Asset` instances, an `AssetRef` describing the asset on
     which this instance is a comment."""
 
     source       = fields.Object('Source')
+    """If the `Asset` instance was imported from another service, a `Source`
+    instance describing the original asset on the external service."""
     text_format  = fields.Field(api_name='textFormat')
     groups       = fields.List(fields.Field())
+
+    rendered_content = fields.Field(api_name='renderedContent')
+    """The content of this asset rendered to HTML. This is currently available only for `Post` and `Page` assets."""
 
     crosspost_accounts = fields.List(fields.Field(), api_name='crosspostAccounts')
     """A list of elsewhere account IDs to crosspost to."""
 
-    @property
-    def can_delete(self):
-        try:
-            return 'DELETE' in self.links['self'].allowed_methods
-        except:
-            return False
+    comment_count = fields.Field(api_name='commentCount')
+    """The number of comments left on this `Asset` instance."""
+    favorite_count = fields.Field(api_name='favoriteCount')
+    """The number of times this `Asset` instance has been marked as a favorite."""
+
+    permalink_url = fields.Field(api_name='permalinkUrl')
 
     @property
     def xid(self):
         return xid_from_atom_id(self.id)
+
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/assets/%s.json' % self.url_id)
 
     @classmethod
     def get_by_id(cls, id, **kwargs):
@@ -639,20 +754,7 @@ class Asset(TypePadObject):
         """
         return self.author
 
-    def comment_count(self):
-        try:
-            return self.links['replies'].total
-        except (TypeError, KeyError):
-            return 0
-
     comments = fields.Link(ListOf('Asset'))
-
-    def favorite_count(self):
-        try:
-            return self.links['favorites'].total
-        except (TypeError, KeyError):
-            return 0
-
     favorites = fields.Link(ListOf('Favorite'))
 
     @property
@@ -710,11 +812,233 @@ class Post(Asset):
     object_type = "tag:api.typepad.com,2009:Post"
 
 
+class ImageLink(TypePadObject):
+
+    """A link to an image.
+
+    Images hosted by TypePad can be resized with image sizing specs. See
+    the `url_template` field and `at_size` method.
+
+    """
+
+    url = fields.Field()
+    """The URL for the original full-size version of the image."""
+    width = fields.Field()
+    """The natural width of the original image in pixels."""
+    height = fields.Field()
+    """The natural height of the original image in pixels."""
+    url_template = fields.Field(api_name='urlTemplate')
+    """If TypePad is able to scale the image, the URL template for making
+    resized image URLs.
+
+    The URL template is combined with an *image sizing spec* to provide
+    an URL to the same image at a different size.
+
+    Only images hosted on TypePad are available in multiple sizes. Images
+    such as Facebook and Twitter userpics are only available in one size.
+    If an image is not resizable, its `url_template` will be ``None``.
+
+    """
+
+    _PI = (        50, 75,      115, 120,      200,                320, 350,           500,                640,                800,                1024)
+    _WI = (        50, 75, 100, 115, 120, 150, 200,      250, 300, 320, 350, 400, 450, 500, 550, 580, 600, 640, 650, 700, 750, 800, 850, 900, 950, 1024)
+    _HI = (            75,                               250)
+    _SI = (16, 20, 50, 75,      115, 120, 150,      220, 250)
+
+    valid_specs = set(chain(
+        ('%dpi' % x for x in _PI),
+        ('%dwi' % x for x in _WI),
+        ('%dhi' % x for x in _HI),
+        ('%dsi' % x for x in _SI),
+        ('pi',),
+    ))
+    """A set of all known valid image sizing specs."""
+
+    # selection algorithm to scale to fit both dimensions
+    def inscribe(self, size):
+        """Given a size, return an `ImageLink` of an image that is no taller
+        or wider than the requested size.
+
+        This mode takes the largest dimension (either width or height) and
+        scales the image so that dimension is the size specified in the spec.
+        The other dimension is scaled to maintain the image's aspect ratio.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None: size = max(self.width, self.height)
+
+        if self.width > self.height:
+            if size > self.width:
+                size = self.width
+        else:
+            if size > self.height:
+                size = self.height
+
+        pi = size
+        if pi not in self._PI:
+            pi = self._PI[-1]
+            if size > pi:
+                size = pi
+            else:
+                for x in self._PI:
+                    if x > size:
+                        pi = x
+                        break
+
+        if self.height > self.width:
+            # scale by height
+            new_height = size
+            new_width = int(self.width * (new_height / float(self.height)))
+        else:
+            # scale by width
+            new_width = size
+            new_height = int(self.height * (new_width / float(self.width)))
+
+        url = copy(self)
+        url.width = new_width
+        url.height = new_height
+        url.url = self.at_size('%dpi' % pi)
+        return url
+
+    # selection algorithm to scale to fit width
+    def by_width(self, size):
+        """Given a size, return an `ImageLink` of an image that is no wider
+        than the requested size.
+
+        This mode scales the image such that the width is the size specified
+        in the spec, and the height is scaled to maintain the image's aspect
+        ratio.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None or size > self.width: size = self.width
+
+        wi = size
+        if size not in self._WI:
+            wi = self._WI[-1]
+            if size > wi:
+                size = wi
+            else:
+                for x in self._WI:
+                    if x > size:
+                        wi = x
+                        break
+
+        url = copy(self)
+        url.width = size
+        url.height = int(self.height * (size / float(self.width)))
+        url.url = self.at_size('%dwi' % wi)
+        return url
+
+    # selection algorithm to scale to fit height
+    def by_height(self, size):
+        """Given a size, return an `ImageLink` of an image that is no
+        taller than the requested size.
+
+        This mode scales the image such that the height is the size specified
+        in the spec, and the width is scaled to maintain the image's aspect
+        ratio.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None or size > self.height: size = self.height
+
+        hi = size
+        if size not in self._HI:
+            hi = self._HI[-1]
+            if size > hi:
+                size = hi
+            else:
+                for x in self._HI:
+                    if x > size:
+                        hi = x
+                        break
+
+        url = copy(self)
+        url.height = size
+        url.width = int(self.width * (size / float(self.height)))
+        url.url = self.at_size('%dhi' % hi)
+        return url
+
+    # selection algorithm to scale and crop to square
+    def square(self, size):
+        """Given a size, return an `ImageLink` of an image that fits within a
+        square of the requested size.
+
+        This results in a square image whose width and height are both the
+        size specified. If the original image isn't square, the image is
+        cropped across its longest dimension, showing only the central portion
+        which fits inside the square.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None: size = max(self.width, self.height)
+        if self.width > self.height:
+            if size > self.width:
+                size = self.width
+        else:
+            if size > self.height:
+                size = self.height
+
+        si = size
+        if si not in self._SI:
+            si = self._SI[-1]
+            if size > si:
+                size = si
+            else:
+                for x in self._SI:
+                    if x > size:
+                        si = x
+                        break
+
+        url = copy(self)
+        url.width = size
+        url.height = size
+        url.url = self.at_size('%dsi' % si)
+        return url
+
+    def at_size(self, spec):
+        """Returns the URL for the image at size given by `spec`.
+
+        You can request images from TypePad in several sizes, using an
+        *image sizing spec*. For example, the image spec ``pi`` means the
+        original size of the image, whereas ``75si`` means a 75 pixel
+        square.
+
+        If `spec` is not a valid image sizing spec, this method raises a
+        `ValueError`.
+
+        """
+        if self.url_template is None: return self.url
+        if spec not in self.valid_specs:
+            raise ValueError('String %r is not a valid image sizing spec' % spec)
+        return self.url_template.replace('{spec}', spec)
+
+    @property
+    def href(self):
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.href is deprecated; use %s.url instead' % self.__class__.__name__)
+        return self.url
+
+
 class Photo(Asset):
 
     """An entry in a blog."""
 
     object_type = "tag:api.typepad.com,2009:Photo"
+
+    image_link = fields.Object('ImageLink', api_name='imageLink')
+
+
+class AudioLink(TypePadObject):
+
+    """A link to an audio recording."""
+
+    url = fields.Field()
+    """The URL to the MP3 representation of the audio stream."""
+    duration = fields.Field()
+    """The duration of the audio stream in seconds."""
 
 
 class Audio(Asset):
@@ -723,6 +1047,78 @@ class Audio(Asset):
 
     object_type = "tag:api.typepad.com,2009:Audio"
 
+    audio_link = fields.Object('AudioLink', api_name='audioLink')
+
+
+class VideoLink(TypePadObject):
+
+    """A link to a web video."""
+
+    embed_code = fields.Field(api_name='embedCode')
+    """An opaque HTML fragment that, when embedded in an HTML page, will
+    provide an inline player for the video."""
+    permalink_url = fields.Field(api_name='permalinkUrl')
+    """A URL to the HTML permalink page of the video.
+
+    Use this field to specify the video when posting a new `Video` asset.
+    When requesting an existing `Video` instance from the API,
+    `permalink_url` will be ``None``.
+
+    """
+
+    _width = None
+    _height = None
+
+    def get_width(self):
+        if self._width is None:
+            match = re.search('\swidth="(\d+)"', self.embed_code)
+            if match:
+                self._width = int(match.group(1))
+        return self._width
+
+    def get_height(self):
+        if self._height is None:
+            match = re.search('\sheight="(\d+)"', self.embed_code)
+            if match:
+                self._height = int(match.group(1))
+        return self._height
+
+    def set_width(self, width):
+        self._width = width
+        self._update_embed()
+
+    def set_height(self, height):
+        self._height = height
+        self._update_embed()
+
+    width = property(get_width, set_width)
+    height = property(get_height, set_height)
+
+    def _update_embed(self):
+        self.embed_code = re.sub('(\swidth=)"\d+"', '\\1"%d"' % self.width, self.embed_code)
+        self.embed_code = re.sub('(\sheight=)"\d+"', '\\1"%d"' % self.height, self.embed_code)
+
+    # selection algorithm to scale to fit width
+    def by_width(self, size):
+        """Given a size, return a `VideoLink` of a video that is as wide
+        as the requested size.
+
+        This mode scales the video such that the width is the size specified
+        and the height is scaled to maintain the video's aspect ratio.
+
+        """
+        vid = copy(self)
+        vid.width = size
+        vid.height = int(self.height * (size / float(self.width)))
+        return vid
+
+    @property
+    def html(self):
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.html is deprecated; use %s.embed_code instead' % self.__class__.__name__)
+        return self.embed_code
+
 
 class Video(Asset):
 
@@ -730,12 +1126,17 @@ class Video(Asset):
 
     object_type = "tag:api.typepad.com,2009:Video"
 
+    video_link = fields.Object('VideoLink', api_name='videoLink')
+    preview_image_link = fields.Object('ImageLink', api_name='previewImageLink')
+
 
 class LinkAsset(Asset):
 
     """A shared link to some URL."""
 
     object_type = "tag:api.typepad.com,2009:Link"
+
+    target_url = fields.Field(api_name='targetUrl')
 
 
 class Document(Asset):
