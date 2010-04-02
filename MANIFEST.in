@@ -1,4 +1,5 @@
 global-include *
-global-exclude *.pyc .gitignore
+global-exclude *.pyc .gitignore MANIFEST.in
+prune typepad.egg-info
 prune .git
 prune dist
