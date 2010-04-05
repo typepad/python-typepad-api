@@ -721,19 +721,11 @@ class Asset(TypePadObject):
         """
         return self.author
 
-    def comment_count(self):
-        try:
-            return self.links['replies'].total
-        except (TypeError, KeyError):
-            return 0
-
     comments = fields.Link(ListOf('Asset'))
 
-    def favorite_count(self):
-        try:
-            return self.links['favorites'].total
-        except (TypeError, KeyError):
-            return 0
+    comment_count = fields.Field(api_name='commentCount')
+    favorite_count = fields.Field(api_name='favoriteCount')
+    reblog_count = fields.Field(api_name='reblogCount')
 
     favorites = fields.Link(ListOf('Favorite'))
 
