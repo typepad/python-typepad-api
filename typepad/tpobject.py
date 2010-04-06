@@ -38,8 +38,7 @@ The module contains:
 * the `TypePadObject` class, a `RemoteObject` subclass that enforces batch
   requesting and ``objectTypes`` behavior
 
-* the `Link` and `LinkSet` classes, implementing the TypePad API's common link
-  mechanism using objects' ``links`` attributes
+* the `Link` class, implementing the TypePad API's common link object
 
 * the `ListObject` class and `ListOf` metaclass, providing an interface for
   working with the TypePad API's list endpoints
@@ -47,8 +46,11 @@ The module contains:
 """
 
 from urlparse import urljoin, urlparse, urlunparse
+from copy import copy
 import cgi
 import inspect
+from itertools import chain
+import logging
 import sys
 import urllib
 
@@ -62,6 +64,8 @@ import httplib2
 import typepad
 from typepad import fields
 
+
+log = logging.getLogger(__name__)
 
 classes_by_object_type = {}
 
@@ -242,6 +246,23 @@ class TypePadObject(remoteobjects.RemoteObject):
         # We're already that class, so go ahead.
         return False
 
+    def make_self_link(self):
+        """Builds the API URL for this `TypePadObject` instance from its data.
+
+        This method returns either the fully absolute URL at which this
+        `TypePadObject` instance can be found in the API, or ``None`` if the
+        `TypePadObject` instance has no API URL. (A `TypePadObject` instance
+        may have no URL if it has not been saved to the API, or if it is an
+        instance of a `TypePadObject` subclass that is only ever used as a
+        field in another class and so cannot be requested by itself.)
+
+        This implementation returns ``None``. As different API objects use
+        different URL schemes, all `TypePadObject` subclasses that can have
+        self links must implement this method themselves.
+
+        """
+        return
+
     def update_from_dict(self, data):
         """Updates this object with the given data, transforming it into an
         instance of a different `TypePadObject` subclass if necessary.
@@ -277,9 +298,10 @@ class TypePadObject(remoteobjects.RemoteObject):
             try:
                 # attempt to assign the _location of this object
                 # to the 'self' link relation's href
-                self._location = self.links['self'].href
-            except (TypeError, KeyError, AttributeError):
-                pass
+                self._location = self.make_self_link()
+            except (TypeError, KeyError, AttributeError), exc:
+                if log.isEnabledFor(logging.DEBUG):
+                    log.exception(exc)
 
     def to_dict(self):
         """Encodes the `TypePadObject` instance to a dictionary."""
@@ -307,217 +329,6 @@ class TypePadObject(remoteobjects.RemoteObject):
                 raise PromiseError("Cannot deliver %s %s except by batch request"
                     % (type(self).__name__, self._location))
         return super(TypePadObject, self).deliver()
-
-
-class ImageUrl(object):
-
-    def __init__(self, url_template):
-        self.url_template = url_template
-
-    def __getattr__(self, spec):
-        return self.url_template.replace('{spec}', spec)
-
-    __getitem__ = __getattr__
-
-
-class Link(TypePadObject):
-
-    """A `TypePadObject` representing a link from to another resource.
-
-    The target of a `Link` object may be something other than an API resource,
-    such as a `User` instance's avatar image.
-
-    """
-
-    rel             = fields.Field()
-    """A keyword representing the relationship type of the link.
-
-    See the Link Relationship Keywords section of the API documentation for
-    possible values and their meanings.
-
-    """
-    href            = fields.Field()
-    """The absolute URL of the target resource."""
-    url             = fields.Field()
-    """The absolute URL of the target resource."""
-    url_template    = fields.Field(api_name='urlTemplate')
-    type            = fields.Field()
-    """The MIME media type of the target resource."""
-    width           = fields.Field()
-    """Where the link is to a visual media item (a photo, for example), the
-    width of the item in pixels."""
-    height          = fields.Field()
-    """Where the link is to a visual media item (a photo, for example), the
-    height of the item in pixels."""
-    total           = fields.Field()
-    """Where the link is to a list resource, the total number of items in that list."""
-    allowed_methods = fields.List(fields.Field(), api_name='allowedMethods')
-    """If present, a list of HTTP methods that the TypePad user who requested
-    the containing resource is allowed to perform on the target resource.
-
-    An empty list indicates no methods are allowed. If no list is present, use
-    an ``OPTIONS`` or ``GET`` request to determine the available methods.
-
-    """
-    html            = fields.Field()
-    duration        = fields.Field()
-    by_user         = fields.Field(api_name="byUser")
-
-    def __repr__(self):
-        """Returns a developer-readable representation of this object."""
-        return "<Link %s>" % self.__dict__.get('href', hex(id(self)))
-
-    def url_with_spec(self):
-        return ImageUrl(self.url_template)
-
-
-class LinkSet(set, TypePadObject):
-
-    """A `TypePadObject` representing a set of `Link` objects.
-
-    `LinkSet` provides convenience methods for slicing the set of `Link`
-    objects by their content. For example, the `Link` with `rel="avatar"` can
-    be selected with `linkset['rel__avatar']`.
-
-    """
-
-    def update_from_dict(self, data):
-        """Fills this `LinkSet` with `Link` instances representing the given
-        data."""
-        self.update([Link.from_dict(x) for x in data])
-
-    def to_dict(self):
-        """Returns a list of dictionary-ized representations of the `Link`
-        instances contained in this `LinkSet`."""
-        return sorted([x.to_dict() for x in self])
-
-    def __contains__(self, key):
-        """Returns a boolean result for whether the `LinkSet` contains
-        a `Link` matching the key, as compared to the 'rel' member of
-        each `Link`.
-
-        """
-
-        for x in self:
-            if x.rel == key:
-                return True
-
-        return False
-
-    def __getitem__(self, key):
-        """Returns the `Link` or `LinkSet` described by the given key.
-
-        Parameter `key` should be a string containing the axis and value by
-        which to slice the `LinkSet` instance, separated by two underscores.
-        For example, to select the contained `Link` with a `rel` value of
-        `avatar`, the key should be `rel__avatar`.
-
-        If the axis is `rel`, a new `LinkSet` instance containing all the
-        `Link` instances with the requested value for `rel` are returned.
-
-        If the axis is `width`, the `Link` instance best matching that width
-        as discovered by the `link_by_width()` method is returned.
-
-        No other axes are supported.
-
-        If in either case no `Link` instances match the requested criterion, a
-        `KeyError` is raised.
-
-        """
-        if isinstance(key, slice):
-            raise KeyError('LinkSets cannot be sliced')
-
-        if key.startswith('rel__'):
-            # Gimme all matching links.
-            key = key[5:]
-            return self.__class__([x for x in self if x.rel == key])
-        elif key.startswith('width__'):
-            width = int(key[7:])
-            return self.link_by_width(width)
-        elif key.startswith('size__'):
-            size = int(key[7:])
-            return self.link_by_size(size)
-        elif key.startswith('maxwidth__'):
-            width = int(key[10:])
-            links_by_width = dict([(x.width, x) for x in self if x.width <= width])
-            if links_by_width:
-                return links_by_width.get(max(links_by_width.keys()))
-            return None
-
-        # Gimme the first matching link.
-        for x in self:
-            if x.rel == key:
-                return x
-
-        raise KeyError('No such link %r in this set' % key)
-
-    def link_by_width(self, width=0):
-        """Returns the `Link` instance from this `LinkSet` that best matches
-        the requested display width.
-
-        If optional parameter `width` is specified, the `Link` instance
-        representing the smallest image wider or matching the `width`
-        specified is returned. If there is no such image, or if `width` is
-        not specified, the `Link` for the widest image is returned.
-
-        If there are no images in this `LinkSet`, returns `None`.
-
-        """
-
-        if width == 0:
-            # Select the widest link
-            better = lambda x: best is None or best.width < x.width
-        else:
-            # Select the image with the specified width or just greater
-            better = lambda x: width <= x.width and (best is None or x.width < best.width)
-
-        best = None
-        for x in self:
-            if better(x):
-                best = x
-
-        if best is None and width != 0:
-            # Try again, this time just return the widest image available
-            return self.link_by_width()
-
-        return best
-
-    def link_by_size(self, size=0):
-        """Returns the `Link` instance from this `LinkSet` that best matches
-        the requested display size.
-
-        If optional parameter `size` is specified, the `Link` instance
-        representing the smallest image bigger or matching the `size`
-        specified is returned. If there is no such image, or if `size` is
-        not specified, the `Link` for the biggest image is returned.
-
-        If there are no images in this `LinkSet`, returns `None`.
-
-        """
-
-        # highest resolution image that still fits in bounding box
-        fits = None
-        # smallest resolution image that is bigger than bounding box
-        oversize = None
-        # highest resolution image
-        original = None
-
-        for image in self:
-            # logic for assigning 'oversize'
-            if image.width > size or image.height > size:
-                if oversize is None or (oversize.width > image.width or oversize.height > image.height):
-                    oversize = image
-            else:
-                # logic for assigning 'fits'
-                if fits is None or (fits.width < image.width or fits.height < image.height):
-                    fits = image
-            if original is None or (original.width < image.width or original.height < image.height):
-                original = image
-
-        if size == 0:
-            return original
-        else:
-            return fits or oversize or original
 
 
 class ListOf(remoteobjects.listobject.PageOf, TypePadObjectMetaclass):
@@ -560,8 +371,6 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
     The first item in the list has index 1.
 
     """
-    links         = fields.Object('LinkSet')
-    """A `LinkSet` of links related to this list resource."""
     entries       = fields.List(fields.Field())
     """A list of items in this list resource."""
 
@@ -667,3 +476,6 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
             args['max_results'] = key.stop
         return self.filter(**args)
 
+    def __repr__(self):
+        return '<%s.%s %r>' % (type(self).__module__, type(self).__name__,
+            getattr(self, '_location', None))

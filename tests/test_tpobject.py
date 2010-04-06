@@ -32,6 +32,7 @@ import random
 import sys
 import unittest
 import traceback
+import re
 
 import simplejson as json
 
@@ -61,237 +62,111 @@ class TestObjects(unittest.TestCase):
         self.assert_(x is y, "two ListOf's the same thing are not only "
                              "equivalent but the same instance")
 
-    def test_links(self):
+    def test_imagelink(self):
+        l = typepad.ImageLink(url_template='http://example.com/blah-{spec}')
+        self.assertEquals(l.at_size('16si'), 'http://example.com/blah-16si')
+        self.assertEquals(l.at_size('pi'), 'http://example.com/blah-pi')
+        self.assertEquals(l.at_size('1024wi'), 'http://example.com/blah-1024wi')
+        self.assertRaises(ValueError, lambda: l.at_size('77moof'))
+        self.assertRaises(ValueError, lambda: l.at_size('blah'))
+        self.assertRaises(ValueError, lambda: l.at_size(''))
+        self.assertRaises(ValueError, lambda: l.at_size('77'))
+        self.assertRaises(ValueError, lambda: l.at_size('220wi'))
 
-        replies = {
-            'href':  'http://127.0.0.1:8000/assets/1/comments.json',
-            'type':  'application/json',
-            'rel':   'replies',
-            'total': 4,
-        }
-        enclosure = {
-            'href':   'http://127.0.0.1:8000/uploads/1/1.gif',
-            'type':   'image/jpeg',
-            'rel':    'enclosure',
-            'width':  459,
-            'height': 459
-        }
-        enclosure_2 = {
-            'href':   'http://127.0.0.1:8000/uploads/1/2.gif',
-            'type':   'image/jpeg',
-            'rel':    'enclosure',
-            'width':  460,
-            'height': 460
-        }
-        enclosure_3 = {
-            'href':   'http://127.0.0.1:8000/uploads/1/3.gif',
-            'type':   'image/jpeg',
-            'rel':    'enclosure',
-            'width':  460,
-            'height': 459
-        }
-        enclosure_4 = {
-            'href':   'http://127.0.0.1:8000/uploads/1/4.gif',
-            'type':   'image/jpeg',
-            'rel':    'enclosure',
-            'width':  459,
-            'height': 460
-        }
-        enclosure_5 = {
-            'href':   'http://127.0.0.1:8000/uploads/1/5.gif',
-            'type':   'image/jpeg',
-            'rel':    'enclosure',
-            'width':  459,
-            'height': 461
-        }
-        enclosure_6 = {
-            'href':   'http://127.0.0.1:8000/uploads/1/6.gif',
-            'type':   'image/jpeg',
-            'rel':    'enclosure',
-            'width':  460,
-            'height': 461
-        }
-        enclosure_7 = {
-            'href':   'http://127.0.0.1:8000/uploads/1/7.gif',
-            'type':   'image/jpeg',
-            'rel':    'enclosure',
-            'width':  461,
-            'height': 460
-        }
-        enclosure_8 = {
-            'href':   'http://127.0.0.1:8000/uploads/1/8.gif',
-            'type':   'image/jpeg',
-            'rel':    'enclosure',
-            'width':  461,
-            'height': 459
-        }
-        enclosure_9 = {
-            'href':   'http://127.0.0.1:8000/uploads/1/9.gif',
-            'type':   'image/jpeg',
-            'rel':    'enclosure',
-            'width':  461,
-            'height': 461
-        }
-        enclosure_10 = {
-            'href':   'http://127.0.0.1:8000/uploads/1/10.gif',
-            'type':   'image/jpeg',
-            'rel':    'enclosure',
-            'width':  465,
-            'height': 480
-        }
-        enclosure_11 = {
-            'href':   'http://127.0.0.1:8000/uploads/1/11.gif',
-            'type':   'image/jpeg',
-            'rel':    'enclosure',
-            'width':  10000,
-            'height': 10000
-        }
-        largest = {
-            'rel':    'avatar',
-            'href':   'http://127.0.0.1:8000/avatars/largest.gif',
-            'type':   'image/gif',
-            'width':  500,
-            'height': 500
-        }
-        smallest = {
-            'rel':   'avatar',
-            'href':   'http://127.0.0.1:8000/avatars/smallest.gif',
-            'type':   'image/gif',
-            'width':  25,
-            'height': 25,
-        }
-        medium = {
-            'rel':    'avatar',
-            'href':   'http://127.0.0.1:8000/avatars/medium.gif',
-            'type':   'image/gif',
-            'width':  100,
-            'height': 100,
-        }
+    def test_imagelink_exhaustive(self):
+        def prove(l):
+            for size in typepad.ImageLink._WI:
+                i = l.by_width(size)
+                i2 = l.by_width(size-1)
+                self.assertEquals(i.width, min(l.width, size), "testing by_width(%d); got %d" % (min(l.width, size), i.width))
+                self.assertEquals(i2.width, min(l.width, size-1), "testing by_width(%d); got %d" % (min(l.width, size-1), i2.width))
 
-        ls = typepad.LinkSet.from_dict([ replies, enclosure, enclosure_2,
-            enclosure_3, enclosure_4, enclosure_5, enclosure_6, enclosure_7,
-            enclosure_8, enclosure_9, enclosure_10, enclosure_11,
-            largest, smallest, medium ])
-        ls1 = typepad.LinkSet.from_dict([ enclosure, enclosure_10, enclosure_11 ])
+            for size in typepad.ImageLink._HI:
+                i = l.by_height(size)
+                i2 = l.by_height(size-1)
+                self.assertEquals(i.height, min(l.height, size), "testing by_height(%d); got %d" % (min(l.height, size), i.height))
+                self.assertEquals(i2.height, min(l.height, size-1), "testing by_height(%d); got %d" % (min(l.height, size-1), i2.height))
 
-        replies      = typepad.Link.from_dict(replies)
-        enclosure    = typepad.Link.from_dict(enclosure)
-        enclosure_2  = typepad.Link.from_dict(enclosure_2)
-        enclosure_3  = typepad.Link.from_dict(enclosure_3)
-        enclosure_4  = typepad.Link.from_dict(enclosure_4)
-        enclosure_5  = typepad.Link.from_dict(enclosure_5)
-        enclosure_6  = typepad.Link.from_dict(enclosure_6)
-        enclosure_7  = typepad.Link.from_dict(enclosure_7)
-        enclosure_8  = typepad.Link.from_dict(enclosure_8)
-        enclosure_9  = typepad.Link.from_dict(enclosure_9)
-        enclosure_10 = typepad.Link.from_dict(enclosure_10)
-        enclosure_11 = typepad.Link.from_dict(enclosure_11)
-        largest      = typepad.Link.from_dict(largest)
-        smallest     = typepad.Link.from_dict(smallest)
-        medium       = typepad.Link.from_dict(medium)
+            for size in typepad.ImageLink._PI:
+                i = l.inscribe(size)
+                i2 = l.inscribe(size-1)
+                self.assert_(i.width == min(l.width, size) or i.height == min(l.height, size), "testing inscribe(%d); got %d, %d" % (max(min(l.width, size), min(l.height, size)), i.width, i.height))
+                self.assert_(i2.width == min(l.width, size-1) or i2.height == min(l.height, size-1), "testing inscribe(%d); got %d, %d" % (max(min(l.width, size-1), min(l.height, size-1)), i2.width, i2.height))
 
-        self.assert_(isinstance(ls, typepad.LinkSet))
-        self.assertEquals(len(ls), 15)
+            for size in typepad.ImageLink._SI:
+                i = l.square(size)
+                i2 = l.square(size-1)
+                self.assertEquals(i.width, min(max(l.width, l.height), size), "testing width of square(%d)" % size)
+                self.assertEquals(i.height, min(max(l.width, l.height), size), "testing height of square(%d)" % size)
+                self.assertEquals(i2.width, min(max(l.width, l.height), size-1), "testing width of square(%d)" % (size-1))
+                self.assertEquals(i2.height, min(max(l.width, l.height), size-1), "testing height of square(%d)" % (size-1))
 
-        self.assertEquals(ls['replies'], replies)
-        self.assert_(ls['enclosure'] in (enclosure, enclosure_2, enclosure_3,
-            enclosure_4, enclosure_5, enclosure_6, enclosure_7, enclosure_8,
-            enclosure_9, enclosure_10, enclosure_11))
-        self.assertEquals(list(ls['rel__replies']), [ replies ])
-        enclosures = sorted(list(ls['rel__enclosure']), key=lambda x: x.href)
-        self.assertEquals(enclosures, [ enclosure, enclosure_10, enclosure_11,
-            enclosure_2, enclosure_3, enclosure_4, enclosure_5, enclosure_6,
-            enclosure_7, enclosure_8, enclosure_9 ])
-        avatars = sorted(list(ls['rel__avatar']), key=lambda x: x.href)
-        self.assertEquals(avatars, [ largest, medium, smallest ])
+        # big square image
+        prove(typepad.ImageLink(url='http://example.com/blah',
+            url_template='http://example.com/blah-{spec}',
+            height=5000, width=5000))
 
-        # testing link_by_width method:
-        self.assertEquals(ls['rel__avatar'].link_by_width(1000).to_dict(), largest.to_dict())
-        self.assertEquals(ls['rel__avatar'].link_by_width(500), largest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(), largest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(0), largest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(499), largest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(101), largest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(100), medium)
-        self.assertEquals(ls['rel__avatar'].link_by_width(99), medium)
-        self.assertEquals(ls['rel__avatar'].link_by_width(25), smallest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(1), smallest)
-        self.assertEquals(ls['rel__avatar'].link_by_width(-1), smallest)
+        # small image, wider than tall
+        prove(typepad.ImageLink(url='http://example.com/blah',
+            url_template='http://example.com/blah-{spec}',
+            height=100, width=200))
 
-        # test alternate getitem technique (used in templates)
-        self.assertEquals(ls['rel__avatar']['width__1000'].to_dict(), largest.to_dict())
-        self.assertEquals(ls['rel__avatar']['width__500'], largest)
-        self.assertEquals(ls['rel__avatar']['width__0'], largest)
-        self.assertEquals(ls['rel__avatar']['width__499'], largest)
-        self.assertEquals(ls['rel__avatar']['width__101'], largest)
-        self.assertEquals(ls['rel__avatar']['width__100'], medium)
-        self.assertEquals(ls['rel__avatar']['width__99'], medium)
-        self.assertEquals(ls['rel__avatar']['width__25'], smallest)
-        self.assertEquals(ls['rel__avatar']['width__1'], smallest)
+        # small image, taller than wide
+        prove(typepad.ImageLink(url='http://example.com/blah',
+            url_template='http://example.com/blah-{spec}',
+            height=200, width=100))
 
-        # testing maxwidth link relation
-        self.assertEquals(ls['rel__avatar']['maxwidth__1000'], largest)
-        self.assertEquals(ls['rel__avatar']['maxwidth__500'], largest)
-        self.assertEquals(ls['rel__avatar']['maxwidth__499'], medium)
-        self.assertEquals(ls['rel__avatar']['maxwidth__101'], medium)
-        self.assertEquals(ls['rel__avatar']['maxwidth__100'], medium)
-        self.assertEquals(ls['rel__avatar']['maxwidth__99'], smallest)
-        self.assertEquals(ls['rel__avatar']['maxwidth__25'], smallest)
-        self.assert_(ls['rel__avatar']['maxwidth__24'] is None)
-        self.assert_(ls['rel__avatar']['maxwidth__20'] is None)
-        self.assert_(ls['rel__avatar']['maxwidth__1'] is None)
-        self.assert_(ls['rel__avatar']['maxwidth__0'] is None)
+        # medium image, wider than tall
+        prove(typepad.ImageLink(url='http://example.com/blah',
+            url_template='http://example.com/blah-{spec}',
+            height=480, width=640))
 
-        # testing enclosure selection for width of 458px
-        # enclosure is the best pick here (459x459)
-        self.assertEquals(ls1['rel__enclosure'].link_by_size(458), enclosure)
-        self.assertEquals(ls1['rel__enclosure'].link_by_size(460), enclosure)
-        self.assertEquals(ls1['rel__enclosure'].link_by_size(470), enclosure)
-        self.assertEquals(ls1['rel__enclosure'].link_by_size(480), enclosure_10)
-        self.assertEquals(ls1['rel__enclosure'].link_by_size(500), enclosure_10)
+        # a teeny square image
+        prove(typepad.ImageLink(url='http://example.com/blah',
+            url_template='http://example.com/blah-{spec}',
+            height=5, width=5))
 
-        # testing enclosure selection for width of 459px
-        # enclosure is the best pick here (459x459)
-        self.assertEquals(ls['rel__enclosure'].link_by_size(459), enclosure)
+    def test_imagelink_inscribe(self):
+        l = typepad.ImageLink(url='http://example.com/blah',
+            url_template='http://example.com/blah-{spec}',
+            height=5000, width=5000)
+        self.assertEquals(l.inscribe(320).url, 'http://example.com/blah-320pi')
+        self.assertEquals(l.inscribe(76).url, 'http://example.com/blah-115pi')
+        self.assertEquals(l.inscribe(1).url, 'http://example.com/blah-50pi')
+        self.assertEquals(l.inscribe(4999).url, 'http://example.com/blah-1024pi')
+        self.assertEquals(l.inscribe(4999).width, 1024)
 
-        # testing enclosure selection for width of 460px
-        # enclosure_2 is the best pick here (460x460)
-        self.assertEquals(ls['rel__enclosure'].link_by_size(460), enclosure_2)
+    def test_imagelink_by_width(self):
+        l = typepad.ImageLink(url='http://example.com/blah',
+            url_template='http://example.com/blah-{spec}',
+            height=5000, width=5000)
 
-        # testing enclosure selection for width of 461px
-        # enclosure_9 is the best pick here (461x461)
-        self.assertEquals(ls['rel__enclosure'].link_by_size(461), enclosure_9)
+        # exact, known size
+        self.assertEquals(l.by_width(250).url,
+            'http://example.com/blah-250wi')
 
-        # testing enclosure selection for width of 480px
-        # should NOT select 10000^2 image; best choice is enclosure_10
-        self.assertEquals(ls['rel__enclosure'].link_by_size(480), enclosure_10)
+        # just a bit bigger than 75px; should return 100 wide
+        self.assertEquals(l.by_width(76).url, 'http://example.com/blah-100wi')
 
-        links_list = list(ls)
-        self.assertEquals(len(links_list), 15)
-        self.assert_(replies      in links_list)
-        self.assert_(enclosure    in links_list)
-        self.assert_(enclosure_2  in links_list)
-        self.assert_(enclosure_3  in links_list)
-        self.assert_(enclosure_4  in links_list)
-        self.assert_(enclosure_5  in links_list)
-        self.assert_(enclosure_6  in links_list)
-        self.assert_(enclosure_7  in links_list)
-        self.assert_(enclosure_8  in links_list)
-        self.assert_(enclosure_9  in links_list)
-        self.assert_(enclosure_10 in links_list)
-        self.assert_(enclosure_11 in links_list)
-        self.assert_(largest      in links_list)
-        self.assert_(smallest     in links_list)
-        self.assert_(medium       in links_list)
+        # selects for smallest available size, 16
+        self.assertEquals(l.by_width(1).url, 'http://example.com/blah-50wi')
 
-        self.assertRaises(KeyError, lambda: ls['asfdasf'])
+        # selects a big size that isn't available; should return original image
+        self.assertEquals(l.by_width(4999).url, 'http://example.com/blah-1024wi')
+        self.assertEquals(l.by_width(4999).width, 1024)
 
-        links_json = ls.to_dict()
+        # selects a size larger than the original image; returns original image
+        self.assertEquals(l.by_width(5001).url, 'http://example.com/blah-1024wi')
 
-        self.assert_(isinstance(links_json, list))
-        self.assert_(len(links_json), 6)
-        self.assert_(replies.to_dict() in links_json)
+        self.assertEquals(l.by_width(None).url, 'http://example.com/blah-1024wi')
 
+    def test_videolink_by_width(self):
+        v = typepad.VideoLink(embed_code="\n<object width=\"500\" height=\"395\">\n    <param name=\"movie\" value=\"http://www.youtube.com/v/deadbeef\" />\n    <param name=\"quality\" value=\"high\" />\n    <param name=\"wmode\" value=\"transparent\" />\n    <param name=\"allowscriptaccess\" value=\"never\" />\n    <param name=\"allowFullScreen\" value=\"true\" />\n    <embed type=\"application/x-shockwave-flash\"\n        width=\"500\" height=\"395\"\n        src=\"http://www.youtube.com/v/deadbeef\"\n        quality=\"high\" wmode=\"transparent\" allowscriptaccess=\"never\" allowfullscreen=\"true\"\n    />\n</object>\n")
+        sv = v.by_width(400)
+        self.assertEquals(sv.width, 400)
+        self.assertEquals(sv.height, 316)
+        self.assert_(re.search('\swidth="400"', sv.embed_code))
+        self.assert_(re.search('\sheight="316"', sv.embed_code))
 
 if __name__ == '__main__':
     utils.log()
