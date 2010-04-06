@@ -320,7 +320,6 @@ class Blog(TypePadObject):
     owner              = fields.Object('User')
     """The owner of this blog."""
 
-    links = fields.Object('LinkSet')
     post_assets        = fields.Link(ListOf('Asset'), api_name="post-assets")
     page_assets        = fields.Link(ListOf('Asset'), api_name="page-assets")
     comments           = fields.Link(ListOf('Asset'))
@@ -344,10 +343,13 @@ class Blog(TypePadObject):
         u.__dict__['url_id'] = url_id
         return u
 
+    links = fields.Field()
+
     @property
     def permalink_url(self):
-        for link in self.links['rel__alternate']:
-            return link.href
+        for link in self.links:
+            if link['rel'] == 'alternate':
+                return link['href']
 
 
 class ElsewhereAccount(TypePadObject):
