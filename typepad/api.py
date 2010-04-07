@@ -886,8 +886,8 @@ class Post(Asset):
     object_type = "tag:api.typepad.com,2009:Post"
 
     excerpt = fields.Field()
-
     embedded_image_links = fields.List(fields.Object('ImageLink'), api_name='embeddedImageLinks')
+    reblog_of = fields.Object('AssetRef', api_name='reblogOf')
 
 
 class ImageLink(TypePadObject):
