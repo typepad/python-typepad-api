@@ -762,9 +762,6 @@ class Asset(TypePadObject):
     """A `datetime.datetime` indicating when the `Asset` was created."""
     updated      = fields.Datetime()
     """A `datetime.datetime` indicating when the `Asset` was last modified."""
-    summary      = fields.Field()
-    """For a media type of `Asset`, the HTML description or caption given by
-    its author."""
     content      = fields.Field()
     """For a text type of `Asset`, the HTML content of the `Asset`."""
     categories   = fields.List(fields.Object('Tag'))
@@ -887,6 +884,10 @@ class Post(Asset):
     """An entry in a blog."""
 
     object_type = "tag:api.typepad.com,2009:Post"
+
+    excerpt = fields.Field()
+
+    embedded_image_links = fields.List(fields.Object('ImageLink'), api_name='embeddedImageLinks')
 
 
 class ImageLink(TypePadObject):
