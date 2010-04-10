@@ -635,6 +635,12 @@ class Application(TypePadObject):
             'Application.get_by_api_key is deprecated')
         return cls.get('/applications/%s.json' % api_key, **kwargs)
 
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        app = cls.get('/applications/%s.json' % url_id, **kwargs)
+        app.__dict__['url_id'] = url_id
+        return app
+
     @property
     def user_flyouts_script(self):
         import logging
