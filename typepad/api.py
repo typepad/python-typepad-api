@@ -556,14 +556,14 @@ class Application(TypePadObject):
         assert re.match('^\w+$', api_key), "invalid api_key parameter given"
         import logging
         logging.getLogger("typepad.api").warn(
-            'Application.get_by_api_key is deprecated')
+            '%s.get_by_api_key is deprecated' % cls.__name__)
         return cls.get('/applications/%s.json' % api_key, **kwargs)
 
     @property
     def user_flyouts_script(self):
         import logging
         logging.getLogger("typepad.api").warn(
-            'Application.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead')
+            '%s.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead' % (self.__class__.__name__, self.__class__.__name__))
         return self.user_flyouts_script_url
 
 
@@ -1018,7 +1018,7 @@ class ImageLink(TypePadObject):
     def href(self):
         import logging
         logging.getLogger("typepad.api").warn(
-            '%s.href is deprecated; use %s.url instead' % self.__class__.__name__)
+            '%s.href is deprecated; use %s.url instead' % (self.__class__.__name__, self.__class__.__name__))
         return self.url
 
 
@@ -1116,7 +1116,7 @@ class VideoLink(TypePadObject):
     def html(self):
         import logging
         logging.getLogger("typepad.api").warn(
-            '%s.html is deprecated; use %s.embed_code instead' % self.__class__.__name__)
+            '%s.html is deprecated; use %s.embed_code instead' % (self.__class__.__name__, self.__class__.__name__))
         return self.embed_code
 
 
