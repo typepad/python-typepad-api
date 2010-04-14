@@ -478,6 +478,23 @@ class ApiKey(TypePadObject):
     """The consumer key portion for this `ApiKey`."""
     owner   = fields.Object('Application')
 
+    oauth_request_token_url = fields.Field(api_name='oauthRequestTokenUrl')
+    """The service URL from which to request the OAuth request token."""
+    oauth_authorization_url = fields.Field(api_name='oauthAuthorizationUrl')
+    """The URL at which end users can authorize the application to access
+    their accounts."""
+    oauth_access_token_url = fields.Field(api_name='oauthAccessTokenUrl')
+    """The service URL from which to request the OAuth access token."""
+    oauth_identification_url = fields.Field(api_name='oauthIdentificationUrl')
+    """The URL at which end users can identify themselves to sign into
+    typepad, thereby signing into this site."""
+    session_sync_script_url = fields.Field(api_name='sessionSyncScriptUrl')
+    """The URL from which to request session sync javascript."""
+    signout_url = fields.Field(api_name='signoutUrl')
+    """The URL at which end users can sign out of TypePad."""
+    user_flyouts_script_url = fields.Field(api_name='userFlyoutsScriptUrl')
+    """The URL from which to request typepad user flyout javascript."""
+
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/api-keys/%s.json' % self.api_key)
 
@@ -488,6 +505,13 @@ class ApiKey(TypePadObject):
         Asserts that the api_key parameter matches ^\w+$."""
         assert re.match('^\w+$', api_key), "invalid api_key parameter given"
         return cls.get('/api-keys/%s.json' % api_key)
+
+    @property
+    def user_flyouts_script(self):
+        import logging
+        logging.getLogger("typepad.api").warn(
+            'Application.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead')
+        return self.user_flyouts_script_url
 
 
 class AuthToken(TypePadObject):
@@ -522,23 +546,6 @@ class Application(TypePadObject):
     name  = fields.Field()
     """The name of this `Application` as configured by the developer."""
 
-    oauth_request_token_url = fields.Field(api_name='oauthRequestTokenUrl')
-    """The service URL from which to request the OAuth request token."""
-    oauth_authorization_url = fields.Field(api_name='oauthAuthorizationUrl')
-    """The URL at which end users can authorize the application to access
-    their accounts."""
-    oauth_access_token_url = fields.Field(api_name='oauthAccessTokenUrl')
-    """The service URL from which to request the OAuth access token."""
-    oauth_identification_url = fields.Field(api_name='oauthIdentificationUrl')
-    """The URL at which end users can identify themselves to sign into
-    typepad, thereby signing into this site."""
-    session_sync_script_url = fields.Field(api_name='sessionSyncScriptUrl')
-    """The URL from which to request session sync javascript."""
-    signout_url = fields.Field(api_name='signoutUrl')
-    """The URL at which end users can sign out of TypePad."""
-    user_flyouts_script_url = fields.Field(api_name='userFlyoutsScriptUrl')
-    """The URL from which to request typepad user flyout javascript."""
-
     @property
     def browser_upload_endpoint(self):
         """The endpoint to use for uploading file assets directly to
@@ -558,13 +565,6 @@ class Application(TypePadObject):
         logging.getLogger("typepad.api").warn(
             'Application.get_by_api_key is deprecated')
         return cls.get('/applications/%s.json' % api_key, **kwargs)
-
-    @property
-    def user_flyouts_script(self):
-        import logging
-        logging.getLogger("typepad.api").warn(
-            'Application.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead')
-        return self.user_flyouts_script_url
 
 
 class Event(TypePadObject):
