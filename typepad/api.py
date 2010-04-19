@@ -896,6 +896,11 @@ class Post(Asset):
     reblog_of = fields.Object('AssetRef', api_name='reblogOf')
 
 
+class Page(Post):
+
+    object_type = "tag:api.typepad.com,2009:Page"
+
+
 class ImageLink(TypePadObject):
 
     """A link to an image.
