@@ -313,12 +313,12 @@ class Blog(TypePadObject):
     """
     title              = fields.Field()
     """The title that was given to this blog by its owner."""
-
     description        = fields.Field()
     """The description that was given to this blog by its owner."""
-
     owner              = fields.Object('User')
     """The owner of this blog."""
+    home_url           = fields.Field(api_name='homeUrl')
+    """The URL at which the blog is visible on the web."""
 
     post_assets        = fields.Link(ListOf('Asset'), api_name="post-assets")
     page_assets        = fields.Link(ListOf('Asset'), api_name="page-assets")
@@ -344,12 +344,6 @@ class Blog(TypePadObject):
         return u
 
     links = fields.Field()
-
-    @property
-    def permalink_url(self):
-        for link in self.links:
-            if link['rel'] == 'alternate':
-                return link['href']
 
 
 class ElsewhereAccount(TypePadObject):
