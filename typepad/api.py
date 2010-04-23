@@ -35,6 +35,7 @@ content objects provided in the TypePad API.
 """
 
 import base64
+from cgi import parse_qs
 from cStringIO import StringIO
 from datetime import datetime
 try:
@@ -43,9 +44,10 @@ try:
 except ImportError:
     from email.Message import Message
     from email.Generator import Generator, _make_boundary
+import httplib
 import re
 import simplejson as json
-from urlparse import urljoin
+from urlparse import urljoin, urlparse
 
 from remoteobjects.dataobject import find_by_name
 
@@ -556,14 +558,14 @@ class Application(TypePadObject):
         assert re.match('^\w+$', api_key), "invalid api_key parameter given"
         import logging
         logging.getLogger("typepad.api").warn(
-            'Application.get_by_api_key is deprecated')
+            '%s.get_by_api_key is deprecated' % cls.__name__)
         return cls.get('/applications/%s.json' % api_key, **kwargs)
 
     @property
     def user_flyouts_script(self):
         import logging
         logging.getLogger("typepad.api").warn(
-            'Application.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead')
+            '%s.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead' % (self.__class__.__name__, self.__class__.__name__))
         return self.user_flyouts_script_url
 
 
@@ -1018,7 +1020,7 @@ class ImageLink(TypePadObject):
     def href(self):
         import logging
         logging.getLogger("typepad.api").warn(
-            '%s.href is deprecated; use %s.url instead' % self.__class__.__name__)
+            '%s.href is deprecated; use %s.url instead' % (self.__class__.__name__, self.__class__.__name__))
         return self.url
 
 
@@ -1116,7 +1118,7 @@ class VideoLink(TypePadObject):
     def html(self):
         import logging
         logging.getLogger("typepad.api").warn(
-            '%s.html is deprecated; use %s.embed_code instead' % self.__class__.__name__)
+            '%s.html is deprecated; use %s.embed_code instead' % (self.__class__.__name__, self.__class__.__name__))
         return self.embed_code
 
 
@@ -1331,6 +1333,47 @@ class BrowserUploadEndpoint(object):
             g = BrowserUploadEndpoint.NetworkGenerator(fp, write_headers=write_headers)
             g.flatten(self, unixfrom=unixfrom)
             return fp.getvalue()
+
+    def raise_error_for_response(self, resp, obj):
+        if resp.status != 302 or 'location' not in resp:
+            raise ValueError('Response is not a browser upload response: not a 302 or has no Location header')
+
+        urlparts = urlparse(resp['location'])
+        query = parse_qs(urlparts[4])
+
+        try:
+            status = query['status'][0]
+        except (KeyError, IndexError):
+            raise ValueError("Response is not a browser upload response: no 'status' query parameter")
+        try:
+            status = int(status)
+        except KeyError:
+            raise ValueError("Response is not a browser upload response: non-numeric 'status' query parameter %r" % status)
+
+        if status == 201:
+            # Yay, no error! Return the query params in case we want to pull asset_url out of it.
+            return query
+
+        # Not a 201 means it was an error. But which?
+        err_classes = {
+            httplib.NOT_FOUND: obj.NotFound,
+            httplib.UNAUTHORIZED: obj.Unauthorized,
+            httplib.FORBIDDEN: obj.Forbidden,
+            httplib.PRECONDITION_FAILED: obj.PreconditionFailed,
+            httplib.INTERNAL_SERVER_ERROR: obj.ServerError,
+            httplib.BAD_REQUEST: obj.RequestError,
+        }
+        try:
+            err_cls = err_classes[status]
+        except KeyError:
+            raise ValueError("Response is not a browser upload response: unexpected 'status' query parameter %r" % status)
+
+        try:
+            message = query['error'][0]
+        except (KeyError, IndexError):
+            # Not all these error responses have an error message, so that's okay.
+            raise err_cls()
+        raise err_cls(message)
 
     def upload(self, obj, fileobj, content_type='application/octet-stream', **kwargs):
         http = typepad.client
