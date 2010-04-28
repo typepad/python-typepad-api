@@ -691,8 +691,8 @@ class Asset(TypePadObject):
     its author."""
     content      = fields.Field()
     """For a text type of `Asset`, the HTML content of the `Asset`."""
-    categories   = fields.List(fields.Object('Tag'))
-    """A list of `Tag` instances associated with the `Asset`."""
+    categories   = fields.List(fields.Field())
+    """A list categories (strings) associated with the asset."""
     status       = fields.Object('PublicationStatus')
     """The `PublicationStatus` describing the state of the `Asset`."""
     in_reply_to  = fields.Object('AssetRef', api_name='inReplyTo')
@@ -1205,27 +1205,6 @@ class PublicationStatus(TypePadObject):
     """A boolean flag indicating whether the `Asset` with this
     `PublicationStatus` has been marked as spam by the automated filter
     or a site moderator (``True``) or not (``False``)."""
-
-
-class Tag(TypePadObject):
-
-    """A textual tag applied to an asset by its author."""
-
-    term  = fields.Field()
-    """The word or phrase that constitutes the tag."""
-    count = fields.Field()
-    """The number of times the `Tag` has been used in the requested context.
-
-    When returned in the list of tags for a group, the count is the
-    number of times the `Tag` has been used for assets in that group.
-    When returned in the list of tags for a `User`, the count is the
-    number of times the tag has been used on that author's assets. When
-    returned in the list of tags for an `Asset`, the count is ``1`` if
-    the tag has been applied to that asset.
-
-    """
-
-    object_types = None
 
 
 class BrowserUploadEndpoint(object):
