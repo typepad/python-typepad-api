@@ -122,7 +122,7 @@ requests = {
               'accept': 'application/json',
               'content-type': 'application/json',
           },
-          'body': """{"content": "Hi this post has some content is it not nifty", "objectTypes": ["tag:api.typepad.com,2009:Post"], "categories": [{"term": "fred"}, {"term": "wilma"}], "title": "New post #47"}""",
+          'body': """{"content": "Hi this post has some content is it not nifty", "objectTypes": ["tag:api.typepad.com,2009:Post"], "categories": ["fred", "wilma"], "title": "New post #47"}""",
           'method': 'POST' },
         { 'status': 201,
           'location': 'http://127.0.0.1:8000/assets/307.json',
@@ -130,7 +130,7 @@ requests = {
               "title": "New post #47",
               "content": "Hi this post has some content is it not nifty",
               "objectTypes": ["tag:api.typepad.com,2009:Post"],
-              "categories": [{"term": "fred"}, {"term": "wilma"}],
+              "categories": ["fred", "wilma"],
               "published": "2009-03-23T00:00:00Z",
               "updated": "2009-03-23T00:00:00Z"
           }""" },
@@ -142,7 +142,7 @@ requests = {
             "title": "New post #47",
             "content": "Hi this post has some content is it not nifty",
             "objectTypes": ["tag:api.typepad.com,2009:Post"],
-            "categories": [{"term": "fred"}, {"term": "wilma"}],
+            "categories": ["fred", "wilma"],
             "published": "2009-03-23T00:00:00Z",
             "updated": "2009-03-23T00:00:00Z"
         }""",
@@ -250,7 +250,7 @@ class TestAsset(unittest.TestCase):
         p = typepad.Post(
             title="New post #47",
             content="Hi this post has some content is it not nifty",
-            categories=[typepad.Tag(term="fred", count=None), typepad.Tag(term="wilma", count=None)],
+            categories=["fred", "wilma"],
         )
 
         h = self.http('create_post', credentials=('mmalone@example.com', 'password'))
@@ -263,8 +263,7 @@ class TestAsset(unittest.TestCase):
         self.assert_(p.published is not None)
 
         self.assert_(len(p.categories), 2)
-        tags = sorted(p.categories, key=lambda x: x.term)
-        self.assertEquals(tags, [typepad.Tag(term="fred", count=None), typepad.Tag(term="wilma", count=None)])
+        self.assertEquals(p.categories, ["fred", "wilma"])
 
         h = self.http('get_created_post')
         post_got = typepad.Post.get(p._location, http=h)
