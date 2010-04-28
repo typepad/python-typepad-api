@@ -8,8 +8,15 @@ typepad Changelog
 * Changed default typepad.client.endpoint to https://api.typepad.com
 
 
-1.1.1 (2010-3-30)
------------------
+1.1.2 (2010-04-20)
+------------------
+
+* Added support for discovering errors with files uploaded through the browser upload endpoint.
+* Fixed error logging warnings about deprecated methods.
+
+
+1.1.1 (2010-03-30)
+------------------
 
 * Updates for forward compatibility with the TypePad API.
 
