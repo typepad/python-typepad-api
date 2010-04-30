@@ -24,7 +24,7 @@ class Property(lazy):
     def __str__(self):
         me = StringIO()
         me.write("""%s = """ % self.name)
-        if self.type in ('string', 'boolean'):
+        if self.type in ('string', 'boolean', 'integer'):
             me.write('fields.Field()')
         else:
             me.write('fields.Object(%r)' % self.type)
