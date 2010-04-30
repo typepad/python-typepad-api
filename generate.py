@@ -9,21 +9,79 @@ import sys
 import argparse
 
 
+PREAMBLE = """
+from remoteobjects import fields, RemoteObject
+
+"""
+
+POSTAMBLE = """"""
+
+
 class lazy(object):
 
-    def __init__(self, data):
-        self.fill(data)
+    def __init__(self, data=None):
+        if data is not None:
+            self.fill(data)
 
     def fill(self, data):
         for key, val in data.iteritems():
             setattr(self, key, val)
 
 
+class Field(lazy):
+
+    def __init__(self, data=None):
+        self.args = list()
+        self.kwargs = dict()
+        super(Field, self).__init__(data)
+
+    @property
+    def type(self):
+        return self.__dict__['type']
+
+    @type.setter
+    def type(self, val):
+        self.__dict__['type'] = val
+
+        mo = re.match(r'(\w+)<([^>]+)>', val)
+        if mo is not None:
+            container, subtype = mo.groups((1, 2))
+            if container in ('set', 'array'):
+                self.field_type = 'fields.List'
+            elif container in ('map',):
+                self.field_type = 'fields.Dict'
+            else:
+                raise ValueError('Unknown container type %r' % container)
+
+            subfield = Field({'type': subtype})
+            self.args.append(subfield)
+
+            return
+
+        if val in ('string', 'boolean', 'integer'):
+            self.field_type = 'fields.Field'
+        else:
+            self.field_type = 'fields.Object'
+            self.args.append(val)
+
+    def __str__(self):
+        me = StringIO()
+        me.write(self.field_type)
+        me.write("""(""")
+        if self.args:
+            me.write(', '.join(str(arg) if isinstance(arg, Field) else repr(arg) for arg in self.args))
+        if self.kwargs:
+            if self.args:
+                me.write(', ')
+            me.write(', '.join('%s=%r' % (k, v) for k, v in self.kwargs.items()))
+        me.write(""")""")
+        return me.getvalue()
+
+
 class Property(lazy):
 
     def __init__(self, data):
-        self.args = list()
-        self.kwargs = dict()
+        self.field = Field()
         super(Property, self).__init__(data)
 
     @property
@@ -34,7 +92,7 @@ class Property(lazy):
     def name(self, name):
         py_name = re.sub(r'[A-Z]', lambda mo: '_' + mo.group(0).lower(), name)
         if py_name != name:
-            self.kwargs['api_name'] = name
+            self.field.kwargs['api_name'] = name
         self.__dict__['name'] = py_name
 
     @property
@@ -44,22 +102,14 @@ class Property(lazy):
     @type.setter
     def type(self, val):
         self.__dict__['type'] = val
-        if val in ('string', 'boolean', 'integer'):
-            self.field_type = 'fields.Field'
-        else:
-            self.field_type = 'fields.Object'
-            self.args.append(val)
+        self.field.type = val
 
     def __str__(self):
         me = StringIO()
-        me.write("""%s = %s(""" % (self.name, self.field_type))
-        if self.args:
-            me.write(', '.join(repr(arg) for arg in self.args))
-        if self.kwargs:
-            if self.args:
-                me.write(', ')
-            me.write(', '.join('%s=%r' % (k, v) for k, v in self.kwargs.items()))
-        me.write(""")\n""")
+        me.write(self.name)
+        me.write(" = ")
+        me.write(str(self.field))
+        me.write("\n")
         me.write('"""%s"""\n' % self.docString)
         return me.getvalue()
 
@@ -111,6 +161,8 @@ def generate_types(fn, out_fn):
     wrote = set(('RemoteObject',))
     wrote_one = True
     with open(out_fn, 'w') as outfile:
+        outfile.write(PREAMBLE)
+
         while objtypes and wrote_one:
             wrote_one = False
             for objtype in list(objtypes):
@@ -123,9 +175,11 @@ def generate_types(fn, out_fn):
                 wrote.add(objtype.name)
                 objtypes.remove(objtype)
 
-    if not wrote_one:
-        raise ValueError("Ran out of types to write (left: %s)" %
-            ', '.join(('%s(%s)' % (t.name, t.parentType) for t in objtypes)))
+        if not wrote_one:
+            raise ValueError("Ran out of types to write (left: %s)" %
+                ', '.join(('%s(%s)' % (t.name, t.parentType) for t in objtypes)))
+
+        outfile.write(POSTAMBLE)
 
 
 def main(argv=None):
