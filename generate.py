@@ -21,14 +21,45 @@ class lazy(object):
 
 class Property(lazy):
 
+    def __init__(self, data):
+        self.args = list()
+        self.kwargs = dict()
+        super(Property, self).__init__(data)
+
+    @property
+    def name(self):
+        return self.__dict__['name']
+
+    @name.setter
+    def name(self, name):
+        py_name = re.sub(r'[A-Z]', lambda mo: '_' + mo.group(0).lower(), name)
+        if py_name != name:
+            self.kwargs['api_name'] = name
+        self.__dict__['name'] = py_name
+
+    @property
+    def type(self):
+        return self.__dict__['type']
+
+    @type.setter
+    def type(self, val):
+        self.__dict__['type'] = val
+        if val in ('string', 'boolean', 'integer'):
+            self.field_type = 'fields.Field'
+        else:
+            self.field_type = 'fields.Object'
+            self.args.append(val)
+
     def __str__(self):
         me = StringIO()
-        me.write("""%s = """ % self.name)
-        if self.type in ('string', 'boolean', 'integer'):
-            me.write('fields.Field()')
-        else:
-            me.write('fields.Object(%r)' % self.type)
-        me.write('\n')
+        me.write("""%s = %s(""" % (self.name, self.field_type))
+        if self.args:
+            me.write(', '.join(repr(arg) for arg in self.args))
+        if self.kwargs:
+            if self.args:
+                me.write(', ')
+            me.write(', '.join('%s=%r' % (k, v) for k, v in self.kwargs.items()))
+        me.write(""")\n""")
         me.write('"""%s"""\n' % self.docString)
         return me.getvalue()
 
