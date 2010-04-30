@@ -10,7 +10,9 @@ import argparse
 
 
 PREAMBLE = """
-from remoteobjects import fields, RemoteObject
+from typepad.tpobject import *
+from typepad import fields
+import typepad
 
 """
 
@@ -122,12 +124,12 @@ class ObjectType(lazy):
 
     @properties.setter
     def properties(self, val):
-        self.__dict__['properties'] = [Property(data) for data in val]
+        self.__dict__['properties'] = dict((prop.name, prop) for prop in (Property(data) for data in val))
 
     @property
     def parentType(self):
         if self.name == 'Base':
-            return 'RemoteObject'
+            return 'TypePadObject'
         return self.__dict__['parentType']
 
     @parentType.setter
@@ -142,23 +144,48 @@ class ObjectType(lazy):
         me.write("""class %s(%s):\n""" % (self.name, self.parentType))
         if not self.properties:
             me.write("    pass\n")
-        for prop in self.properties:
+        for prop in self.properties.values():
             prop_text = str(prop)
             prop_text = re.sub(r'(?xms)^(?=.)', '    ', prop_text)
             me.write(prop_text)
+
+        if hasattr(self, 'endpoint_name') and 'url_id' in self.properties:
+            me.write("""
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        obj = cls.get('/%s/%%s.json' %% url_id, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        return obj
+""" % self.endpoint_name)
+
         me.write("\n\n")
         return me.getvalue()
 
 
-def generate_types(fn, out_fn):
-    with open(fn) as f:
+def generate_types(types_fn, nouns_fn, out_fn):
+    with open(types_fn) as f:
         types = json.load(f)
+    with open(nouns_fn) as f:
+        nouns = json.load(f)
 
     objtypes = set()
-    for objtype in types['entries']:
-        objtypes.add(ObjectType(objtype))
+    objtypes_by_name = dict()
+    for info in types['entries']:
+        objtype = ObjectType(info)
+        objtypes.add(objtype)
+        objtypes_by_name[objtype.name] = objtype
 
-    wrote = set(('RemoteObject',))
+    for endpoint in nouns['entries']:
+        # Tell the objects their endpoint names so they can make get_by_url_id methods.
+        if endpoint['canHaveId']:
+            try:
+                objtype = objtypes_by_name[endpoint['resourceObjectType']['name']]
+            except KeyError:
+                pass
+            else:
+                objtype.endpoint_name = endpoint['name']
+
+    wrote = set(('TypePadObject',))
     wrote_one = True
     with open(out_fn, 'w') as outfile:
         outfile.write(PREAMBLE)
@@ -211,7 +238,7 @@ def main(argv=None):
     logging.basicConfig(level=log_level)
     logging.info('Log level set to %s', logging.getLevelName(log_level))
 
-    generate_types(ohyeah.types, ohyeah.outfile)
+    generate_types(ohyeah.types, ohyeah.nouns, ohyeah.outfile)
 
     return 0
 
