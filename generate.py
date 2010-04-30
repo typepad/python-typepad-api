@@ -48,9 +48,15 @@ class Field(lazy):
         mo = re.match(r'(\w+)<([^>]+)>', val)
         if mo is not None:
             container, subtype = mo.groups((1, 2))
+
+            if container in ('List', 'Stream'):
+                self.field_type = 'ListOf'
+                self.args.append(subtype)
+                return
+
             if container in ('set', 'array'):
                 self.field_type = 'fields.List'
-            elif container in ('map',):
+            elif container == 'map':
                 self.field_type = 'fields.Dict'
             else:
                 raise ValueError('Unknown container type %r' % container)
@@ -68,6 +74,8 @@ class Field(lazy):
 
     def __str__(self):
         me = StringIO()
+        if not hasattr(self, 'field_type'):
+            raise ValueError("Uh this Field doesn't have a field type? (%r)" % self.__dict__)
         me.write(self.field_type)
         me.write("""(""")
         if self.args:
@@ -93,6 +101,7 @@ class Property(lazy):
     @name.setter
     def name(self, name):
         py_name = re.sub(r'[A-Z]', lambda mo: '_' + mo.group(0).lower(), name)
+        py_name = py_name.replace('-', '_')
         if py_name != name:
             self.field.kwargs['api_name'] = name
         self.__dict__['name'] = py_name
@@ -112,7 +121,8 @@ class Property(lazy):
         me.write(" = ")
         me.write(str(self.field))
         me.write("\n")
-        me.write('"""%s"""\n' % self.docString)
+        if hasattr(self, 'docString'):
+            me.write('"""%s"""\n' % self.docString)
         return me.getvalue()
 
 
@@ -120,7 +130,7 @@ class ObjectType(lazy):
 
     @property
     def properties(self):
-        return self.__dict__.get('properties', list())
+        return self.__dict__['properties']
 
     @properties.setter
     def properties(self, val):
@@ -144,6 +154,24 @@ class ObjectType(lazy):
     def endpoint(self, val):
         self.__dict__['endpoint'] = val
         self.endpoint_name = val['name']
+
+        assert 'properties' in self.__dict__
+
+        for endp in val['propertyEndpoints']:
+            name = endp['name']
+            # TODO: handle endpoints like Blog.comments that aren't usable without filters
+            try:
+                value_type = endp['resourceObjectType']
+            except KeyError:
+                continue
+            # TODO: docstring?
+            prop = Property({'name': name})
+            prop.field.field_type = 'fields.Link'
+            if 'resourceObjectType' not in endp:
+                raise ValueError("Uh %r doesn't have a resourceObjectType? (%r)" % (name, endp))
+            subfield = Field({'type': value_type['name']})
+            prop.field.args.append(subfield)
+            self.properties[prop.name] = prop
 
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
