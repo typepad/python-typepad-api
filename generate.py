@@ -3,6 +3,7 @@
 from cStringIO import StringIO
 import json
 import logging
+import re
 import sys
 
 import argparse
@@ -57,12 +58,14 @@ class ObjectType(lazy):
 
     def __str__(self):
         me = StringIO()
-        me.write("""class %s(%s):\n    """ % (self.name, self.parentType))
+        me.write("""class %s(%s):\n""" % (self.name, self.parentType))
         if not self.properties:
-            me.write("pass\n")
+            me.write("    pass\n")
         for prop in self.properties:
-            me.write(str(prop).replace("\n", "\n    "))
-        me.write("\n")
+            prop_text = str(prop)
+            prop_text = re.sub(r'(?xms)^(?=.)', '    ', prop_text)
+            me.write(prop_text)
+        me.write("\n\n")
         return me.getvalue()
 
 
