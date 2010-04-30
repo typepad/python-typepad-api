@@ -136,6 +136,15 @@ class ObjectType(lazy):
     def parentType(self, val):
         self.__dict__['parentType'] = val
 
+    @property
+    def endpoint(self):
+        return self.__dict__['endpoint']
+
+    @endpoint.setter
+    def endpoint(self, val):
+        self.__dict__['endpoint'] = val
+        self.endpoint_name = val['name']
+
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
 
@@ -176,14 +185,12 @@ def generate_types(types_fn, nouns_fn, out_fn):
         objtypes_by_name[objtype.name] = objtype
 
     for endpoint in nouns['entries']:
-        # Tell the objects their endpoint names so they can make get_by_url_id methods.
-        if endpoint['canHaveId']:
-            try:
-                objtype = objtypes_by_name[endpoint['resourceObjectType']['name']]
-            except KeyError:
-                pass
-            else:
-                objtype.endpoint_name = endpoint['name']
+        try:
+            objtype = objtypes_by_name[endpoint['resourceObjectType']['name']]
+        except KeyError:
+            pass
+        else:
+            objtype.endpoint = endpoint
 
     wrote = set(('TypePadObject',))
     wrote_one = True
