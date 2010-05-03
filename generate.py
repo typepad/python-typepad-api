@@ -329,11 +329,14 @@ class ObjectType(lazy):
 
         for endp in val['propertyEndpoints']:
             name = endp['name']
+
             # TODO: handle endpoints like Blog.comments that aren't usable without filters
             try:
                 value_type = endp['resourceObjectType']
             except KeyError:
+                logging.info('Skipping endpoint %s.%s since it has no resourceObjectType', self.endpoint_name, name)
                 continue
+
             # TODO: docstring?
             prop = Property({'name': name})
             prop.field.field_type = 'fields.Link'
@@ -397,6 +400,7 @@ def generate_types(types_fn, nouns_fn, out_fn):
     objtypes_by_name = dict()
     for info in types['entries']:
         if info['name'] == 'Base':
+            logging.info('Skipping Base type, since we use TypePadObject for that')
             continue
         if info['parentType'] == 'Base':
             info['parentType'] = u'TypePadObject'
