@@ -10,6 +10,10 @@ import argparse
 
 
 PREAMBLE = """
+from urlparse import urljoin
+
+from remoteobjects.dataobject import find_by_name
+
 from typepad.tpobject import *
 from typepad import fields
 import typepad
@@ -24,6 +28,18 @@ LinkAsset = Link
 HAS_OBJECT_TYPE = ('User', 'Group', 'Application', 'Asset', 'Comment', 'Favorite', 'Post', 'Photo', 'Audio', 'Video', 'Link', 'Document', )
 
 CLASS_EXTRAS = {
+    'ApiKey': '''
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/api-keys/%s.json' % self.api_key)
+
+    @classmethod
+    def get_by_api_key(cls, api_key):
+        """Returns an `ApiKey` instance with the given consumer key.
+
+        Asserts that the api_key parameter matches ^\w+$."""
+        assert re.match('^\w+$', api_key), "invalid api_key parameter given"
+        return cls.get('/api-keys/%s.json' % api_key)
+''',
     'User': '''
     @classmethod
     def get_self(cls, **kwargs):
@@ -216,7 +232,7 @@ class ObjectType(lazy):
             me.write("""    object_type = "tag:api.typepad.com,2009:%s"\n\n""" % self.name)
         elif not self.properties:
             me.write("    pass\n")
-        for prop in self.properties.values():
+        for name, prop in sorted(self.properties.items(), key=lambda x: x[0]):
             prop_text = str(prop)
             prop_text = re.sub(r'(?xms)^(?=.)', '    ', prop_text)
             me.write(prop_text)
@@ -264,7 +280,10 @@ def generate_types(types_fn, nouns_fn, out_fn):
     wrote = set(('TypePadObject',))
     wrote_one = True
     with open(out_fn, 'w') as outfile:
-        outfile.write(PREAMBLE)
+        if PREAMBLE.startswith('\n'):
+            outfile.write(PREAMBLE.replace('\n', '', 1))
+        else:
+            outfile.write(PREAMBLE)
 
         while objtypes and wrote_one:
             eligible_types = list()
