@@ -28,6 +28,23 @@ CLASS_EXTRAS = {
         client library is authenticating."""
         return cls.get('/users/@self.json', **kwargs)
 ''',
+    'UserProfile': '''
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/users/%s/profile.json' % self.url_id)
+
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        """Returns the `UserProfile` instance with the given URL identifier."""
+        prof = cls.get('/users/%s/profile.json' % url_id, **kwargs)
+        prof.__dict__['url_id'] = url_id
+        return prof
+
+    @property
+    def user(self):
+        """Returns a `User` instance for the TypePad member whose
+        `UserProfile` this is."""
+        return find_by_name('User').get_by_url_id(self.url_id)
+''',
 }
 
 
