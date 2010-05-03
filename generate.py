@@ -192,12 +192,15 @@ class ObjectType(lazy):
 
         if hasattr(self, 'endpoint_name') and 'url_id' in self.properties:
             me.write("""
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/%(endpoint_name)s/%%s.json' %% self.url_id)
+
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
-        obj = cls.get('/%s/%%s.json' %% url_id, **kwargs)
+        obj = cls.get('/%(endpoint_name)s/%%s.json' %% url_id, **kwargs)
         obj.__dict__['url_id'] = url_id
         return obj
-""" % self.endpoint_name)
+""" % {'endpoint_name': self.endpoint_name})
 
         me.write("\n\n")
         return me.getvalue()
