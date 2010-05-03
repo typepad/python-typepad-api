@@ -18,6 +18,8 @@ import typepad
 
 POSTAMBLE = """"""
 
+HAS_OBJECT_TYPE = ('User', 'Group', 'Application', 'Asset', 'Comment', 'Favorite', 'Post', 'Photo', 'Audio', 'Video', 'Link', 'Document', )
+
 
 class lazy(object):
 
@@ -178,8 +180,10 @@ class ObjectType(lazy):
 
     def __str__(self):
         me = StringIO()
-        me.write("""class %s(%s):\n""" % (self.name, self.parentType))
-        if not self.properties:
+        me.write("""class %s(%s):\n\n""" % (self.name, self.parentType))
+        if self.name in HAS_OBJECT_TYPE:
+            me.write("""    object_type = "tag:api.typepad.com,2009:%s"\n\n""" % self.name)
+        elif not self.properties:
             me.write("    pass\n")
         for prop in self.properties.values():
             prop_text = str(prop)
