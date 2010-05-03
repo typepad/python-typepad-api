@@ -45,21 +45,30 @@ The module contains:
 
 """
 
-from urlparse import urljoin, urlparse, urlunparse
-from copy import copy
 import cgi
+from copy import copy
+from cStringIO import StringIO
+try:
+    from email.message import Message
+    from email.generator import Generator, _make_boundary
+except ImportError:
+    from email.Message import Message
+    from email.Generator import Generator, _make_boundary
+import httplib
 import inspect
 from itertools import chain
 import logging
 import sys
 import urllib
+from urlparse import urljoin, urlparse, urlunparse
 
 from batchhttp.client import BatchError
+import httplib2
 import remoteobjects
 from remoteobjects.dataobject import find_by_name
 from remoteobjects.promise import PromiseError
 import remoteobjects.listobject
-import httplib2
+import simplejson as json
 
 import typepad
 from typepad import fields
@@ -479,3 +488,185 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
     def __repr__(self):
         return '<%s.%s %r>' % (type(self).__module__, type(self).__name__,
             getattr(self, '_location', None))
+
+
+class BrowserUploadEndpoint(object):
+
+    class NetworkGenerator(Generator):
+
+        def __init__(self, outfp, mangle_from_=True, maxheaderlen=78, write_headers=True):
+            self.write_headers = write_headers
+            Generator.__init__(self, outfp, mangle_from_, maxheaderlen)
+
+        def _write_headers(self, msg):
+            """Writes this `NetworkMessage` instance's headers to
+            the given generator's output file with network style CR
+            LF character pair line endings.
+
+            If called during a `NetworkMessage.as_string()` to which
+            the `write_headers` option was ``False``, this method
+            does nothing.
+
+            """
+            if not self.write_headers:
+                return
+
+            headerfile = self._fp
+            unixheaderfile = StringIO()
+            try:
+                self._fp = unixheaderfile
+                Generator._write_headers(self, msg)
+            finally:
+                self._fp = headerfile
+
+            headers = unixheaderfile.getvalue()
+            headerfile.write(headers.replace('\n', '\r\n'))
+
+        def _flatten_submessage(self, part):
+            s = StringIO()
+            g = self.clone(s)
+            g.flatten(part, unixfrom=False)
+            return s.getvalue()
+
+        def _handle_multipart(self, msg):
+            subparts = msg.get_payload()
+            if subparts is None:
+                subparts = []
+            elif isinstance(subparts, basestring):
+                self._fp.write(subparts)
+                return
+            elif not isinstance(subparts, list):
+                subparts = [subparts]
+
+            msgtexts = [self._flatten_submessage(part) for part in subparts]
+
+            alltext = '\r\n'.join(msgtexts)
+
+            no_boundary = object()
+            boundary = msg.get_boundary(failobj=no_boundary)
+            if boundary is no_boundary:
+                boundary = _make_boundary(alltext)
+                msg.set_boundary(boundary)
+
+            if msg.preamble is not None:
+                self._fp.write(msg.preamble)
+                self._fp.write('\r\n')
+            self._fp.write('--' + boundary)
+
+            for body_part in msgtexts:
+                self._fp.write('\r\n')
+                self._fp.write(body_part)
+                self._fp.write('\r\n--' + boundary)
+            self._fp.write('--\r\n')
+
+            if msg.epilogue is not None:
+                self._fp.write('\r\n')
+                self._fp.write(msg.epilogue)
+
+    class NetworkMessage(Message):
+
+        """A MIME `Message` that has its headers separated by the
+        network style CR LF character pairs, not only UNIX style LF
+        characters.
+
+        As noted in Python issue 1349106, the default behavior of
+        the `email.message.Message` implementation is to use plain
+        system line endings when writing its headers, and having the
+        protocol module such as `smtplib` convert the headers to
+        network style when sending them on the wire. In order to
+        work with protocol libraries that are not aware of MIME
+        messages, flattening a `NetworkMessage` with `as_string()`
+        produces network style CR LF line endings.
+
+        """
+
+        def as_string(self, unixfrom=False, write_headers=True):
+            """Flattens this `NetworkMessage` instance to a string.
+
+            If `write_headers` is ``True``, the headers of this
+            `NetworkMessage` instance are included in the result.
+            Headers of sub-messages contained in this message's
+            payload are always included.
+
+            """
+            fp = StringIO()
+            g = BrowserUploadEndpoint.NetworkGenerator(fp, write_headers=write_headers)
+            g.flatten(self, unixfrom=unixfrom)
+            return fp.getvalue()
+
+    def raise_error_for_response(self, resp, obj):
+        if resp.status != 302 or 'location' not in resp:
+            raise ValueError('Response is not a browser upload response: not a 302 or has no Location header')
+
+        urlparts = urlparse(resp['location'])
+        query = cgi.parse_qs(urlparts[4])
+
+        try:
+            status = query['status'][0]
+        except (KeyError, IndexError):
+            raise ValueError("Response is not a browser upload response: no 'status' query parameter")
+        try:
+            status = int(status)
+        except KeyError:
+            raise ValueError("Response is not a browser upload response: non-numeric 'status' query parameter %r" % status)
+
+        if status == 201:
+            # Yay, no error! Return the query params in case we want to pull asset_url out of it.
+            return query
+
+        # Not a 201 means it was an error. But which?
+        err_classes = {
+            httplib.NOT_FOUND: obj.NotFound,
+            httplib.UNAUTHORIZED: obj.Unauthorized,
+            httplib.FORBIDDEN: obj.Forbidden,
+            httplib.PRECONDITION_FAILED: obj.PreconditionFailed,
+            httplib.INTERNAL_SERVER_ERROR: obj.ServerError,
+            httplib.BAD_REQUEST: obj.RequestError,
+        }
+        try:
+            err_cls = err_classes[status]
+        except KeyError:
+            raise ValueError("Response is not a browser upload response: unexpected 'status' query parameter %r" % status)
+
+        try:
+            message = query['error'][0]
+        except (KeyError, IndexError):
+            # Not all these error responses have an error message, so that's okay.
+            raise err_cls()
+        raise err_cls(message)
+
+    def upload(self, obj, fileobj, content_type='application/octet-stream', **kwargs):
+        http = typepad.client
+
+        data = dict(kwargs)
+        data['asset'] = json.dumps(obj.to_dict())
+
+        bodyobj = self.NetworkMessage()
+        bodyobj.set_type('multipart/form-data')
+        bodyobj.preamble = "multipart snowform for you"
+        for key, value in data.iteritems():
+            msg = self.NetworkMessage()
+            msg.add_header('Content-Disposition', 'form-data', name=key)
+            msg.set_payload(value)
+            bodyobj.attach(msg)
+
+        filemsg = self.NetworkMessage()
+        filemsg.set_type(content_type)
+        filemsg.add_header('Content-Disposition', 'form-data', name="file",
+            filename="file")
+        filemsg.add_header('Content-Transfer-Encoding', 'identity')
+        filecontent = fileobj.read()
+        filemsg.set_payload(filecontent)
+        filemsg.add_header('Content-Length', str(len(filecontent)))
+        bodyobj.attach(filemsg)
+
+        # Serialize the message first, so we have the generated MIME
+        # boundary when we pull the headers out.
+        body = bodyobj.as_string(write_headers=False)
+        headers = dict(bodyobj.items())
+
+        request = obj.get_request(url='/browser-upload.json', method='POST',
+            headers=headers, body=body)
+        response, content = http.signed_request(**request)
+
+        return response, content

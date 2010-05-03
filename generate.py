@@ -60,6 +60,8 @@ import typepad
 POSTAMBLE = """
 ElsewhereAccount = Account
 LinkAsset = Link
+
+browser_upload = BrowserUploadEndpoint()
 """
 
 HAS_OBJECT_TYPE = ('User', 'Group', 'Application', 'Asset', 'Comment', 'Favorite', 'Post', 'Photo', 'Audio', 'Video', 'Link', 'Document', )
