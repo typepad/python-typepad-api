@@ -287,7 +287,7 @@ class Source(TypePadObject):
 
     """Information about an `Asset` instance imported from another service."""
 
-    provider = fields.Object('Provider')
+    provider = fields.Dict(fields.Field())
     """Description of the external service that provided the associated asset."""
     source   = fields.Field()
     by_user  = fields.Field(api_name='byUser')
@@ -1168,18 +1168,6 @@ class User(TypePadObject):
         return u
 
 
-class Provider(TypePadObject):
-
-    """An external service that provided an asset."""
-
-    name = fields.Field()
-    """The name of the external service."""
-    uri  = fields.Field()
-    """The main URL for the external service."""
-    icon = fields.Field()
-    """The URL for a 16 by 16 favicon for the external service."""
-
-
 class Video(Asset):
 
     """An entry in a blog."""
@@ -1188,13 +1176,6 @@ class Video(Asset):
 
     video_link = fields.Object('VideoLink', api_name='videoLink')
     preview_image_link = fields.Object('ImageLink', api_name='previewImageLink')
-
-
-class Document(Asset):
-
-    """A shared link to some URL."""
-
-    object_type = "tag:api.typepad.com,2009:Document"
 
 
 browser_upload = BrowserUploadEndpoint()
