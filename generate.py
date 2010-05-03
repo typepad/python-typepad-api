@@ -16,7 +16,10 @@ import typepad
 
 """
 
-POSTAMBLE = """"""
+POSTAMBLE = """
+ElsewhereAccount = Account
+LinkAsset = Link
+"""
 
 HAS_OBJECT_TYPE = ('User', 'Group', 'Application', 'Asset', 'Comment', 'Favorite', 'Post', 'Photo', 'Audio', 'Video', 'Link', 'Document', )
 
