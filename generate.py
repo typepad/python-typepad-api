@@ -18,6 +18,7 @@ from typepad.tpobject import *
 from typepad import fields
 import typepad
 
+
 """
 
 POSTAMBLE = """
