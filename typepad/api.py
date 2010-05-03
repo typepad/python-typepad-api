@@ -34,7 +34,6 @@ content objects provided in the TypePad API.
 
 """
 
-import re
 from urlparse import urljoin
 
 from remoteobjects.dataobject import find_by_name
@@ -42,24 +41,6 @@ from remoteobjects.dataobject import find_by_name
 from typepad.tpobject import *
 from typepad import fields
 import typepad
-
-
-def xid_from_atom_id(atom_id):
-    """Returns the XID portion of the given Atom ID for a TypePad content
-    object.
-
-    If the given Atom ID is not the same format as a TypePad content object's
-    Atom ID, returns ``None``.
-
-    """
-    try:
-        # tag:api.typepad.com,2009:6e01148739c04077bd0119f49c602c9c4b
-        # tag:api.typepad.com,2003:user-6p00000001
-        # tag:api.typepad.com,2009:6a01229910fa0c12ef011cd6ccab0303b5:6p01229910fa0c12ef
-        #    (Favorites look like this)
-        return re.match('^tag:(?:[\w-]+[.]?)+,\d{4}:(?:\w+-)?(\w+(:\w+)?)$', atom_id).groups()[0]
-    except:
-        return None
 
 
 class ElsewhereAccount(TypePadObject):
@@ -96,10 +77,6 @@ class ElsewhereAccount(TypePadObject):
     attributes.
 
     """
-
-    @property
-    def xid(self):
-        return xid_from_atom_id(self.id)
 
 
 class ApiKey(TypePadObject):
@@ -182,21 +159,8 @@ class Asset(TypePadObject):
     url_id = fields.Field(api_name='urlId')
     """An identifier for this `Asset` that can be used in URLs."""
 
-    @property
-    def xid(self):
-        return xid_from_atom_id(self.id)
-
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/assets/%s.json' % self.url_id)
-
-    @classmethod
-    def get_by_id(cls, id, **kwargs):
-        """Returns an `Asset` instance by the identifier for the asset.
-
-        Asserts that the url_id parameter matches ^\w+$."""
-        url_id = xid_from_atom_id(id)
-        assert url_id, "valid id parameter required"
-        return cls.get_by_url_id(url_id, **kwargs)
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -366,10 +330,6 @@ class Event(TypePadObject):
 
     def __unicode__(self):
         return unicode(self.object)
-
-    @property
-    def xid(self):
-        return xid_from_atom_id(self.id)
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/events/%s.json' % self.url_id)
@@ -661,10 +621,6 @@ class Relationship(TypePadObject):
     `Relationship`."""
     url_id = fields.Field(api_name='urlId')
     """An identifier for this `Relationship` that can be used in URLs."""
-
-    @property
-    def xid(self):
-        return xid_from_atom_id(self.id)
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/relationships/%s.json' % self.url_id)
@@ -997,23 +953,8 @@ class Group(TypePadObject):
     """
     video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
 
-    @property
-    def xid(self):
-        return xid_from_atom_id(self.id)
-
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/groups/%s.json' % self.url_id)
-
-    @classmethod
-    def get_by_id(cls, id, **kwargs):
-        """Returns a `Group` instance by their unique identifier.
-
-        Asserts that the id parameter is valid."""
-        url_id = xid_from_atom_id(id)
-        assert url_id, "valid id parameter required"
-        g = cls.get_by_url_id(url_id, **kwargs)
-        g.__dict__['id'] = id
-        return g
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -1112,10 +1053,6 @@ class User(TypePadObject):
 
     """
 
-    @property
-    def xid(self):
-        return xid_from_atom_id(self.id)
-
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/users/%s.json' % self.url_id)
 
@@ -1124,17 +1061,6 @@ class User(TypePadObject):
         """Returns a `User` instance representing the account as whom the
         client library is authenticating."""
         return cls.get('/users/@self.json', **kwargs)
-
-    @classmethod
-    def get_by_id(cls, id, **kwargs):
-        """Returns a `User` instance by their unique identifier.
-
-        Asserts that the id parameter is valid."""
-        url_id = xid_from_atom_id(id)
-        assert url_id, "valid id parameter required"
-        u = cls.get_by_url_id(url_id, **kwargs)
-        u.__dict__['id'] = id
-        return u
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
