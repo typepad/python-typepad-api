@@ -192,6 +192,10 @@ class lazy(object):
 
     def fill(self, data):
         for key, val in data.iteritems():
+            if isinstance(key, unicode):
+                key = key.encode('utf-8')
+            if isinstance(val, unicode):
+                val = val.encode('utf-8')
             setattr(self, key, val)
 
 
@@ -235,6 +239,8 @@ class Field(lazy):
             self.field_type = 'fields.Field'
         else:
             self.field_type = 'fields.Object'
+            if val == 'Base':
+                val = 'TypePadObject'
             self.args.append(val)
 
     def __str__(self):
@@ -301,16 +307,6 @@ class ObjectType(lazy):
     @properties.setter
     def properties(self, val):
         self.__dict__['properties'] = dict((prop.name, prop) for prop in (Property(data) for data in val))
-
-    @property
-    def parentType(self):
-        if self.name == 'Base':
-            return 'TypePadObject'
-        return self.__dict__['parentType']
-
-    @parentType.setter
-    def parentType(self, val):
-        self.__dict__['parentType'] = val
 
     @property
     def endpoint(self):
@@ -388,6 +384,10 @@ def generate_types(types_fn, nouns_fn, out_fn):
     objtypes = set()
     objtypes_by_name = dict()
     for info in types['entries']:
+        if info['name'] == 'Base':
+            continue
+        if info['parentType'] == 'Base':
+            info['parentType'] = u'TypePadObject'
         objtype = ObjectType(info)
         objtypes.add(objtype)
         objtypes_by_name[objtype.name] = objtype
