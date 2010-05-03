@@ -112,7 +112,8 @@ class Property(lazy):
 
     @name.setter
     def name(self, name):
-        py_name = re.sub(r'[A-Z]', lambda mo: '_' + mo.group(0).lower(), name)
+        py_name = name.replace('URL', 'Url')
+        py_name = re.sub(r'[A-Z]', lambda mo: '_' + mo.group(0).lower(), py_name)
         py_name = py_name.replace('-', '_')
         if py_name != name:
             self.field.kwargs['api_name'] = name
