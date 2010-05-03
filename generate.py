@@ -247,13 +247,18 @@ def generate_types(types_fn, nouns_fn, out_fn):
         outfile.write(PREAMBLE)
 
         while objtypes and wrote_one:
-            wrote_one = False
+            eligible_types = list()
             for objtype in list(objtypes):
                 if objtype.parentType not in wrote:
                     logging.debug("Oops, can't write %s as I haven't written %s yet", objtype.name, objtype.parentType)
                     continue
+                eligible_types.append(objtype)
 
-                wrote_one = True
+            if not eligible_types:
+                wrote_one = False
+                break
+
+            for objtype in sorted(eligible_types, key=lambda x: x.name):
                 outfile.write(str(objtype))
                 wrote.add(objtype.name)
                 objtypes.remove(objtype)
