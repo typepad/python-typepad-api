@@ -58,9 +58,6 @@ import typepad
 '''
 
 POSTAMBLE = """
-ElsewhereAccount = Account
-LinkAsset = Link
-
 browser_upload = BrowserUploadEndpoint()
 """
 
