@@ -333,6 +333,10 @@ class ObjectType(lazy):
                 raise ValueError("Uh %r doesn't have a resourceObjectType? (%r)" % (name, endp))
             subfield = Field({'type': value_type['name']})
             prop.field.args.append(subfield)
+
+            if prop.name in self.properties:
+                raise ValueError("Oops, wanted to add a Link property called %s to %s, but there's already a property "
+                    "named that (%r)" % (prop.name, self.name, str(self.properties[prop.name])))
             self.properties[prop.name] = prop
 
     def __repr__(self):
