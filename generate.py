@@ -20,6 +20,16 @@ POSTAMBLE = """"""
 
 HAS_OBJECT_TYPE = ('User', 'Group', 'Application', 'Asset', 'Comment', 'Favorite', 'Post', 'Photo', 'Audio', 'Video', 'Link', 'Document', )
 
+CLASS_EXTRAS = {
+    'User': '''
+    @classmethod
+    def get_self(cls, **kwargs):
+        """Returns a `User` instance representing the account as whom the
+        client library is authenticating."""
+        return cls.get('/users/@self.json', **kwargs)
+''',
+}
+
 
 class lazy(object):
 
@@ -201,6 +211,9 @@ class ObjectType(lazy):
         obj.__dict__['url_id'] = url_id
         return obj
 """ % {'endpoint_name': self.endpoint_name})
+
+        if self.name in CLASS_EXTRAS:
+            me.write(CLASS_EXTRAS[self.name])
 
         me.write("\n\n")
         return me.getvalue()
