@@ -176,14 +176,10 @@ class Asset(TypePadObject):
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
-        """Returns an `Asset` instance by the url id for the asset.
-
-        Asserts that the url_id parameter matches ^\w+$."""
-        assert re.match('^\w+$', url_id), "invalid url_id parameter given"
-        a = cls.get('/assets/%s.json' % url_id, **kwargs)
-        a.__dict__['url_id'] = url_id
-        a.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
-        return a
+        obj = cls.get('/assets/%s.json' % url_id, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
+        return obj
 
     @property
     def actor(self):
@@ -321,6 +317,13 @@ class Event(TypePadObject):
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/events/%s.json' % self.url_id)
 
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        obj = cls.get('/events/%s.json' % url_id, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
+        return obj
+
 
 class Favorite(TypePadObject):
 
@@ -360,6 +363,7 @@ class Favorite(TypePadObject):
     def get_by_url_id(cls, url_id, **kwargs):
         obj = cls.get('/favorites/%s.json' % url_id, **kwargs)
         obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return obj
 
 
@@ -653,6 +657,13 @@ class Application(TypePadObject):
         return urljoin(typepad.client.endpoint, '/applications/%s.json' % self.url_id)
 
     @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        obj = cls.get('/applications/%s.json' % url_id, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
+        return obj
+
+    @classmethod
     def get_by_api_key(cls, api_key, **kwargs):
         """Returns an `Application` instance by the API key.
 
@@ -734,13 +745,10 @@ class Group(TypePadObject):
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
-        """Returns a `Group` instance by the group's url identifier.
-
-        Asserts that the url_id parameter matches ^\w+$."""
-        assert re.match('^\w+$', url_id), "invalid url_id parameter given"
-        g = cls.get('/groups/%s.json' % url_id, **kwargs)
-        g.__dict__['url_id'] = url_id
-        return g
+        obj = cls.get('/groups/%s.json' % url_id, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
+        return obj
 
 
 class Link(Asset):
@@ -826,28 +834,17 @@ class User(Entity):
         return urljoin(typepad.client.endpoint, '/users/%s.json' % self.url_id)
 
     @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        obj = cls.get('/users/%s.json' % url_id, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
+        return obj
+
+    @classmethod
     def get_self(cls, **kwargs):
         """Returns a `User` instance representing the account as whom the
         client library is authenticating."""
         return cls.get('/users/@self.json', **kwargs)
-
-    @classmethod
-    def get_by_url_id(cls, url_id, **kwargs):
-        """Returns a `User` instance by their url identifier.
-
-        Profile URL identifiers must contain only letters, numbers, and
-        underscores.
-
-        """
-        if len(url_id) == 0:
-            raise ValueError('URL identifiers must contain some characters')
-        mo = re.search('\W', url_id)
-        if mo:
-            raise ValueError('URL identifiers cannot contain "%s" characters'
-                             % mo.group(0))
-        u = cls.get('/users/%s.json' % url_id, **kwargs)
-        u.__dict__['url_id'] = url_id
-        return u
 
 
 class Video(Asset):
