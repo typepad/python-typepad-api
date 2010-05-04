@@ -470,25 +470,50 @@ class Property(lazy):
 
 class ObjectType(lazy):
 
+    types_by_name = dict()
+
+    @property
+    def name(self):
+        return self.__dict__['name']
+
+    @name.setter
+    def name(self, val):
+        assert 'name' not in self.__dict__
+        self.__dict__['name'] = val
+        self.types_by_name[val] = self
+
     @property
     def properties(self):
         return self.__dict__['properties']
 
     @properties.setter
     def properties(self, val):
+        # Keep a clean copy safe for referring to later.
+        self.__dict__['property_data'] = dict((prop['name'], dict(prop)) for prop in val)
+        # Now make val a dict for working with now.
+        val = dict((prop['name'], prop) for prop in val)
+
+        # Filter our inheritance out before overriding types, so we don't have to
+        # override all the inherited types too.
+        if self.parentType != 'TypePadObject':
+            parenttype = self.types_by_name[self.parentType]
+            for propname, propdata in val.items():
+                if propdata == parenttype.property_data.get(propname):
+                    # INHERITED
+                    logging.debug("YAY %s.%s is the same as %s.%s, so we can skip it", self.name, propname, self.parentType, propname)
+                    del val[propname]
+                else:
+                    logging.debug("Oops, %s.%s is not the same as %s.%s (%r), i guess", self.name, propname, self.parentType, propname, parenttype.property_data.get(propname))
+
         if self.name in PROPERTY_TYPES:
             override_types = PROPERTY_TYPES[self.name]
-            for data in val:
-                if data['name'] in override_types:
-                    data['type'] = override_types[data['name']]
-        props = [Property(data) for data in val]
+            for dataname, data in val.items():
+                if dataname in override_types:
+                    data['type'] = override_types[dataname]
+
+        props = [Property(data) for data in val.values()]
         props = dict((prop.name, prop) for prop in props)
         self.__dict__['properties'] = props
-        # We may remove these later, so flag that we do really have these properties.
-        if 'url_id' in props:
-            self.has_url_id_property = True
-        if 'id' in props:
-            self.has_id_property = True
 
     @property
     def parents(self):
@@ -496,6 +521,14 @@ class ObjectType(lazy):
         if self.name in CLASS_SUPERCLASSES:
             parents.extend(CLASS_SUPERCLASSES[self.name])
         return ', '.join(parents)
+
+    @property
+    def has_get_by_url_id(self):
+        if 'url_id' in self.properties:
+            return True
+        if self.parentType == 'TypePadObject':
+            return False
+        return self.types_by_name[self.parentType].has_get_by_url_id
 
     @property
     def endpoint(self):
@@ -558,7 +591,7 @@ class ObjectType(lazy):
             prop_text = re.sub(r'(?xms)^(?=[^\n])', '    ', prop_text)
             me.write(prop_text)
 
-        if hasattr(self, 'endpoint_name') and getattr(self, 'has_url_id_property', False):
+        if hasattr(self, 'endpoint_name') and self.has_get_by_url_id:
             me.write("""
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/%(endpoint_name)s/%%s.json' %% self.url_id)
@@ -566,13 +599,10 @@ class ObjectType(lazy):
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
         obj = cls.get('/%(endpoint_name)s/%%s.json' %% url_id, **kwargs)
-        obj.__dict__['url_id'] = url_id""" % {'endpoint_name': self.endpoint_name})
-            if getattr(self, 'has_id_property', False):
-                me.write("""
-        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id""")
-            me.write("""
+        obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%%s' %% url_id
         return obj
-""")
+""" % {'endpoint_name': self.endpoint_name})
 
         if self.name in CLASS_EXTRAS:
             me.write(CLASS_EXTRAS[self.name])
@@ -609,24 +639,6 @@ def generate_types(types_fn, nouns_fn, out_fn):
             pass
         else:
             objtype.endpoint = endpoint
-
-    # Scrape out the properties inherited from parent types.
-    for objtype in objtypes:
-        if objtype.parentType == 'TypePadObject':
-            continue
-        parent = objtypes_by_name[objtype.parentType]
-        for prop in objtype.properties.values():
-            try:
-                (parentprop,) = [parentprop for parentprop in parent.properties.values() if prop.name == parentprop.name]
-            except ValueError:
-                continue
-
-            if prop == parentprop:
-                # It's inherited, so let the generated class inherit it too.
-                logging.debug("Yay %s.%s is identical to %s.%s so we can ignore it", objtype.name, prop.name, objtype.parentType, parentprop.name)
-                del objtype.properties[prop.name]
-            else:
-                logging.debug("Oops, %s.%s is overriding %s.%s differently", objtype.name, prop.name, objtype.parentType, parentprop.name)
 
     wrote = set(('TypePadObject',))
     wrote_one = True
