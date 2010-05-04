@@ -154,8 +154,6 @@ class Asset(TypePadObject):
     """The content of this asset rendered to HTML. This is currently available only for O<Post> and O<Page> assets."""
     source = fields.Object('AssetSource')
     """An object describing the site from which this asset was retrieved, for assets obtained from external feeds."""
-    status = fields.Object('PublicationStatus')
-    """The `PublicationStatus` describing the state of the `Asset`."""
     summary = fields.Field()
     """For a media type of `Asset`, the HTML description or caption given by
     its author."""
@@ -163,8 +161,6 @@ class Asset(TypePadObject):
     """A keyword which indicates what formatting mode is used for the content of this asset. This can currently be "html" for assets whose content is HTML, "html_convert_linebreaks" for assets whose content is HTML with paragraph tags added automatically, or "markdown" for assets whose content is Markdown. Other formatting modes may be added in future. Applications which present assets for editing should use this property to present an appropriate editor."""
     title = fields.Field()
     """The title of the asset."""
-    updated = fields.Datetime()
-    """A `datetime.datetime` indicating when the `Asset` was last modified."""
     url_id = fields.Field(api_name='urlId')
     """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
 
@@ -220,13 +216,6 @@ class AssetRef(TypePadObject):
     """A URI that serves as a globally-unique id for the asset. This matches the "id" property in the corresponding O<Asset> object."""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
     """An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
-    ref = fields.Field()
-    """A URI that uniquely identifies the referenced `Asset`.
-
-    The URI matches the one in the referenced `Asset` instance's ``id``
-    field.
-
-    """
     type = fields.Field()
     """The MIME type of the representation at the URL given in the "href" property."""
     url_id = fields.Field(api_name='urlId')
@@ -254,7 +243,6 @@ class AssetSource(TypePadObject):
     """The URL which is considered to be this asset source's permalink."""
     provider = fields.Dict(fields.Field())
     """T<Deprecated> Description of the external service provider from which this content was imported. Contains "name", "icon", and "uri" properties."""
-    source = fields.Field()
 
 
 class AudioLink(TypePadObject):
@@ -271,7 +259,6 @@ class AuthToken(TypePadObject):
 
     auth_token = fields.Field(api_name='authToken')
     """The actual auth token string, which is used as the access token when making an OAuth request."""
-    target = fields.Object('TypePadObject', api_name='targetObject')
     target_object = fields.Object('TypePadObject', api_name='targetObject')
     """T<Deprecated> The root object to which this auth token grants access. This is a legacy field maintained for backwards compatibility with older clients. Auth tokens are no longer scoped to specific objects, so this value will be meaningless in any case except those where a specific object is returned to preserve some client behavior."""
 
@@ -562,10 +549,8 @@ class PublicationStatus(TypePadObject):
 
     """
 
-    published = fields.Field()
     draft = fields.Field()
     """C<true> if this asset is private, C<false> otherwise"""
-    spam = fields.Field()
     publication_date = fields.Field(api_name='publicationDate')
     """Represents an asset's publication date (past or future)"""
 
@@ -875,11 +860,9 @@ class Group(Entity):
 
     object_type = "tag:api.typepad.com,2009:Group"
 
-    assets = fields.Link(ListOf('Asset'))
     audio_assets = fields.Link(ListOf('Audio'), api_name='audio-assets')
     avatar_link = fields.Object('ImageLink', api_name='avatarLink')
     """Link to this group's avatar (userpic) image."""
-    comments = fields.Link(ListOf('Asset'))
     display_name = fields.Field(api_name='displayName')
     """The display name set by the group's owner."""
     events = fields.Link(ListOf('Event'))
@@ -898,7 +881,6 @@ class Group(Entity):
     """The URL of this group's main website."""
     tagline = fields.Field()
     """A tagline describing the group, set by the group's owner."""
-    urls = fields.List(fields.Field())
     video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
     """POST: Create a new Video asset within the selected group."""
 
@@ -987,7 +969,6 @@ class User(Entity):
     """Link to this user's avatar (userpic) image."""
     blogs = fields.Link(ListOf('Blog'))
     """Get a list of blogs that the selected user has access to."""
-    comments = fields.Link(ListOf('Comment'), api_name='comments-sent')
     display_name = fields.Field(api_name='displayName')
     """The user's chosen display name."""
     elsewhere_accounts = fields.Link(ListOf('Account'), api_name='elsewhere-accounts')
