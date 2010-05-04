@@ -441,7 +441,7 @@ class ObjectType(lazy):
 
         for name, prop in sorted(self.properties.items(), key=lambda x: x[0]):
             prop_text = str(prop)
-            prop_text = re.sub(r'(?xms)^(?=.)', '    ', prop_text)
+            prop_text = re.sub(r'(?xms)^(?=[^\n])', '    ', prop_text)
             me.write(prop_text)
 
         if hasattr(self, 'endpoint_name') and 'url_id' in self.properties:
@@ -494,10 +494,7 @@ def generate_types(types_fn, nouns_fn, out_fn):
     wrote = set(('TypePadObject',))
     wrote_one = True
     with open(out_fn, 'w') as outfile:
-        if PREAMBLE.startswith('\n'):
-            outfile.write(PREAMBLE.replace('\n', '', 1))
-        else:
-            outfile.write(PREAMBLE)
+        outfile.write(PREAMBLE.replace('\n', '', 1))
 
         while objtypes and wrote_one:
             eligible_types = list()
@@ -520,7 +517,7 @@ def generate_types(types_fn, nouns_fn, out_fn):
             raise ValueError("Ran out of types to write (left: %s)" %
                 ', '.join(('%s(%s)' % (t.name, t.parentType) for t in objtypes)))
 
-        outfile.write(POSTAMBLE)
+        outfile.write(POSTAMBLE.replace('\n', '', 1))
 
 
 def main(argv=None):
