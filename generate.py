@@ -410,8 +410,11 @@ class ObjectType(lazy):
             else:
                 logging.info("Used property override for %s.%s property", self.name, name)
 
-            # TODO: docstring?
-            prop = Property({'name': name})
+            docstrings = sorted(endp['supportedMethods'].items(), key=lambda x: x[0])
+            docstrings = [desc if method == 'GET' else '%s: %s' % (method, desc) for method, desc in docstrings]
+            docstring = '\n\n'.join(docstrings)
+
+            prop = Property({'name': name, 'docString': docstring})
             prop.field.field_type = 'fields.Link'
             subfield = ObjectRef({'type': value_type})
             prop.field.args.append(subfield)
