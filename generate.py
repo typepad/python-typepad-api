@@ -329,6 +329,9 @@ class lazy(object):
         if data is not None:
             self.fill(data)
 
+    def __eq__(self, fld):
+        return self.__dict__ == fld.__dict__
+
     def fill(self, data):
         for key, val in data.iteritems():
             if isinstance(key, unicode):
@@ -478,7 +481,14 @@ class ObjectType(lazy):
             for data in val:
                 if data['name'] in override_types:
                     data['type'] = override_types[data['name']]
-        self.__dict__['properties'] = dict((prop.name, prop) for prop in (Property(data) for data in val))
+        props = [Property(data) for data in val]
+        props = dict((prop.name, prop) for prop in props)
+        self.__dict__['properties'] = props
+        # We may remove these later, so flag that we do really have these properties.
+        if 'url_id' in props:
+            self.has_url_id_property = True
+        if 'id' in props:
+            self.has_id_property = True
 
     @property
     def parents(self):
@@ -548,7 +558,7 @@ class ObjectType(lazy):
             prop_text = re.sub(r'(?xms)^(?=[^\n])', '    ', prop_text)
             me.write(prop_text)
 
-        if hasattr(self, 'endpoint_name') and 'url_id' in self.properties:
+        if hasattr(self, 'endpoint_name') and getattr(self, 'has_url_id_property', False):
             me.write("""
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/%(endpoint_name)s/%%s.json' %% self.url_id)
@@ -557,7 +567,7 @@ class ObjectType(lazy):
     def get_by_url_id(cls, url_id, **kwargs):
         obj = cls.get('/%(endpoint_name)s/%%s.json' %% url_id, **kwargs)
         obj.__dict__['url_id'] = url_id""" % {'endpoint_name': self.endpoint_name})
-            if 'id' in self.properties:
+            if getattr(self, 'has_id_property', False):
                 me.write("""
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id""")
             me.write("""
@@ -591,6 +601,7 @@ def generate_types(types_fn, nouns_fn, out_fn):
         objtypes.add(objtype)
         objtypes_by_name[objtype.name] = objtype
 
+    # Annotate the types with endpoint info.
     for endpoint in nouns['entries']:
         try:
             objtype = objtypes_by_name[endpoint['resourceObjectType']['name']]
@@ -598,6 +609,24 @@ def generate_types(types_fn, nouns_fn, out_fn):
             pass
         else:
             objtype.endpoint = endpoint
+
+    # Scrape out the properties inherited from parent types.
+    for objtype in objtypes:
+        if objtype.parentType == 'TypePadObject':
+            continue
+        parent = objtypes_by_name[objtype.parentType]
+        for prop in objtype.properties.values():
+            try:
+                (parentprop,) = [parentprop for parentprop in parent.properties.values() if prop.name == parentprop.name]
+            except ValueError:
+                continue
+
+            if prop == parentprop:
+                # It's inherited, so let the generated class inherit it too.
+                logging.debug("Yay %s.%s is identical to %s.%s so we can ignore it", objtype.name, prop.name, objtype.parentType, parentprop.name)
+                del objtype.properties[prop.name]
+            else:
+                logging.debug("Oops, %s.%s is overriding %s.%s differently", objtype.name, prop.name, objtype.parentType, parentprop.name)
 
     wrote = set(('TypePadObject',))
     wrote_one = True

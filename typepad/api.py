@@ -134,9 +134,6 @@ class Asset(TypePadObject):
     """An array of strings containing the id URIs of the groups that this asset is mapped into, if any. At present an asset can only be added to one group, but this may change in future."""
     id = fields.Field()
     """A URI that serves as a globally-unique id for the user. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
-    in_reply_to = fields.Object('AssetRef', api_name='inReplyTo')
-    """For comment `Asset` instances, an `AssetRef` describing the asset on
-    which this instance is a comment."""
     is_favorite_for_current_user = fields.Field(api_name='isFavoriteForCurrentUser')
     """C<true> if this asset is a favorite for the current user, or C<false> otherwise. This property is not set for responses to anonymous requests."""
     media_assets = fields.Link(ListOf('Asset'), api_name='media-assets')
@@ -784,8 +781,6 @@ class Application(Entity):
 
     object_type = "tag:api.typepad.com,2009:Application"
 
-    id = fields.Field()
-    """A URI that serves as a globally-unique id for the object. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
     name = fields.Field()
     """The name of the application as provided by its developer."""
     oauth_access_token_url = fields.Field(api_name='oauthAccessTokenUrl')
@@ -802,8 +797,6 @@ class Application(Entity):
     """The URL of the session sync script."""
     signout_url = fields.Field(api_name='signoutUrl')
     """The URL to send the user's browser to in order to sign out of TypePad."""
-    url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
     user_flyouts_script_url = fields.Field(api_name='userFlyoutsScriptUrl')
     """The URL of a script to embed to enable the user flyouts functionality."""
 
@@ -858,47 +851,18 @@ class Comment(Asset):
 
     object_type = "tag:api.typepad.com,2009:Comment"
 
+    in_reply_to = fields.Object('AssetRef', api_name='inReplyTo')
+    """A reference to the asset that this comment is in reply to."""
+    publication_status = fields.Object('PublicationStatus', api_name='publicationStatus')
+    """T<Editable> An object describing the visibility status and publication date for this page. Only visibility status is editable."""
+
 
 class CommentPreview(Asset):
 
-    author = fields.Object('User')
-    """The user that created the selected asset."""
-    comment_count = fields.Field(api_name='commentCount')
-    """The number of comments that have been posted in the comment tree beneath this asset."""
-    content = fields.Field()
-    """The raw asset content. The C<textFormat> property defines what format this data is in."""
-    description = fields.Field()
-    """The description of the asset."""
-    excerpt = fields.Field()
-    """A short, plain-text excerpt of the entry content. This is currently available only for O<Post> assets."""
-    favorite_count = fields.Field(api_name='favoriteCount')
-    """The number of distinct users who have added this asset as a favorite."""
-    groups = fields.List(fields.Field())
-    """An array of strings containing the id URIs of the groups that this asset is mapped into, if any. At present an asset can only be added to one group, but this may change in future."""
-    id = fields.Field()
-    """A URI that serves as a globally-unique id for the user. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
     in_reply_to = fields.Object('AssetRef', api_name='inReplyTo')
     """A reference to the asset that this comment is in reply to."""
-    is_favorite_for_current_user = fields.Field(api_name='isFavoriteForCurrentUser')
-    """C<true> if this asset is a favorite for the current user, or C<false> otherwise. This property is not set for responses to anonymous requests."""
-    object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
-    permalink_url = fields.Field(api_name='permalinkUrl')
-    """The URL which is considered to be this asset's permalink. This might be C<null> if the asset does not have a permalink of its own (for example, if it's embedded in another asset), or if TypePad does not know its permalink."""
     publication_status = fields.Object('PublicationStatus', api_name='publicationStatus')
     """T<Editable> An object describing the visibility status and publication date for this page. Only visibility status is editable."""
-    published = fields.Field()
-    """The time that the asset was created, as an L<http://www.ietf.org/rfc/rfc3339.txt|RFC3339> timestamp."""
-    rendered_content = fields.Field(api_name='renderedContent')
-    """The content of this asset rendered to HTML. This is currently available only for O<Post> and O<Page> assets."""
-    source = fields.Object('AssetSource')
-    """An object describing the site from which this asset was retrieved, for assets obtained from external feeds."""
-    text_format = fields.Field(api_name='textFormat')
-    """A keyword which indicates what formatting mode is used for the content of this asset. This can currently be "html" for assets whose content is HTML, "html_convert_linebreaks" for assets whose content is HTML with paragraph tags added automatically, or "markdown" for assets whose content is Markdown. Other formatting modes may be added in future. Applications which present assets for editing should use this property to present an appropriate editor."""
-    title = fields.Field()
-    """The title of the asset."""
-    url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
 
 
 class Group(Entity):
@@ -920,8 +884,6 @@ class Group(Entity):
     """The display name set by the group's owner."""
     events = fields.Link(ListOf('Event'))
     """Get a list of events describing actions performed in the selected group."""
-    id = fields.Field()
-    """A URI that serves as a globally-unique id for the object. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
     link_assets = fields.Link(ListOf('Link'), api_name='link-assets')
     """POST: Create a new Link asset within the selected group."""
     memberships = fields.Link(ListOf('Relationship'))
@@ -937,8 +899,6 @@ class Group(Entity):
     tagline = fields.Field()
     """A tagline describing the group, set by the group's owner."""
     urls = fields.List(fields.Field())
-    url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
     video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
     """POST: Create a new Video asset within the selected group."""
 
@@ -965,48 +925,14 @@ class Link(Asset):
 
 class Page(Asset):
 
-    author = fields.Object('User')
-    """The user that created the selected asset."""
-    comment_count = fields.Field(api_name='commentCount')
-    """The number of comments that have been posted in the comment tree beneath this asset."""
-    content = fields.Field()
-    """The raw asset content. The C<textFormat> property defines what format this data is in."""
-    description = fields.Field()
-    """The description of the asset."""
     embedded_image_links = fields.List(fields.Object('ImageLink'), api_name='embeddedImageLinks')
     """A list of links to the images that are embedded within the content of this page."""
-    excerpt = fields.Field()
-    """A short, plain-text excerpt of the entry content. This is currently available only for O<Post> assets."""
-    favorite_count = fields.Field(api_name='favoriteCount')
-    """The number of distinct users who have added this asset as a favorite."""
     feedback_status = fields.Object('FeedbackStatus', api_name='feedbackStatus')
     """T<Editable> An object describing the comment and trackback behavior for this page."""
     filename = fields.Field()
     """T<Editable> The base name of the page, used to create the permalinkUrl."""
-    groups = fields.List(fields.Field())
-    """An array of strings containing the id URIs of the groups that this asset is mapped into, if any. At present an asset can only be added to one group, but this may change in future."""
-    id = fields.Field()
-    """A URI that serves as a globally-unique id for the user. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
-    is_favorite_for_current_user = fields.Field(api_name='isFavoriteForCurrentUser')
-    """C<true> if this asset is a favorite for the current user, or C<false> otherwise. This property is not set for responses to anonymous requests."""
-    object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
-    permalink_url = fields.Field(api_name='permalinkUrl')
-    """The URL which is considered to be this asset's permalink. This might be C<null> if the asset does not have a permalink of its own (for example, if it's embedded in another asset), or if TypePad does not know its permalink."""
     publication_status = fields.Object('PublicationStatus', api_name='publicationStatus')
     """T<Editable> An object describing the draft status and publication date for this page."""
-    published = fields.Field()
-    """The time that the asset was created, as an L<http://www.ietf.org/rfc/rfc3339.txt|RFC3339> timestamp."""
-    rendered_content = fields.Field(api_name='renderedContent')
-    """The content of this asset rendered to HTML. This is currently available only for O<Post> and O<Page> assets."""
-    source = fields.Object('AssetSource')
-    """An object describing the site from which this asset was retrieved, for assets obtained from external feeds."""
-    text_format = fields.Field(api_name='textFormat')
-    """A keyword which indicates what formatting mode is used for the content of this asset. This can currently be "html" for assets whose content is HTML, "html_convert_linebreaks" for assets whose content is HTML with paragraph tags added automatically, or "markdown" for assets whose content is Markdown. Other formatting modes may be added in future. Applications which present assets for editing should use this property to present an appropriate editor."""
-    title = fields.Field()
-    """The title of the asset."""
-    url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
 
 
 class Photo(Asset):
@@ -1024,6 +950,25 @@ class Post(Asset):
     """An entry in a blog."""
 
     object_type = "tag:api.typepad.com,2009:Post"
+
+    categories = fields.List(fields.Field())
+    """T<Editable> A list of categories associated with the post."""
+    embedded_audio_links = fields.List(fields.Object('AudioLink'), api_name='embeddedAudioLinks')
+    """A list of links to the audios that are embedded within the content of this post."""
+    embedded_image_links = fields.List(fields.Object('ImageLink'), api_name='embeddedImageLinks')
+    """A list of links to the images that are embedded within the content of this post."""
+    embedded_video_links = fields.List(fields.Object('VideoLink'), api_name='embeddedVideoLinks')
+    """A list of links to the videos that are embedded within the content of this post."""
+    feedback_status = fields.Object('FeedbackStatus', api_name='feedbackStatus')
+    """T<Editable> An object describing the comment and trackback behavior for this post."""
+    filename = fields.Field()
+    """T<Editable> The base name of the post, used to create the permalinkUri."""
+    publication_status = fields.Object('PublicationStatus', api_name='publicationStatus')
+    """T<Editable> An object describing the draft status and publication date for this post."""
+    reblog_count = fields.Field(api_name='reblogCount')
+    """The number of reblogs that have been posted of this post."""
+    reblog_of = fields.Object('AssetRef', api_name='reblogOf')
+    """A reference to the post that this post was reblogged from."""
 
 
 class User(Entity):
@@ -1055,8 +1000,6 @@ class User(Entity):
 
     POST: Create a new favorite in the selected user's list of favorites."""
     gender = fields.Field()
-    id = fields.Field()
-    """A URI that serves as a globally-unique id for the object. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
     interests = fields.List(fields.Field())
     """T<Deprecated> A list of interests provided by the user and displayed on the user's profile page. This property will go away in future, since it has moved to the O<UserProfile> object type, which can be retrieved from N</users/{id}/profile>."""
     location = fields.Field()
@@ -1075,8 +1018,6 @@ class User(Entity):
     """URL of the user's profile page."""
     relationships = fields.Link(ListOf('Relationship'))
     """Get a list of relationships that the selected user has with other users, and that other users have with the selected user."""
-    url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/users/%s.json' % self.url_id)
