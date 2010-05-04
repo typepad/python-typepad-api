@@ -435,9 +435,6 @@ class Event(TypePadObject):
     verbs = fields.List(fields.Field())
     """An array of verb identifier URIs. At the present time, only one verb is returned, but this may be extended in future. Clients should scan this list and ignore any verbs that are not recognised. This list also includes appropriate verb URIs as defined by the ActivityStrea.ms schema specification."""
 
-    def __unicode__(self):
-        return unicode(self.object)
-
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/events/%s.json' % self.url_id)
 
@@ -447,6 +444,9 @@ class Event(TypePadObject):
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return obj
+
+    def __unicode__(self):
+        return unicode(self.object)
 
 
 class Favorite(TypePadObject):
@@ -468,6 +468,16 @@ class Favorite(TypePadObject):
     url_id = fields.Field(api_name='urlId')
     """A string containing the canonical identifier that can be used as the "id" for this favorite in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server such as the development server; use the "id" property instead."""
 
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/favorites/%s.json' % self.url_id)
+
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        obj = cls.get('/favorites/%s.json' % url_id, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
+        return obj
+
     @classmethod
     def get_by_user_asset(cls, user_id, asset_id, **kwargs):
         assert re.match('^\w+$', user_id), "invalid user_id parameter given"
@@ -479,16 +489,6 @@ class Favorite(TypePadObject):
     def head_by_user_asset(cls, *args, **kwargs):
         fav = cls.get_by_user_asset(*args, **kwargs)
         return fav.head()
-
-    def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/favorites/%s.json' % self.url_id)
-
-    @classmethod
-    def get_by_url_id(cls, url_id, **kwargs):
-        obj = cls.get('/favorites/%s.json' % url_id, **kwargs)
-        obj.__dict__['url_id'] = url_id
-        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
-        return obj
 
 
 class FeedbackStatus(TypePadObject):
@@ -807,12 +807,6 @@ class Application(Entity):
     user_flyouts_script_url = fields.Field(api_name='userFlyoutsScriptUrl')
     """The URL of a script to embed to enable the user flyouts functionality."""
 
-    @property
-    def browser_upload_endpoint(self):
-        """The endpoint to use for uploading file assets directly to
-        TypePad."""
-        return urljoin(typepad.client.endpoint, '/browser-upload.json')
-
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/applications/%s.json' % self.url_id)
 
@@ -833,6 +827,12 @@ class Application(Entity):
         logging.getLogger("typepad.api").warn(
             '%s.get_by_api_key is deprecated' % cls.__name__)
         return cls.get('/applications/%s.json' % api_key, **kwargs)
+
+    @property
+    def browser_upload_endpoint(self):
+        """The endpoint to use for uploading file assets directly to
+        TypePad."""
+        return urljoin(typepad.client.endpoint, '/browser-upload.json')
 
     @property
     def user_flyouts_script(self):

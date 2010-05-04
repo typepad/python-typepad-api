@@ -191,6 +191,110 @@ CLASS_EXTRAS = {
                         href='/assets/%s.json' % self.url_id,
                         type='application/json',
                         object_types=self.object_types)
+
+    def __unicode__(self):
+        return self.title or self.summary or self.content
+
+    def primary_object_type(self):
+        if not self.object_types: return None
+        for object_type in self.object_types:
+            if object_type in self.known_object_types: return object_type
+        return None
+''',
+    'AssetRef': '''
+    def reclass_for_data(self, data):
+        """Returns ``False``.
+
+        This method prevents `AssetRef` instances from being reclassed when
+        updated from a data dictionary based on the dictionary's
+        ``objectTypes`` member.
+
+        """
+        # AssetRefs are for any object type, so don't reclass them.
+        return False
+''',
+    'AuthToken': '''
+    def make_self_link(self):
+        # TODO: We don't have the API key, so we can't build a self link.
+        return
+
+    @classmethod
+    def get_by_key_and_token(cls, api_key, auth_token):
+        return cls.get('/auth-tokens/%s:%s.json' % (api_key, auth_token))
+''',
+    'Event': '''
+    def __unicode__(self):
+        return unicode(self.object)
+''',
+    'Favorite': '''
+    @classmethod
+    def get_by_user_asset(cls, user_id, asset_id, **kwargs):
+        assert re.match('^\w+$', user_id), "invalid user_id parameter given"
+        assert re.match('^\w+$', asset_id), "invalid asset_id parameter given"
+        return cls.get('/favorites/%s:%s.json' % (asset_id, user_id),
+            **kwargs)
+
+    @classmethod
+    def head_by_user_asset(cls, *args, **kwargs):
+        fav = cls.get_by_user_asset(*args, **kwargs)
+        return fav.head()
+''',
+    'ImageLink': '''
+    @property
+    def href(self):
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.href is deprecated; use %s.url instead' % (self.__class__.__name__, self.__class__.__name__))
+        return self.url
+''',
+    'Relationship': '''
+    def _rel_type_updater(uri):
+        def update(self):
+            rel_status = RelationshipStatus.get(self.status_obj._location, batch=False)
+            if uri:
+                rel_status.types = [uri]
+            else:
+                rel_status.types = []
+            rel_status.put()
+        return update
+
+    block = _rel_type_updater("tag:api.typepad.com,2009:Blocked")
+    unblock = _rel_type_updater(None)
+    leave = _rel_type_updater(None)
+
+    def _rel_type_checker(uri):
+        def has_edge_with_uri(self):
+            return uri in self.status.types
+        return has_edge_with_uri
+
+    is_member = _rel_type_checker("tag:api.typepad.com,2009:Member")
+    is_admin = _rel_type_checker("tag:api.typepad.com,2009:Admin")
+    is_blocked = _rel_type_checker("tag:api.typepad.com,2009:Blocked")
+''',
+    'Application': '''
+    @classmethod
+    def get_by_api_key(cls, api_key, **kwargs):
+        """Returns an `Application` instance by the API key.
+
+        Asserts that the api_key parameter matches ^\w+$."""
+        assert re.match('^\w+$', api_key), "invalid api_key parameter given"
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.get_by_api_key is deprecated' % cls.__name__)
+        return cls.get('/applications/%s.json' % api_key, **kwargs)
+
+    @property
+    def browser_upload_endpoint(self):
+        """The endpoint to use for uploading file assets directly to
+        TypePad."""
+        return urljoin(typepad.client.endpoint, '/browser-upload.json')
+
+    @property
+    def user_flyouts_script(self):
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead' % (self.__class__.__name__, self.__class__.__name__))
+        return self.user_flyouts_script_url
 ''',
     'User': '''
     @classmethod
