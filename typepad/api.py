@@ -43,7 +43,7 @@ from typepad import fields
 import typepad
 
 
-class ElsewhereAccount(TypePadObject):
+class Account(TypePadObject):
 
     """A user account on an external website."""
 
@@ -128,7 +128,7 @@ class Asset(TypePadObject):
     """The time that the asset was created, as an L<http://www.ietf.org/rfc/rfc3339.txt|RFC3339> timestamp."""
     rendered_content = fields.Field(api_name='renderedContent')
     """The content of this asset rendered to HTML. This is currently available only for O<Post> and O<Page> assets."""
-    source = fields.Object('Source')
+    source = fields.Object('AssetSource')
     """An object describing the site from which this asset was retrieved, for assets obtained from external feeds."""
     status = fields.Object('PublicationStatus')
     """The `PublicationStatus` describing the state of the `Asset`."""
@@ -220,7 +220,7 @@ class AssetRef(TypePadObject):
         return False
 
 
-class Source(TypePadObject):
+class AssetSource(TypePadObject):
 
     """Information about an `Asset` instance imported from another service."""
 
@@ -650,7 +650,7 @@ class Group(TypePadObject):
     events = fields.Link(ListOf('Event'))
     id = fields.Field()
     """A URI that serves as a globally-unique id for the object. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
-    link_assets = fields.Link(ListOf('LinkAsset'), api_name='link-assets')
+    link_assets = fields.Link(ListOf('Link'), api_name='link-assets')
     memberships = fields.Link(ListOf('Relationship'))
     photo_assets = fields.Link(ListOf('Photo'), api_name='photo-assets')
     post_assets = fields.Link(ListOf('Post'), api_name='post-assets')
@@ -675,7 +675,7 @@ class Group(TypePadObject):
         return g
 
 
-class LinkAsset(Asset):
+class Link(Asset):
 
     """A shared link to some URL."""
 
@@ -719,7 +719,7 @@ class User(TypePadObject):
     comments = fields.Link(ListOf('Comment'), api_name='comments-sent')
     display_name = fields.Field(api_name='displayName')
     """The user's chosen display name."""
-    elsewhere_accounts = fields.Link(ListOf('ElsewhereAccount'), api_name='elsewhere-accounts')
+    elsewhere_accounts = fields.Link(ListOf('Account'), api_name='elsewhere-accounts')
     email = fields.Field()
     events = fields.Link(ListOf('Event'))
     favorites = fields.Link(ListOf('Favorite'))
