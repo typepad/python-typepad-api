@@ -108,24 +108,51 @@ class Asset(TypePadObject):
     """A list categories (strings) associated with the asset."""
     comment_count = fields.Field(api_name='commentCount')
     """The number of comments that have been posted in the comment tree beneath this asset."""
-    comments = fields.Link(ListOf('Asset'))
+    comment_tree = fields.Link(ListOf('CommentTreeItem'), api_name='comment-tree')
+    """Get a list of assets that were posted in response to the selected asset and their depth in the response tree"""
+    comments = fields.Link(ListOf('Comment'))
+    """Get a list of assets that were posted in response to the selected asset.
+
+    POST: Create a new Comment asset as a response to the selected asset."""
     content = fields.Field()
     """The raw asset content. The C<textFormat> property defines what format this data is in."""
     crosspost_accounts = fields.List(fields.Field(), api_name='crosspostAccounts')
     """A list of elsewhere account IDs to crosspost to."""
+    description = fields.Field()
+    """The description of the asset."""
+    excerpt = fields.Field()
+    """A short, plain-text excerpt of the entry content. This is currently available only for O<Post> assets."""
     favorite_count = fields.Field(api_name='favoriteCount')
     """The number of distinct users who have added this asset as a favorite."""
     favorites = fields.Link(ListOf('Favorite'))
+    """Get a list of favorites that have been created for the selected asset."""
+    feedback_status = fields.Link('FeedbackStatus', api_name='feedback-status')
+    """Get the feedback status of selected asset
+
+    PUT: Set the feedback status of selected asset"""
     groups = fields.List(fields.Field())
+    """An array of strings containing the id URIs of the groups that this asset is mapped into, if any. At present an asset can only be added to one group, but this may change in future."""
     id = fields.Field()
     """A URI that serves as a globally-unique id for the user. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
     in_reply_to = fields.Object('AssetRef', api_name='inReplyTo')
     """For comment `Asset` instances, an `AssetRef` describing the asset on
     which this instance is a comment."""
+    is_favorite_for_current_user = fields.Field(api_name='isFavoriteForCurrentUser')
+    """C<true> if this asset is a favorite for the current user, or C<false> otherwise. This property is not set for responses to anonymous requests."""
+    media_assets = fields.Link(ListOf('Asset'), api_name='media-assets')
+    """Get a list of media assets that are embedded in the content of the selected asset."""
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
+    """An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
     permalink_url = fields.Field(api_name='permalinkUrl')
     """The URL which is considered to be this asset's permalink. This might be C<null> if the asset does not have a permalink of its own (for example, if it's embedded in another asset), or if TypePad does not know its permalink."""
+    publication_status = fields.Link('PublicationStatus', api_name='publication-status')
+    """Get the publication status of selected asset
+
+    PUT: Set the publication status of selected asset"""
     published = fields.Datetime()
     """The time that the asset was created, as an L<http://www.ietf.org/rfc/rfc3339.txt|RFC3339> timestamp."""
+    reblogs = fields.Link(ListOf('Post'))
+    """Get a list of posts that were posted as reblogs of the selected asset."""
     rendered_content = fields.Field(api_name='renderedContent')
     """The content of this asset rendered to HTML. This is currently available only for O<Post> and O<Page> assets."""
     source = fields.Object('AssetSource')
@@ -196,6 +223,10 @@ class AssetRef(TypePadObject):
     """The user that created the selected asset."""
     href = fields.Field()
     """The URL at which a representation of the corresponding asset can be retrieved."""
+    id = fields.Field()
+    """A URI that serves as a globally-unique id for the asset. This matches the "id" property in the corresponding O<Asset> object."""
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
+    """An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
     ref = fields.Field()
     """A URI that uniquely identifies the referenced `Asset`.
 
@@ -248,6 +279,7 @@ class AuthToken(TypePadObject):
     auth_token = fields.Field(api_name='authToken')
     """The actual auth token string, which is used as the access token when making an OAuth request."""
     target = fields.Object('TypePadObject', api_name='targetObject')
+    target_object = fields.Object('TypePadObject', api_name='targetObject')
     """T<Deprecated> The root object to which this auth token grants access. This is a legacy field maintained for backwards compatibility with older clients. Auth tokens are no longer scoped to specific objects, so this value will be meaningless in any case except those where a specific object is returned to preserve some client behavior."""
 
     def make_self_link(self):
@@ -271,7 +303,7 @@ class Event(TypePadObject):
 
     """
 
-    actor = fields.Object('TypePadObject')
+    actor = fields.Object('User')
     """The user that did the action that the event describes."""
     id = fields.Field()
     """A URI that serves as a globally-unique id for the user. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
@@ -290,13 +322,24 @@ class Event(TypePadObject):
         return urljoin(typepad.client.endpoint, '/events/%s.json' % self.url_id)
 
 
-class Favorite(Asset):
+class Favorite(TypePadObject):
 
     """A favorite of some other asset.
 
     Asserts that the user_id and asset_id parameter match ^\w+$."""
 
     object_type = "tag:api.typepad.com,2009:Favorite"
+
+    author = fields.Object('User')
+    """The owner of this favorite. This is the user that marked the asset as a favorite, not the owner of the target asset."""
+    id = fields.Field()
+    """A URI that serves as a globally-unique id for the favorite. This can be used to recognise where the same favorite is returned in response to different requests, and as a mapping key for an application's local data store."""
+    in_reply_to = fields.Object('AssetRef', api_name='inReplyTo')
+    """A reference to the asset that has been marked as a favorite."""
+    published = fields.Field()
+    """The time that the favorite was created, as an RFC3339 timestamp."""
+    url_id = fields.Field(api_name='urlId')
+    """A string containing the canonical identifier that can be used as the "id" for this favorite in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server such as the development server; use the "id" property instead."""
 
     @classmethod
     def get_by_user_asset(cls, user_id, asset_id, **kwargs):
@@ -309,6 +352,15 @@ class Favorite(Asset):
     def head_by_user_asset(cls, *args, **kwargs):
         fav = cls.get_by_user_asset(*args, **kwargs)
         return fav.head()
+
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/favorites/%s.json' % self.url_id)
+
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        obj = cls.get('/favorites/%s.json' % url_id, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        return obj
 
 
 class ImageLink(TypePadObject, _ImageResizer):
@@ -350,8 +402,10 @@ class PublicationStatus(TypePadObject):
     """
 
     published = fields.Field()
+    draft = fields.Field()
     """C<true> if this asset is private, C<false> otherwise"""
     spam = fields.Field()
+    publication_date = fields.Field(api_name='publicationDate')
     """Represents an asset's publication date (past or future)"""
 
 
@@ -369,7 +423,7 @@ class Relationship(TypePadObject):
     created = fields.Dict(fields.Datetime())
     id = fields.Field()
     """A URI that serves as a globally-unique id for the relationship. This can be used to recognise where the same relationship is returned in response to different requests, and as a mapping key for an application's local data store."""
-    source = fields.Object('TypePadObject')
+    source = fields.Object('Entity')
     """The source entity, the 'subject' of the relationship."""
     status = fields.Object('RelationshipStatus')
     """A RelationshipStatus object describing the types of relationship that currently exist between the source and the target."""
@@ -382,7 +436,7 @@ class Relationship(TypePadObject):
     requests.
 
     """
-    target = fields.Object('TypePadObject')
+    target = fields.Object('Entity')
     """The target entity, the 'object' of the relationship."""
     url_id = fields.Field(api_name='urlId')
     """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
@@ -578,11 +632,13 @@ class Application(TypePadObject):
     """The URL to send the user's browser to identify which user is logged in (the "signin" link)."""
     oauth_request_token_url = fields.Field(api_name='oauthRequestTokenUrl')
     """The URL of the OAuth request token endpoint for this application."""
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
+    """The object types for this object. This set will contain the string C<tag:api.typepad.com,2009:Application> for an application object."""
     session_sync_script_url = fields.Field(api_name='sessionSyncScriptUrl')
     """The URL of the session sync script."""
     signout_url = fields.Field(api_name='signoutUrl')
     """The URL to send the user's browser to in order to sign out of TypePad."""
-    url_id = fields.Field()
+    url_id = fields.Field(api_name='urlId')
     """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
     user_flyouts_script_url = fields.Field(api_name='userFlyoutsScriptUrl')
     """The URL of a script to embed to enable the user flyouts functionality."""
@@ -644,22 +700,34 @@ class Group(TypePadObject):
 
     assets = fields.Link(ListOf('Asset'))
     audio_assets = fields.Link(ListOf('Audio'), api_name='audio-assets')
+    avatar_link = fields.Object('ImageLink', api_name='avatarLink')
+    """Link to this group's avatar (userpic) image."""
     comments = fields.Link(ListOf('Asset'))
     display_name = fields.Field(api_name='displayName')
     """The display name set by the group's owner."""
     events = fields.Link(ListOf('Event'))
+    """Get a list of events describing actions performed in the selected group."""
     id = fields.Field()
     """A URI that serves as a globally-unique id for the object. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
     link_assets = fields.Link(ListOf('Link'), api_name='link-assets')
+    """POST: Create a new Link asset within the selected group."""
     memberships = fields.Link(ListOf('Relationship'))
+    """Get a list of relationships between users and the selected group."""
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
+    """An array of object type identifier URIs."""
     photo_assets = fields.Link(ListOf('Photo'), api_name='photo-assets')
+    """POST: Create a new Photo asset within the selected group."""
     post_assets = fields.Link(ListOf('Post'), api_name='post-assets')
+    """POST: Create a new Post asset within the selected group."""
+    site_url = fields.Field(api_name='siteUrl')
+    """The URL of this group's main website."""
     tagline = fields.Field()
     """A tagline describing the group, set by the group's owner."""
     urls = fields.List(fields.Field())
     url_id = fields.Field(api_name='urlId')
     """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
     video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
+    """POST: Create a new Video asset within the selected group."""
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/groups/%s.json' % self.url_id)
@@ -702,7 +770,7 @@ class Post(Asset):
     object_type = "tag:api.typepad.com,2009:Post"
 
 
-class User(TypePadObject):
+class User(Entity):
 
     """A TypePad user.
 
@@ -716,23 +784,41 @@ class User(TypePadObject):
 
     avatar_link = fields.Object('ImageLink', api_name='avatarLink')
     """Link to this user's avatar (userpic) image."""
+    blogs = fields.Link(ListOf('Blog'))
+    """Get a list of blogs that the selected user has access to."""
     comments = fields.Link(ListOf('Comment'), api_name='comments-sent')
     display_name = fields.Field(api_name='displayName')
     """The user's chosen display name."""
     elsewhere_accounts = fields.Link(ListOf('Account'), api_name='elsewhere-accounts')
+    """Get a list of elsewhere accounts for the selected user."""
     email = fields.Field()
     events = fields.Link(ListOf('Event'))
+    """Get a list of events describing actions that the selected user performed."""
     favorites = fields.Link(ListOf('Favorite'))
+    """Get a list of favorites that were listed by the selected user.
+
+    POST: Create a new favorite in the selected user's list of favorites."""
     gender = fields.Field()
     id = fields.Field()
     """A URI that serves as a globally-unique id for the object. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
+    interests = fields.List(fields.Field())
+    """T<Deprecated> A list of interests provided by the user and displayed on the user's profile page. This property will go away in future, since it has moved to the O<UserProfile> object type, which can be retrieved from N</users/{id}/profile>."""
+    location = fields.Field()
+    """T<Deprecated> The location of the user, as a free-form string provided by the user. This property will go away in future, since it has moved to the O<UserProfile> object type, which can be retrieved from N</users/{id}/profile>."""
     memberships = fields.Link(ListOf('Relationship'))
+    """Get a list of relationships that the selected user has with groups."""
     notifications = fields.Link(ListOf('Event'))
+    """Get a list of events describing actions by users that the selected user is following."""
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
+    """An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
     preferred_username = fields.Field(api_name='preferredUsername')
     """The name the user has chosen for use in his TypePad Profile URL. This can be used as the id in the URL to select this user, though it must not be used as a persistent key since it can be changed by the user at any time."""
+    profile = fields.Link('UserProfile')
+    """Get a more extensive set of user properties that can be used to build a user profile page."""
     profile_page_url = fields.Field(api_name='profilePageUrl')
     """URL of the user's profile page."""
     relationships = fields.Link(ListOf('Relationship'))
+    """Get a list of relationships that the selected user has with other users, and that other users have with the selected user."""
     url_id = fields.Field(api_name='urlId')
     """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
 
