@@ -171,6 +171,26 @@ CLASS_EXTRAS = {
         assert re.match('^\w+$', api_key), "invalid api_key parameter given"
         return cls.get('/api-keys/%s.json' % api_key)
 ''',
+    'Asset': '''
+    @property
+    def actor(self):
+        """This asset's author.
+
+        This alias lets us use `Asset` instances interchangeably with `Event`
+        instances in templates.
+        """
+        return self.author
+
+    @property
+    def asset_ref(self):
+        """An `AssetRef` instance representing this asset."""
+        return AssetRef(url_id=self.url_id,
+                        ref=self.id,
+                        author=self.author,
+                        href='/assets/%s.json' % self.url_id,
+                        type='application/json',
+                        object_types=self.object_types)
+''',
     'User': '''
     @classmethod
     def get_self(cls, **kwargs):
