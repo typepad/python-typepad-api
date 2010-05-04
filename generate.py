@@ -69,6 +69,7 @@ CLASS_SUPERCLASSES = {
 
 PROPERTY_TYPES = {
     'Asset': {
+        'categories': 'ListObject',
         'published': 'datetime',
         'updated': 'datetime',
     },
@@ -370,19 +371,22 @@ class ObjectType(lazy):
         for endp in val['propertyEndpoints']:
             name = endp['name']
 
-            # TODO: handle endpoints like Blog.comments that aren't usable without filters
             try:
-                value_type = endp['resourceObjectType']
+                value_type = PROPERTY_TYPES[self.name][name]
             except KeyError:
-                logging.info('Skipping endpoint %s.%s since it has no resourceObjectType', self.endpoint_name, name)
-                continue
+                # TODO: handle endpoints like Blog.comments that aren't usable without filters
+                try:
+                    value_type = endp['resourceObjectType']['name']
+                except KeyError:
+                    logging.info('Skipping endpoint %s.%s since it has no resourceObjectType', self.endpoint_name, name)
+                    continue
+            else:
+                logging.info("Used property override for %s.%s property", self.name, name)
 
             # TODO: docstring?
             prop = Property({'name': name})
             prop.field.field_type = 'fields.Link'
-            if 'resourceObjectType' not in endp:
-                raise ValueError("Uh %r doesn't have a resourceObjectType? (%r)" % (name, endp))
-            subfield = Field({'type': value_type['name']})
+            subfield = Field({'type': value_type})
             prop.field.args.append(subfield)
 
             if prop.name in self.properties:
