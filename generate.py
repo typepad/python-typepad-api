@@ -253,11 +253,6 @@ class Field(lazy):
         if mo is not None:
             container, subtype = mo.groups((1, 2))
 
-            if container in ('List', 'Stream'):
-                self.field_type = 'ListOf'
-                self.args.append(subtype)
-                return
-
             if container in ('set', 'array'):
                 self.field_type = 'fields.List'
             elif container == 'map':
@@ -294,6 +289,37 @@ class Field(lazy):
             me.write(', '.join('%s=%r' % (k, v) for k, v in self.kwargs.items()))
         me.write(""")""")
         return me.getvalue()
+
+
+class ObjectRef(Field):
+
+    @property
+    def type(self):
+        return self.__dict__['type']
+
+    @type.setter
+    def type(self, val):
+        self.__dict__['type'] = val
+
+        mo = re.match(r'(\w+)<([^>]+)>', val)
+        if mo is not None:
+            container, subtype = mo.groups((1, 2))
+
+            if container in ('List', 'Stream'):
+                self.field_type = 'ListOf'
+                self.args.append(subtype)
+                return
+
+            raise ValueError('Unknown container type %r' % container)
+
+        self.field_type = val
+
+    def __str__(self):
+        if len(self.args):
+            return super(ObjectRef, self).__str__()
+        if self.field_type == 'ListObject':
+            return self.field_type
+        return repr(self.field_type)
 
 
 class Property(lazy):
@@ -367,6 +393,7 @@ class ObjectType(lazy):
         self.endpoint_name = val['name']
 
         assert 'properties' in self.__dict__
+        logging.debug('Object %s has properties %r', self.name, self.__dict__['properties'].keys())
 
         for endp in val['propertyEndpoints']:
             name = endp['name']
@@ -386,12 +413,13 @@ class ObjectType(lazy):
             # TODO: docstring?
             prop = Property({'name': name})
             prop.field.field_type = 'fields.Link'
-            subfield = Field({'type': value_type})
+            subfield = ObjectRef({'type': value_type})
             prop.field.args.append(subfield)
 
             if prop.name in self.properties:
                 raise ValueError("Oops, wanted to add a Link property called %s to %s, but there's already a property "
                     "named that (%r)" % (prop.name, self.name, str(self.properties[prop.name])))
+            logging.debug('Adding Link property %s.%s', self.name, prop.name)
             self.properties[prop.name] = prop
 
     def __repr__(self):
