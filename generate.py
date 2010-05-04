@@ -452,9 +452,13 @@ class ObjectType(lazy):
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
         obj = cls.get('/%(endpoint_name)s/%%s.json' %% url_id, **kwargs)
-        obj.__dict__['url_id'] = url_id
+        obj.__dict__['url_id'] = url_id""" % {'endpoint_name': self.endpoint_name})
+            if 'id' in self.properties:
+                me.write("""
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id""")
+            me.write("""
         return obj
-""" % {'endpoint_name': self.endpoint_name})
+""")
 
         if self.name in CLASS_EXTRAS:
             me.write(CLASS_EXTRAS[self.name])
