@@ -1388,6 +1388,16 @@ class BrowserUploadEndpoint(object):
             headers=headers, body=body)
         response, content = http.signed_request(**request)
 
+        if 'location' in response:
+            urlparts = urlparse(resp['location'])
+            query = parse_qs(urlparts[4])
+            if 'asset_url' in query:
+                parts = urlparse(query['asset_url'][0])
+                url = urljoin(typepad.client.endpoint, parts[2])
+                request2 = obj.get_request(url=url, method='GET')
+                response2, content2 = http.request(**request2)
+                obj.update_from_response(url, response2, content2)
+
         return response, content
 
 
