@@ -1389,7 +1389,7 @@ class BrowserUploadEndpoint(object):
         response, content = http.signed_request(**request)
 
         if 'location' in response:
-            urlparts = urlparse(resp['location'])
+            urlparts = urlparse(response['location'])
             query = parse_qs(urlparts[4])
             if 'asset_url' in query:
                 parts = urlparse(query['asset_url'][0])
