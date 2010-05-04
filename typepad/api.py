@@ -287,6 +287,130 @@ class AuthToken(TypePadObject):
         return cls.get('/auth-tokens/%s:%s.json' % (api_key, auth_token))
 
 
+class Blog(TypePadObject):
+
+    categories = fields.Link(ListOf('string'))
+    """Get a list of categories which are defined for the selected blog."""
+    commenting_settings = fields.Link('BlogCommentingSettings', api_name='commenting-settings')
+    """Get the commenting-related settings for this blog."""
+    comments = fields.Link(ListOf('Comment'))
+    """"""
+    crosspost_accounts = fields.Link(ListOf('Account'), api_name='crosspost-accounts')
+    """Get  a list of accounts that can be used for crossposting with this blog."""
+    description = fields.Field()
+    """The description of the blog as provided by its owner."""
+    home_url = fields.Field(api_name='homeUrl')
+    """The URL of the blog's home page."""
+    id = fields.Field()
+    """A URI that serves as a globally-unique id for the object. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
+    media_assets = fields.Link(ListOf('Asset'), api_name='media-assets')
+    """POST: Add a new media asset to the account that owns this blog."""
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
+    """An array of object type identifier URIs. At the present time, only one object type is returned per object, but this may be extended in future. Clients should scan this list and ignore any types that are not recognized."""
+    owner = fields.Object('User')
+    """The user that owns the blog."""
+    page_assets = fields.Link(ListOf('Page'), api_name='page-assets')
+    """Get a list of pages associated with the selected blog.
+
+    POST: Add a new page to a blog"""
+    post_assets = fields.Link(ListOf('Post'), api_name='post-assets')
+    """Get a list of posts associated with the selected blog.
+
+    POST: Add a new post to a blog"""
+    post_by_email_settings = fields.Link('PostByEmailAddress', api_name='post-by-email-settings')
+    """"""
+    stats = fields.Link('BlogStats')
+    """Get data about the pageviews for the selected blog."""
+    title = fields.Field()
+    """The title of the blog."""
+    url_id = fields.Field(api_name='urlId')
+    """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
+
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/blogs/%s.json' % self.url_id)
+
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        obj = cls.get('/blogs/%s.json' % url_id, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
+        return obj
+
+
+class BlogCommentingSettings(TypePadObject):
+
+    captcha_required = fields.Field(api_name='captchaRequired')
+    """C<true> if this blog requires anonymous commenters to pass a CAPTCHA before submitting a comment."""
+    email_address_required = fields.Field(api_name='emailAddressRequired')
+    """C<true> if this blog requires anonymous comments to be submitted with an email address."""
+    html_allowed = fields.Field(api_name='htmlAllowed')
+    """C<true> if this blog allows commenters to use basic HTML formatting in comments."""
+    moderation_enabled = fields.Field(api_name='moderationEnabled')
+    """C<true> if this blog places new comments into a moderation queue for approval before they are displayed."""
+    signin_allowed = fields.Field(api_name='signinAllowed')
+    """C<true> if this blog allows users to sign in to comment. If C<false>, all new comments are anonymous."""
+    signin_required = fields.Field(api_name='signinRequired')
+    """C<true> if this blog requires users to be logged in in order to leave a comment. If C<false>, anonymous comments will be rejected."""
+    time_limit = fields.Field(api_name='timeLimit')
+    """Number of days after a post is published that comments will be allowed. Absent if this blog has no time limit for comments."""
+    urls_auto_linked = fields.Field(api_name='urlsAutoLinked')
+    """C<true> if comments in this blog will automatically have any bare URLs turned into links."""
+
+
+class BlogStats(TypePadObject):
+
+    daily_page_views = fields.Dict(fields.Field(), api_name='dailyPageViews')
+    """A map containing the daily page views on the blog for the last 120 days. The keys of the map are dates in W3CDTF format, and the values are the integer number of page views on the blog for that date."""
+    total_page_views = fields.Field(api_name='totalPageViews')
+    """The total number of page views received by the blog for all time."""
+
+
+class CommentTreeItem(TypePadObject):
+
+    comment = fields.Object('Asset')
+    """A comment asset in the tree"""
+    depth = fields.Field()
+    """How many levels deep this comment is in the comment hierarchy. If a given comment has a depth of 1 then all of the direct replies to that comment will have a depth of 2, and their replies will have depth 3, etc. 1 indicates a direct reply to the root asset."""
+
+
+class Endpoint(TypePadObject):
+
+    action_endpoints = fields.List(fields.Object('Endpoint'), api_name='actionEndpoints')
+    """For noun endpoints, an array of action endpoints that it supports."""
+    can_have_id = fields.Field(api_name='canHaveId')
+    """For noun endpoints, true if an id part is accepted, or false if the noun may only be used alone."""
+    can_omit_id = fields.Field(api_name='canOmitId')
+    """For noun endpoints, true if the id part can be ommitted, or false if it is always required."""
+    filter_endpoints = fields.List(fields.Object('Endpoint'), api_name='filterEndpoints')
+    """For endpoints that return lists, an array of filters that can be appended to the endpoint."""
+    format_sensitive = fields.Field(api_name='formatSensitive')
+    """true if this requires expects a format suffix, or false otherwise."""
+    name = fields.Field()
+    """The name of the noun, as it appears in URLs."""
+    parameterized = fields.Field()
+    """For filter endpoints, true if a parameter is required on the filter, or false if it's a boolean filter."""
+    post_object_type = fields.Object('ObjectType', api_name='postObjectType')
+    """The type of object that this endpoint accepts for POST operations."""
+    property_endpoints = fields.List(fields.Object('Endpoint'), api_name='propertyEndpoints')
+    """For noun endpoints, an array of property endpoints that it supports."""
+    resource_object_type = fields.Object('ObjectType', api_name='resourceObjectType')
+    """The type of object that this endpoint represents for GET, PUT and DELETE operations. This is not returned for action endpoints, since they do not represent resources."""
+    response_object_type = fields.Object('ObjectType', api_name='responseObjectType')
+    """For action endpoints, the type of object that this endpoint returns on success. If the endpoint returns no payload on success, this property is null."""
+    supported_methods = fields.Dict(fields.Field(), api_name='supportedMethods')
+    """A mapping whose keys are the HTTP method that this endpoint accepts and whose values are docstrings describing the result of each method."""
+    supported_query_arguments = fields.List(fields.Field(), api_name='supportedQueryArguments')
+    """The names of the query string arguments that this endpoint accepts."""
+
+
+class Entity(TypePadObject):
+
+    id = fields.Field()
+    """A URI that serves as a globally-unique id for the object. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
+    url_id = fields.Field(api_name='urlId')
+    """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
+
+
 class Event(TypePadObject):
 
     """An action that a user or group did.
@@ -367,6 +491,16 @@ class Favorite(TypePadObject):
         return obj
 
 
+class FeedbackStatus(TypePadObject):
+
+    allow_comments = fields.Field(api_name='allowComments')
+    """C<true> if this asset accepts comments, C<false> otherwise"""
+    allow_trackback = fields.Field(api_name='allowTrackback')
+    """C<true> if this asset accepts pings, C<false> otherwise"""
+    show_comments = fields.Field(api_name='showComments')
+    """C<true> if this asset displays comments, C<false> otherwise"""
+
+
 class ImageLink(TypePadObject, _ImageResizer):
 
     """A link to an image.
@@ -391,6 +525,32 @@ class ImageLink(TypePadObject, _ImageResizer):
         logging.getLogger("typepad.api").warn(
             '%s.href is deprecated; use %s.url instead' % (self.__class__.__name__, self.__class__.__name__))
         return self.url
+
+
+class ObjectProperty(TypePadObject):
+
+    doc_string = fields.Field(api_name='docString')
+    """A human-readable documentation string for this property."""
+    name = fields.Field()
+    """The name of the property."""
+    type = fields.Field()
+    """The name of the type of this property."""
+
+
+class ObjectType(TypePadObject):
+
+    name = fields.Field()
+    """The name of the type. Absent if this is an anonymous type representing the request or response of an action endpoint."""
+    parent_type = fields.Field(api_name='parentType')
+    """The name of the parent type, if any."""
+    properties = fields.List(fields.Object('ObjectProperty'))
+    """The properties of this type."""
+
+
+class PostByEmailAddress(TypePadObject):
+
+    email_address = fields.Field(api_name='emailAddress')
+    """A private email address for posting via email"""
 
 
 class PublicationStatus(TypePadObject):
@@ -613,7 +773,7 @@ class VideoLink(TypePadObject):
         return self.embed_code
 
 
-class Application(TypePadObject):
+class Application(Entity):
 
     """An application that can authenticate to the TypePad API using OAuth.
 
@@ -699,7 +859,49 @@ class Comment(Asset):
     object_type = "tag:api.typepad.com,2009:Comment"
 
 
-class Group(TypePadObject):
+class CommentPreview(Asset):
+
+    author = fields.Object('User')
+    """The user that created the selected asset."""
+    comment_count = fields.Field(api_name='commentCount')
+    """The number of comments that have been posted in the comment tree beneath this asset."""
+    content = fields.Field()
+    """The raw asset content. The C<textFormat> property defines what format this data is in."""
+    description = fields.Field()
+    """The description of the asset."""
+    excerpt = fields.Field()
+    """A short, plain-text excerpt of the entry content. This is currently available only for O<Post> assets."""
+    favorite_count = fields.Field(api_name='favoriteCount')
+    """The number of distinct users who have added this asset as a favorite."""
+    groups = fields.List(fields.Field())
+    """An array of strings containing the id URIs of the groups that this asset is mapped into, if any. At present an asset can only be added to one group, but this may change in future."""
+    id = fields.Field()
+    """A URI that serves as a globally-unique id for the user. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
+    in_reply_to = fields.Object('AssetRef', api_name='inReplyTo')
+    """A reference to the asset that this comment is in reply to."""
+    is_favorite_for_current_user = fields.Field(api_name='isFavoriteForCurrentUser')
+    """C<true> if this asset is a favorite for the current user, or C<false> otherwise. This property is not set for responses to anonymous requests."""
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
+    """An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
+    permalink_url = fields.Field(api_name='permalinkUrl')
+    """The URL which is considered to be this asset's permalink. This might be C<null> if the asset does not have a permalink of its own (for example, if it's embedded in another asset), or if TypePad does not know its permalink."""
+    publication_status = fields.Object('PublicationStatus', api_name='publicationStatus')
+    """T<Editable> An object describing the visibility status and publication date for this page. Only visibility status is editable."""
+    published = fields.Field()
+    """The time that the asset was created, as an L<http://www.ietf.org/rfc/rfc3339.txt|RFC3339> timestamp."""
+    rendered_content = fields.Field(api_name='renderedContent')
+    """The content of this asset rendered to HTML. This is currently available only for O<Post> and O<Page> assets."""
+    source = fields.Object('AssetSource')
+    """An object describing the site from which this asset was retrieved, for assets obtained from external feeds."""
+    text_format = fields.Field(api_name='textFormat')
+    """A keyword which indicates what formatting mode is used for the content of this asset. This can currently be "html" for assets whose content is HTML, "html_convert_linebreaks" for assets whose content is HTML with paragraph tags added automatically, or "markdown" for assets whose content is Markdown. Other formatting modes may be added in future. Applications which present assets for editing should use this property to present an appropriate editor."""
+    title = fields.Field()
+    """The title of the asset."""
+    url_id = fields.Field(api_name='urlId')
+    """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
+
+
+class Group(Entity):
 
     """A group that users can join, and to which users can post assets.
 
@@ -759,6 +961,52 @@ class Link(Asset):
 
     target_url = fields.Field(api_name='targetUrl')
     """The URL that is the target of this link."""
+
+
+class Page(Asset):
+
+    author = fields.Object('User')
+    """The user that created the selected asset."""
+    comment_count = fields.Field(api_name='commentCount')
+    """The number of comments that have been posted in the comment tree beneath this asset."""
+    content = fields.Field()
+    """The raw asset content. The C<textFormat> property defines what format this data is in."""
+    description = fields.Field()
+    """The description of the asset."""
+    embedded_image_links = fields.List(fields.Object('ImageLink'), api_name='embeddedImageLinks')
+    """A list of links to the images that are embedded within the content of this page."""
+    excerpt = fields.Field()
+    """A short, plain-text excerpt of the entry content. This is currently available only for O<Post> assets."""
+    favorite_count = fields.Field(api_name='favoriteCount')
+    """The number of distinct users who have added this asset as a favorite."""
+    feedback_status = fields.Object('FeedbackStatus', api_name='feedbackStatus')
+    """T<Editable> An object describing the comment and trackback behavior for this page."""
+    filename = fields.Field()
+    """T<Editable> The base name of the page, used to create the permalinkUrl."""
+    groups = fields.List(fields.Field())
+    """An array of strings containing the id URIs of the groups that this asset is mapped into, if any. At present an asset can only be added to one group, but this may change in future."""
+    id = fields.Field()
+    """A URI that serves as a globally-unique id for the user. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
+    is_favorite_for_current_user = fields.Field(api_name='isFavoriteForCurrentUser')
+    """C<true> if this asset is a favorite for the current user, or C<false> otherwise. This property is not set for responses to anonymous requests."""
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
+    """An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
+    permalink_url = fields.Field(api_name='permalinkUrl')
+    """The URL which is considered to be this asset's permalink. This might be C<null> if the asset does not have a permalink of its own (for example, if it's embedded in another asset), or if TypePad does not know its permalink."""
+    publication_status = fields.Object('PublicationStatus', api_name='publicationStatus')
+    """T<Editable> An object describing the draft status and publication date for this page."""
+    published = fields.Field()
+    """The time that the asset was created, as an L<http://www.ietf.org/rfc/rfc3339.txt|RFC3339> timestamp."""
+    rendered_content = fields.Field(api_name='renderedContent')
+    """The content of this asset rendered to HTML. This is currently available only for O<Post> and O<Page> assets."""
+    source = fields.Object('AssetSource')
+    """An object describing the site from which this asset was retrieved, for assets obtained from external feeds."""
+    text_format = fields.Field(api_name='textFormat')
+    """A keyword which indicates what formatting mode is used for the content of this asset. This can currently be "html" for assets whose content is HTML, "html_convert_linebreaks" for assets whose content is HTML with paragraph tags added automatically, or "markdown" for assets whose content is Markdown. Other formatting modes may be added in future. Applications which present assets for editing should use this property to present an appropriate editor."""
+    title = fields.Field()
+    """The title of the asset."""
+    url_id = fields.Field(api_name='urlId')
+    """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
 
 
 class Photo(Asset):
