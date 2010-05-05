@@ -67,6 +67,12 @@ CLASS_SUPERCLASSES = {
     'ImageLink': ('_ImageResizer',),
 }
 
+LINK_PROPERTY_NAMES = {
+    'Relationship': {
+        'status': 'status_obj',
+    },
+}
+
 PROPERTY_TYPES = {
     'Asset': {
         'categories': 'ListObject',
@@ -567,8 +573,17 @@ class ObjectType(lazy):
             prop.field.args.append(subfield)
 
             if prop.name in self.properties:
-                raise ValueError("Oops, wanted to add a Link property called %s to %s, but there's already a property "
-                    "named that (%r)" % (prop.name, self.name, str(self.properties[prop.name])))
+                try:
+                    new_name = LINK_PROPERTY_NAMES[self.name][prop.name]
+                except KeyError:
+                    raise ValueError("Oops, wanted to add a Link property called %s to %s, but there's already a property "
+                        "named that (%r)" % (prop.name, self.name, str(self.properties[prop.name])))
+
+                logging.info("Used property name override to rename %s.%s as %r", self.name, endp['name'], name)
+                if 'api_name' not in prop.field.kwargs:
+                    prop.field.kwargs['api_name'] = prop.name
+                prop.name = new_name
+
             logging.debug('Adding Link property %s.%s', self.name, prop.name)
             self.properties[prop.name] = prop
 

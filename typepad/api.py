@@ -573,15 +573,10 @@ class Relationship(TypePadObject):
     """The source entity, the 'subject' of the relationship."""
     status = fields.Object('RelationshipStatus')
     """A RelationshipStatus object describing the types of relationship that currently exist between the source and the target."""
-    status_obj = fields.Link(RelationshipStatus, api_name='status')
-    """A `RelationshipStatus` describing the types of relationship this
-    `Relationship` instance represents.
+    status_obj = fields.Link('RelationshipStatus', api_name='status')
+    """Get the status information for the selected relationship, including its types.
 
-    Unlike the `RelationshipStatus` instance in the `status` field, this
-    linked `RelationshipsStatus` instance can be updated through ``POST``
-    requests.
-
-    """
+    PUT: Change the status information for the selected relationship, including its types."""
     target = fields.Object('Entity')
     """The target entity, the 'object' of the relationship."""
     url_id = fields.Field(api_name='urlId')
@@ -589,6 +584,13 @@ class Relationship(TypePadObject):
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/relationships/%s.json' % self.url_id)
+
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        obj = cls.get('/relationships/%s.json' % url_id, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
+        return obj
 
     def _rel_type_updater(uri):
         def update(self):
