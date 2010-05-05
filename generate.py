@@ -65,6 +65,7 @@ HAS_OBJECT_TYPE = ('User', 'Group', 'Application', 'Asset', 'Comment', 'Favorite
 
 CLASS_SUPERCLASSES = {
     'ImageLink': ('_ImageResizer',),
+    'VideoLink': ('_VideoResizer',),
 }
 
 LINK_PROPERTY_NAMES = {
@@ -276,6 +277,14 @@ CLASS_EXTRAS = {
     is_member = _rel_type_checker("tag:api.typepad.com,2009:Member")
     is_admin = _rel_type_checker("tag:api.typepad.com,2009:Admin")
     is_blocked = _rel_type_checker("tag:api.typepad.com,2009:Blocked")
+''',
+    'VideoLink': '''
+    @property
+    def html(self):
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.html is deprecated; use %s.embed_code instead' % (self.__class__.__name__, self.__class__.__name__))
+        return self.embed_code
 ''',
     'Application': '''
     @classmethod

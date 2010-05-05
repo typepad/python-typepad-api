@@ -688,7 +688,7 @@ class UserProfile(TypePadObject):
         return find_by_name('User').get_by_url_id(self.url_id)
 
 
-class VideoLink(TypePadObject):
+class VideoLink(TypePadObject, _VideoResizer):
 
     """A link to a web video."""
 
@@ -702,52 +702,6 @@ class VideoLink(TypePadObject):
     `permalink_url` will be ``None``.
 
     """
-
-    _width = None
-    _height = None
-
-    def get_width(self):
-        if self._width is None:
-            match = re.search('\swidth="(\d+)"', self.embed_code)
-            if match:
-                self._width = int(match.group(1))
-        return self._width
-
-    def get_height(self):
-        if self._height is None:
-            match = re.search('\sheight="(\d+)"', self.embed_code)
-            if match:
-                self._height = int(match.group(1))
-        return self._height
-
-    def set_width(self, width):
-        self._width = width
-        self._update_embed()
-
-    def set_height(self, height):
-        self._height = height
-        self._update_embed()
-
-    width = property(get_width, set_width)
-    height = property(get_height, set_height)
-
-    def _update_embed(self):
-        self.embed_code = re.sub('(\swidth=)"\d+"', '\\1"%d"' % self.width, self.embed_code)
-        self.embed_code = re.sub('(\sheight=)"\d+"', '\\1"%d"' % self.height, self.embed_code)
-
-    # selection algorithm to scale to fit width
-    def by_width(self, size):
-        """Given a size, return a `VideoLink` of a video that is as wide
-        as the requested size.
-
-        This mode scales the video such that the width is the size specified
-        and the height is scaled to maintain the video's aspect ratio.
-
-        """
-        vid = copy(self)
-        vid.width = size
-        vid.height = int(self.height * (size / float(self.width)))
-        return vid
 
     @property
     def html(self):
