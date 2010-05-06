@@ -105,7 +105,7 @@ class Asset(TypePadObject):
     author = fields.Object('User')
     """The user that created the selected asset."""
     categories = fields.List(fields.Field())
-    """A list categories (strings) associated with the asset."""
+    """A list of categories (strings) associated with the asset."""
     comment_count = fields.Field(api_name='commentCount')
     """The number of comments that have been posted in the comment tree beneath this asset."""
     comment_tree = fields.Link(ListOf('CommentTreeItem'), api_name='comment-tree')
@@ -115,7 +115,7 @@ class Asset(TypePadObject):
 
     POST: Create a new Comment asset as a response to the selected asset."""
     content = fields.Field()
-    """The raw asset content. The C<textFormat> property defines what format this data is in."""
+    """The raw asset content. The C<textFormat> property defines what format this data is in. This property is the field used to set the asset content in write operations; an asset posted in a group may have a content length of up to 10,000 bytes, while a post asset in a blog may have a content length of up to 65,000 bytes."""
     crosspost_accounts = fields.List(fields.Field(), api_name='crosspostAccounts')
     """A list of elsewhere account IDs to crosspost to."""
     description = fields.Field()
@@ -157,8 +157,7 @@ class Asset(TypePadObject):
     source = fields.Object('AssetSource')
     """An object describing the site from which this asset was retrieved, for assets obtained from external feeds."""
     summary = fields.Field()
-    """For a media type of `Asset`, the HTML description or caption given by
-    its author."""
+    """For a media type of `Asset`, the HTML description or caption given by its author."""
     text_format = fields.Field(api_name='textFormat')
     """A keyword which indicates what formatting mode is used for the content of this asset. This can currently be "html" for assets whose content is HTML, "html_convert_linebreaks" for assets whose content is HTML with paragraph tags added automatically, or "markdown" for assets whose content is Markdown. Other formatting modes may be added in future. Applications which present assets for editing should use this property to present an appropriate editor."""
     title = fields.Field()
@@ -282,7 +281,6 @@ class Blog(TypePadObject):
     commenting_settings = fields.Link('BlogCommentingSettings', api_name='commenting-settings')
     """Get the commenting-related settings for this blog."""
     comments = fields.Link(ListOf('Comment'))
-    """"""
     crosspost_accounts = fields.Link(ListOf('Account'), api_name='crosspost-accounts')
     """Get  a list of accounts that can be used for crossposting with this blog."""
     description = fields.Field()
@@ -308,7 +306,6 @@ class Blog(TypePadObject):
 
     POST: Add a new post to a blog"""
     post_by_email_settings = fields.Link('PostByEmailAddress', api_name='post-by-email-settings')
-    """"""
     stats = fields.Link('BlogStats')
     """Get data about the pageviews for the selected blog."""
     title = fields.Field()
