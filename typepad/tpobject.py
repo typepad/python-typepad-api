@@ -93,7 +93,7 @@ class TypePadObjectMetaclass(remoteobjects.RemoteObject.__metaclass__):
     def __new__(cls, name, bases, attrs):
         newcls = super(TypePadObjectMetaclass, cls).__new__(cls, name, bases, attrs)
         try:
-            api_type = attrs['object_type']
+            api_type = attrs['_class_object_type']
         except KeyError:
             pass
         else:
@@ -114,12 +114,11 @@ class TypePadObject(remoteobjects.RemoteObject):
 
     __metaclass__ = TypePadObjectMetaclass
 
-    object_type = None
+    _class_object_type = None
     batch_requests = True
 
-    object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """A list of URIs that identify the type of TypePad content object this
-    is."""
+    object_type = fields.Field(api_name='objectType')
+    """A keyword that identifies the type of TypePad content object this is."""
 
     @classmethod
     def get(cls, url, *args, **kwargs):
@@ -232,25 +231,23 @@ class TypePadObject(remoteobjects.RemoteObject):
 
         """
         # What should I be?
-        objtypes = ()
         try:
-            objtypes = data['objectTypes']
+            objtype = data['objectType']
         except (TypeError, KeyError):
             pass
-
-        for objtype in objtypes:
+        else:
             try:
                 objclsname = classes_by_object_type[objtype]
                 objcls = find_by_name(objclsname)  # KeyError
             except KeyError:
-                continue
+                pass
+            else:
+                # Is that a change?
+                if objcls is not self.__class__:
+                    self.__class__ = objcls
 
-            # Is that a change?
-            if objcls is not self.__class__:
-                self.__class__ = objcls
-
-                # Have update_from_dict() start over.
-                return True
+                    # Have update_from_dict() start over.
+                    return True
 
         # We're already that class, so go ahead.
         return False
@@ -315,8 +312,8 @@ class TypePadObject(remoteobjects.RemoteObject):
     def to_dict(self):
         """Encodes the `TypePadObject` instance to a dictionary."""
         ret = super(TypePadObject, self).to_dict()
-        if 'objectTypes' not in ret and self.object_type is not None:
-            ret['objectTypes'] = (self.object_type,)
+        if 'objectType' not in ret and self.object_type is not None:
+            ret['objectType'] = self._class_object_type
         return ret
 
     def deliver(self):

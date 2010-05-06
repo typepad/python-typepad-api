@@ -61,7 +61,7 @@ POSTAMBLE = """
 browser_upload = BrowserUploadEndpoint()
 """
 
-HAS_OBJECT_TYPE = ('User', 'Group', 'Application', 'Asset', 'Comment', 'Favorite', 'Post', 'Photo', 'Audio', 'Video', 'Link', 'Document', )
+CLASS_HAS_OBJECT_TYPE = ('User', 'Group', 'Application', 'Asset', 'Comment', 'Favorite', 'Post', 'Photo', 'Audio', 'Video', 'Link', 'Document', )
 
 CLASS_SUPERCLASSES = {
     'ImageLink': ('_ImageResizer',),
@@ -692,8 +692,8 @@ class ObjectType(lazy):
             me.write(CLASS_DOCSTRINGS[self.name])
             me.write('"""\n\n')
 
-        if self.name in HAS_OBJECT_TYPE:
-            me.write("""    object_type = "tag:api.typepad.com,2009:%s"\n\n""" % self.name)
+        if self.name in CLASS_HAS_OBJECT_TYPE:
+            me.write("""    _class_object_type = "%s"\n\n""" % self.name)
 
         for name, prop in sorted(self.properties.items(), key=lambda x: x[0]):
             prop_text = str(prop)
