@@ -645,18 +645,45 @@ def generate_types(types_fn, nouns_fn, out_fn):
 
     objtypes = set()
     objtypes_by_name = dict()
-    for info in types['entries']:
-        if info['name'] == 'Base':
-            logging.info('Skipping Base type, since we use TypePadObject for that')
-            continue
-        if info['parentType'] == 'Base':
-            info['parentType'] = u'TypePadObject'
-        objtype = ObjectType(info)
-        objtypes.add(objtype)
-        objtypes_by_name[objtype.name] = objtype
+    typedata = dict((d['name'], d) for d in types['entries'])
+    while typedata:
+        for name, info in typedata.items():
+            if name == 'Base':
+                logging.info('Skipping Base type, since we use TypePadObject for that')
+                del typedata[name]
+                continue
+
+            # Fix up Relationship to have a parentType.
+            if name == 'Relationship':
+                info['parentType'] = 'Base'
+
+            if 'parentType' not in info:
+                raise ValueError('Type info for %r has no parentType?' % name)
+            if info['parentType'] == 'Base':
+                info['parentType'] = u'TypePadObject'
+            elif info['parentType'] not in objtypes_by_name:
+                logging.debug("Skipping %s until the next round, since %s I haven't seen %s yet", name, info['parentType'])
+                continue
+
+            del typedata[name]
+            objtype = ObjectType(info)
+            objtypes.add(objtype)
+            objtypes_by_name[objtype.name] = objtype
 
     # Annotate the types with endpoint info.
     for endpoint in nouns['entries']:
+        # Fix up blogs.comments to have a resource type.
+        if endpoint['name'] == 'blogs':
+            for propendp in endpoint['propertyEndpoints']:
+                if propendp.get('name') == 'comments':
+                    propendp['resourceObjectType'] = {
+                        'name': 'List<Comment>',
+                    }
+                    break
+        # Fix up relationships to have a correct object type.
+        elif endpoint['name'] == 'relationships':
+            endpoint['resourceObjectType']['name'] = 'Relationship'
+
         try:
             objtype = objtypes_by_name[endpoint['resourceObjectType']['name']]
         except KeyError:
@@ -675,6 +702,7 @@ def generate_types(types_fn, nouns_fn, out_fn):
                 if objtype.parentType not in wrote:
                     logging.debug("Oops, can't write %s as I haven't written %s yet", objtype.name, objtype.parentType)
                     continue
+                logging.debug("Yay, I can write out %s!", objtype.name)
                 eligible_types.append(objtype)
 
             if not eligible_types:
