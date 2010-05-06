@@ -58,6 +58,7 @@ import httplib
 import inspect
 from itertools import chain
 import logging
+import re
 import sys
 import urllib
 from urlparse import urljoin, urlparse, urlunparse
@@ -312,7 +313,7 @@ class TypePadObject(remoteobjects.RemoteObject):
     def to_dict(self):
         """Encodes the `TypePadObject` instance to a dictionary."""
         ret = super(TypePadObject, self).to_dict()
-        if 'objectType' not in ret and self.object_type is not None:
+        if 'objectType' not in ret and self.object_type is None:
             ret['objectType'] = self._class_object_type
         return ret
 

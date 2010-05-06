@@ -51,6 +51,7 @@ from urlparse import urljoin
 from remoteobjects.dataobject import find_by_name
 
 from typepad.tpobject import *
+from typepad.tpobject import _ImageResizer, _VideoResizer
 from typepad import fields
 import typepad
 

@@ -90,8 +90,8 @@ requests = {
                     'types': ('tag:api.typepad.com,2009:Admin',
                               'tag:api.typepad.com,2009:Member'),
                 },
-                'target': {"objectTypes": ["tag:api.typepad.com,2009:Group"]},
-                'source': {"displayName": "Mike", "objectTypes": ["tag:api.typepad.com,2009:User"]},
+                'target': {"objectType": "Group"},
+                'source': {"displayName": "Mike", "objectType": "User"},
             }] + [{
                 'status': {
                     'created': {
@@ -99,15 +99,15 @@ requests = {
                     },
                     'types': ('tag:api.typepad.com,2009:Member',),
                 },
-                'target': {"objectTypes": ["tag:api.typepad.com,2009:Group"]},
+                'target': {"objectType": "Group"},
                 'source': u,
             } for u in (
-                {"displayName": "Sherry Monaco", "objectTypes": ["tag:api.typepad.com,2009:User"]},
-                {"displayName": "Francesca Coppola", "objectTypes": ["tag:api.typepad.com,2009:User"]},
-                {"displayName": "David Rosato", "objectTypes": ["tag:api.typepad.com,2009:User"]},
-                {"displayName": "Edgar Bach", "objectTypes": ["tag:api.typepad.com,2009:User"]},
-                {"displayName": "Jarad Mccaw", "objectTypes": ["tag:api.typepad.com,2009:User"]},
-                {"displayName": "Deanna Conti", "objectTypes": ["tag:api.typepad.com,2009:User"]},
+                {"displayName": "Sherry Monaco", "objectType": "User"},
+                {"displayName": "Francesca Coppola", "objectType": "User"},
+                {"displayName": "David Rosato", "objectType": "User"},
+                {"displayName": "Edgar Bach", "objectType": "User"},
+                {"displayName": "Jarad Mccaw", "objectType": "User"},
+                {"displayName": "Deanna Conti", "objectType": "User"},
             )],
         }),
     ),
@@ -122,14 +122,14 @@ requests = {
               'accept': 'application/json',
               'content-type': 'application/json',
           },
-          'body': """{"content": "Hi this post has some content is it not nifty", "objectTypes": ["tag:api.typepad.com,2009:Post"], "categories": ["fred", "wilma"], "title": "New post #47"}""",
+          'body': """{"content": "Hi this post has some content is it not nifty", "objectType": "Post", "categories": ["fred", "wilma"], "title": "New post #47"}""",
           'method': 'POST' },
         { 'status': 201,
           'location': 'http://127.0.0.1:8000/assets/307.json',
           'content': """{
               "title": "New post #47",
               "content": "Hi this post has some content is it not nifty",
-              "objectTypes": ["tag:api.typepad.com,2009:Post"],
+              "objectType": "Post",
               "categories": ["fred", "wilma"],
               "published": "2009-03-23T00:00:00Z",
               "updated": "2009-03-23T00:00:00Z"
@@ -141,7 +141,7 @@ requests = {
         """{
             "title": "New post #47",
             "content": "Hi this post has some content is it not nifty",
-            "objectTypes": ["tag:api.typepad.com,2009:Post"],
+            "objectType": "Post",
             "categories": ["fred", "wilma"],
             "published": "2009-03-23T00:00:00Z",
             "updated": "2009-03-23T00:00:00Z"
@@ -164,7 +164,7 @@ requests = {
         """{
             "title": "Fames Vivamus Placerat at Condimentum at Primis Consectetuer Nonummy Inceptos Porta dis",
             "content": "Posuere felis vestibulum nibh justo vitae elementum.",
-            "objectTypes": ["tag:api.typepad.com,2009:Post"]
+            "objectType": "Post"
         }""",
     ),
     'put_mutated_post': (
@@ -174,9 +174,9 @@ requests = {
             'accept': 'application/json',
             'content-type': 'application/json',
           },
-          'body': mox.Func(json_equals_func({"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"})),
+          'body': mox.Func(json_equals_func({"content": "Yay this is my post", "objectType": "Post", "title": "Omg hai"})),
           'method': 'PUT' },
-        { 'content': """{"content": "Yay this is my post", "objectTypes": ["tag:api.typepad.com,2009:Post"], "title": "Omg hai"}""",
+        { 'content': """{"content": "Yay this is my post", "objectType": "Post", "title": "Omg hai"}""",
           'etag': 'xyz' },
     ),
 }
@@ -312,25 +312,15 @@ class TestLocally(unittest.TestCase):
             'id':          '7',
             'urlId':       '7',
             'title':       'some asset',
-            'objectTypes': ('http://example.com/internet/',),
+            'objectType':  'internet',
         }
 
         # Unknown objectTypes should yield an Asset.
         a = make_asset(data)
         self.assertEquals(type(a), typepad.Asset)
 
-        # Known objectTypes should yield that type.
-        data['objectTypes'] = ('tag:api.typepad.com,2009:Post',)
-        a = make_asset(data)
-        self.assertEquals(type(a), typepad.Post)
-
-        # Type name needn't match the word in objectTypes.
-        data['objectTypes'] = ('tag:api.typepad.com,2009:Link',)
-        a = make_asset(data)
-        self.assertEquals(type(a), typepad.LinkAsset)
-
-        # Ignore extra objectTypes.
-        data['objectTypes'] = ('http://example.com/internet/', 'tag:api.typepad.com,2009:Post')
+        # A known objectType should yield that type.
+        data['objectType'] = 'Post'
         a = make_asset(data)
         self.assertEquals(type(a), typepad.Post)
 
@@ -352,7 +342,7 @@ class TestLocally(unittest.TestCase):
             'id':          '7',
             'urlId':       '7',
             'title':       'some asset',
-            'objectTypes': ('http://example.com/internet/',),
+            'objectType':  'internet',
         }
 
         class AssetRefKeeper(typepad.TypePadObject):
@@ -363,7 +353,7 @@ class TestLocally(unittest.TestCase):
         ar = AssetRefKeeper.from_dict({'assetref': data}).assetref
         self.assert_(isinstance(ar, typepad.AssetRef))
 
-        data['objectTypes'] = ('tag:api.typepad.com,2009:Post',)
+        data['objectType'] = 'Post'
 
         # Even with a known object type, AssetRefs stay AssetRefs.
         ar = typepad.AssetRef.from_dict(data)
@@ -405,11 +395,11 @@ class TestLocally(unittest.TestCase):
         data = {
             'source': {
                 'displayName': 'Nikola',
-                'objectTypes': ['tag:api.typepad.com,2009:User'],
+                'objectType':  'User',
             },
             'target': {
                 'displayName': 'Theophila',
-                'objectTypes': ['tag:api.typepad.com,2009:User'],
+                'objectType':  'User',
             },
             'status': {
                 'types': ['tag:api.typepad.com,2009:Contact'],
@@ -426,7 +416,7 @@ class TestLocally(unittest.TestCase):
         self.assert_(isinstance(r.target, typepad.User))
 
         data['status']['types']       = ['tag:api.typepad.com,2009:Member']
-        data['source']['objectTypes'] = ['tag:api.typepad.com,2009:Group']
+        data['source']['objectType']  = 'Group'
         r = typepad.Relationship.from_dict(data)
         self.assert_(isinstance(r.source, typepad.Group))
         self.assert_(isinstance(r.target, typepad.User))
@@ -445,29 +435,6 @@ class TestLocally(unittest.TestCase):
         r = typepad.Relationship.from_dict(data)
         self.assert_(isinstance(r.source, typepad.Group))
         self.assert_(isinstance(r.target, typepad.User))
-
-    def test_user_url_id(self):
-        def valid(v):
-            self.assert_(typepad.User.get_by_url_id(v))
-
-        def invalid(i):
-            self.assertRaises(ValueError,
-                              lambda: typepad.User.get_by_url_id(i))
-
-        valid('asfdasf')
-        valid('OHHAI')
-        valid('thx1138')
-        valid('url_id')
-        valid('1138')
-        valid('____')
-        valid('_')
-        valid('7')
-
-        invalid('url id')
-        invalid('url-id')
-        invalid('')
-        invalid('Why?')
-        invalid('^hat^hat^')
 
 
 class TestBrowserUpload(unittest.TestCase):
@@ -576,7 +543,7 @@ class TestBrowserUpload(unittest.TestCase):
         self.assert_(json_equals({
             'title': 'Fake photo',
             'content': 'This is a made-up photo for testing automated browser style upload.',
-            'objectTypes': ['tag:api.typepad.com,2009:Photo'],
+            'objectType': 'Photo',
         }, asset_json))
 
         filepart = bodyparts['file']
