@@ -68,23 +68,102 @@ CLASS_SUPERCLASSES = {
     'VideoLink': ('_VideoResizer',),
 }
 
-LINK_PROPERTY_NAMES = {
+LINK_PROPERTY_FIXUPS = {
+    'Asset': {
+        'categories': {
+            'name': 'categories_obj',
+            'type': 'ListObject',
+        },
+    },
     'Relationship': {
-        'status': 'status_obj',
+        'status': {'name': 'status_obj'},
     },
 }
 
-PROPERTY_TYPES = {
+PROPERTY_FIXUPS = {
     'Asset': {
-        'categories': 'ListObject',
-        'published': 'datetime',
-        'updated': 'datetime',
+        'published': {'type': 'datetime'},
+        'categories': {
+            'name': 'categories',
+            'type': 'set<string>',
+            'docString': """A list of categories (strings) associated with the asset.""",
+        },
+        'crosspostAccounts': {
+            'name': 'crosspostAccounts',
+            'type': 'set<string>',
+            'docString': """A list of elsewhere account IDs to crosspost to.""",
+        },
+        'summary': {
+            'name': 'summary',
+            'type': 'string',
+            'docString': """For a media type of `Asset`, the HTML description or caption given by its author.""",
+        },
     },
     'Event': {
-        'published': 'datetime',
+        'actor': {
+            'name': 'actor',
+            'type': 'User',
+        },
+        'published': {
+            'name': 'published',
+            'type': 'datetime',
+        },
     },
     'Relationship': {
-        'created': 'map<datetime>',
+        'created': {
+            'name': 'created',
+            'type': 'map<datetime>',
+        },
+    },
+    'User': {
+        'email': {
+            'name': 'email',
+            'type': 'string',
+        },
+        'gender': {
+            'name': 'gender',
+            'type': 'string',
+        },
+    },
+    'UserProfile': {
+        'email': {
+            'name': 'email',
+            'type': 'string',
+        },
+        'gender': {
+            'name': 'gender',
+            'type': 'string',
+        },
+        'id': {
+            'name': 'id',
+            'type': 'string',
+            'docString': """A URI that uniquely identifies the `User` associated with this `UserProfile`.""",
+        },
+        'urlId': {
+            'name': 'urlId',
+            'type': 'string',
+            'docString': """An identifier for this `UserProfile` that can be used in URLs.
+
+A user's `url_id` is unique only across groups in one TypePad
+environment, so you should use `id`, not `url_id`, to associate data
+with a `User` (or `UserProfile`). When constructing URLs to API resources
+in one particular TypePad environment, however, use `url_id`.
+
+"""
+        },
+    },
+    'VideoLink': {
+        'permalinkUrl': {
+            'name': 'permalinkUrl',
+            'type': 'string',
+            'docString': """A URL to the HTML permalink page of the video.
+
+Use this field to specify the video when posting a new `Video` asset.
+When requesting an existing `Video` instance from the API,
+`permalink_url` will be ``None``.
+
+""",
+        }
     },
 }
 
@@ -520,11 +599,16 @@ class ObjectType(lazy):
                 else:
                     logging.debug("Oops, %s.%s is not the same as %s.%s (%r), i guess", self.name, propname, self.parentType, propname, parenttype.property_data.get(propname))
 
-        if self.name in PROPERTY_TYPES:
-            override_types = PROPERTY_TYPES[self.name]
-            for dataname, data in val.items():
-                if dataname in override_types:
-                    data['type'] = override_types[dataname]
+        if self.name in PROPERTY_FIXUPS:
+            fixups = PROPERTY_FIXUPS[self.name]
+            for fixie_name, fixie in fixups.items():
+                try:
+                    val[fixie_name].update(fixie)
+                except KeyError:
+                    if 'name' not in fixie:
+                        raise ValueError("Wanted to add fixed-up property %s.%s, but it has no 'name' (and I'm not going to assume it's %r)"
+                            % (self.name, fixie_name, fixie_name))
+                    val[fixie_name] = dict(fixie)
 
         props = [Property(data) for data in val.values()]
         props = dict((prop.name, prop) for prop in props)
@@ -561,9 +645,8 @@ class ObjectType(lazy):
             name = endp['name']
 
             try:
-                value_type = PROPERTY_TYPES[self.name][name]
+                value_type = LINK_PROPERTY_FIXUPS[self.name][name]['type']
             except KeyError:
-                # TODO: handle endpoints like Blog.comments that aren't usable without filters
                 try:
                     value_type = endp['resourceObjectType']['name']
                 except KeyError:
@@ -573,17 +656,19 @@ class ObjectType(lazy):
                 logging.info("Used property override for %s.%s property", self.name, name)
 
             docstrings = sorted(endp['supportedMethods'].items(), key=lambda x: x[0])
-            docstrings = [desc if method == 'GET' else '%s: %s' % (method, desc) for method, desc in docstrings]
+            docstrings = [desc if method == 'GET' else '%s: %s' % (method, desc) for method, desc in docstrings if desc]
             docstring = '\n\n'.join(docstrings)
 
-            prop = Property({'name': name, 'docString': docstring})
+            prop = Property({'name': name})
+            if docstring:
+                prop.docString = docstring
             prop.field.field_type = 'fields.Link'
             subfield = ObjectRef({'type': value_type})
             prop.field.args.append(subfield)
 
             if prop.name in self.properties:
                 try:
-                    new_name = LINK_PROPERTY_NAMES[self.name][prop.name]
+                    new_name = LINK_PROPERTY_FIXUPS[self.name][prop.name]['name']
                 except KeyError:
                     raise ValueError("Oops, wanted to add a Link property called %s to %s, but there's already a property "
                         "named that (%r)" % (prop.name, self.name, str(self.properties[prop.name])))
@@ -683,6 +768,18 @@ def generate_types(types_fn, nouns_fn, out_fn):
         # Fix up relationships to have a correct object type.
         elif endpoint['name'] == 'relationships':
             endpoint['resourceObjectType']['name'] = 'Relationship'
+        # Fix up groups to have an audio-assets property endpoint.
+        elif endpoint['name'] == 'groups':
+            endpoint['propertyEndpoints'].append({
+                'name': 'audio-assets',
+                'resourceObjectType': {
+                    'name': 'List<Audio>',
+                },
+                'supportedMethods': {
+                    'GET': "",
+                    'POST': "",
+                },
+            })
 
         try:
             objtype = objtypes_by_name[endpoint['resourceObjectType']['name']]
