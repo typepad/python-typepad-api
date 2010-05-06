@@ -284,7 +284,7 @@ CLASS_EXTRAS = {
     def primary_object_type(self):
         if not self.object_types: return None
         for object_type in self.object_types:
-            if object_type in self.known_object_types: return object_type
+            return object_type
         return None
 ''',
     'AssetRef': '''
