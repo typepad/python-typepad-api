@@ -106,6 +106,8 @@ class Asset(TypePadObject):
     """The user that created the selected asset."""
     categories = fields.List(fields.Field())
     """A list of categories (strings) associated with the asset."""
+    categories_obj = fields.Link(ListObject, api_name='categories')
+    """Get a list of categories into which this asset has been placed within its blog. Currently supported only for O<Post> assets that are posted within a blog."""
     comment_count = fields.Field(api_name='commentCount')
     """The number of comments that have been posted in the comment tree beneath this asset."""
     comment_tree = fields.Link(ListOf('CommentTreeItem'), api_name='comment-tree')
