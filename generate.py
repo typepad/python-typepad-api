@@ -738,6 +738,12 @@ def generate_types(types_fn, nouns_fn, out_fn):
                 del typedata[name]
                 continue
 
+            # Fix up ExternalFeedSubscription by ignoring it for now.
+            if name == 'ExternalFeedSubscription':
+                logging.info("Skipping ExternalFeedSubscription, since it isn't supposed to exist yet")
+                del typedata[name]
+                continue
+
             # Fix up Relationship to have a parentType.
             if name == 'Relationship':
                 info['parentType'] = 'Base'
