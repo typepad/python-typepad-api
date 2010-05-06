@@ -48,7 +48,7 @@ class Account(TypePadObject):
     """A user account on an external website."""
 
     crosspostable = fields.Field()
-    """Whether the service can be crossposted to."""
+    """True if this account supports crossposting and the user has enabled it, or false otherwise."""
     domain = fields.Field()
     """The DNS domain of the site that the account belongs to."""
     id = fields.Field()
@@ -138,8 +138,10 @@ class Asset(TypePadObject):
     """C<true> if this asset is a favorite for the current user, or C<false> otherwise. This property is not set for responses to anonymous requests."""
     media_assets = fields.Link(ListOf('Asset'), api_name='media-assets')
     """Get a list of media assets that are embedded in the content of the selected asset."""
+    object_type = fields.Field(api_name='objectType')
+    """The object type identifier"""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
+    """T<Deprecated> An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
     permalink_url = fields.Field(api_name='permalinkUrl')
     """The URL which is considered to be this asset's permalink. This might be C<null> if the asset does not have a permalink of its own (for example, if it's embedded in another asset), or if TypePad does not know its permalink."""
     publication_status = fields.Link('PublicationStatus', api_name='publication-status')
@@ -214,8 +216,10 @@ class AssetRef(TypePadObject):
     """The URL at which a representation of the corresponding asset can be retrieved."""
     id = fields.Field()
     """A URI that serves as a globally-unique id for the asset. This matches the "id" property in the corresponding O<Asset> object."""
+    object_type = fields.Field(api_name='objectType')
+    """The object type identifier"""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
+    """T<Deprecated> An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
     type = fields.Field()
     """The MIME type of the representation at the URL given in the "href" property."""
     url_id = fields.Field(api_name='urlId')
@@ -289,8 +293,10 @@ class Blog(TypePadObject):
     """A URI that serves as a globally-unique id for the object. This can be used to recognise where the same user is returned in response to different requests, and as a mapping key for an application's local data store."""
     media_assets = fields.Link(ListOf('Asset'), api_name='media-assets')
     """POST: Add a new media asset to the account that owns this blog."""
+    object_type = fields.Field(api_name='objectType')
+    """The object type identifier"""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """An array of object type identifier URIs. At the present time, only one object type is returned per object, but this may be extended in future. Clients should scan this list and ignore any types that are not recognized."""
+    """T<Deprecated> An array of object type identifier URIs. At the present time, only one object type is returned per object, but this may be extended in future. Clients should scan this list and ignore any types that are not recognized."""
     owner = fields.Object('User')
     """The user that owns the blog."""
     page_assets = fields.Link(ListOf('Page'), api_name='page-assets')
@@ -416,8 +422,10 @@ class Event(TypePadObject):
     published = fields.Datetime()
     url_id = fields.Field(api_name='urlId')
     """A string containing the canonical identifier that can be used as the "id" for this object in URLs. However, this should not be used as a database key to avoid collisions when an application is switched to a different backend server; use the "id" property instead."""
+    verb = fields.List(fields.Field())
+    """A string identifying the event verb (such as 'NewPost')"""
     verbs = fields.List(fields.Field())
-    """An array of verb identifier URIs. At the present time, only one verb is returned, but this may be extended in future. Clients should scan this list and ignore any verbs that are not recognised. This list also includes appropriate verb URIs as defined by the ActivityStrea.ms schema specification."""
+    """T<Deprecated> An array of verb identifier URIs. At the present time, only one verb is returned, but this may be extended in future. Clients should scan this list and ignore any verbs that are not recognised. This list also includes appropriate verb URIs as defined by the ActivityStrea.ms schema specification."""
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/events/%s.json' % self.url_id)
@@ -732,8 +740,10 @@ class Application(Entity):
     """The URL to send the user's browser to identify which user is logged in (the "signin" link)."""
     oauth_request_token_url = fields.Field(api_name='oauthRequestTokenUrl')
     """The URL of the OAuth request token endpoint for this application."""
+    object_type = fields.Field(api_name='objectType')
+    """The object type identifier"""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """The object types for this object. This set will contain the string C<tag:api.typepad.com,2009:Application> for an application object."""
+    """T<Deprecated> The object types for this object. This set will contain the string C<tag:api.typepad.com,2009:Application> for an application object."""
     session_sync_script_url = fields.Field(api_name='sessionSyncScriptUrl')
     """The URL of the session sync script."""
     signout_url = fields.Field(api_name='signoutUrl')
@@ -827,8 +837,10 @@ class Group(Entity):
     """POST: Create a new Link asset within the selected group."""
     memberships = fields.Link(ListOf('Relationship'))
     """Get a list of relationships between users and the selected group."""
+    object_type = fields.Field(api_name='objectType')
+    """The object type identifier"""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """An array of object type identifier URIs."""
+    """T<Deprecated> An array of object type identifier URIs."""
     photo_assets = fields.Link(ListOf('Photo'), api_name='photo-assets')
     """POST: Create a new Photo asset within the selected group."""
     post_assets = fields.Link(ListOf('Post'), api_name='post-assets')
@@ -945,8 +957,10 @@ class User(Entity):
     """Get a list of relationships that the selected user has with groups."""
     notifications = fields.Link(ListOf('Event'))
     """Get a list of events describing actions by users that the selected user is following."""
+    object_type = fields.Field(api_name='objectType')
+    """The object type identifier"""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """An array of object type identifier URIs. At the present time, only one object type is returned per asset, but this may be extended in future. Clients should scan this list and ignore any types that are not recognised. This list also includes appropriate type URIs as defined by the ActivityStrea.ms schema specification."""
+    """T<Deprecated> An array of object type identifier URIs."""
     preferred_username = fields.Field(api_name='preferredUsername')
     """The name the user has chosen for use in his TypePad Profile URL. This can be used as the id in the URL to select this user, though it must not be used as a persistent key since it can be changed by the user at any time."""
     profile = fields.Link('UserProfile')
@@ -980,7 +994,7 @@ class Video(Asset):
     object_type = "tag:api.typepad.com,2009:Video"
 
     preview_image_link = fields.Object('ImageLink', api_name='previewImageLink')
-    """A link to an image which serves as a preview or poster frame for this video. Might be C<null> if such an image is not available."""
+    """A link to an image which serves as a preview or poster frame for this video. Might be omitted if such an image is not available."""
     video_link = fields.Object('VideoLink', api_name='videoLink')
     """A link to the actual video that provides the primary content for this asset."""
 
