@@ -556,6 +556,8 @@ class Property(lazy):
 
     @docString.setter
     def docString(self, val):
+        self.orig_docstring = val
+
         # Split out any pseudopod tags we may have.
         tags = re.findall(r'(?xms) T< ([^>]+) >', val)
         val = re.sub(r'(?xms) T< ([^>]+) >', '', val)
@@ -698,7 +700,7 @@ class ObjectType(lazy):
 
             docstrings = sorted(endp['supportedMethods'].items(), key=lambda x: x[0])
             docstrings = [desc if method == 'GET' else '%s: %s' % (method, desc) for method, desc in docstrings if desc]
-            docstring = '\n\n'.join(docstrings)
+            docstring = '\n\n'.join(docstrings).encode('utf-8')
 
             prop = Property({'name': name})
             if docstring:
@@ -765,7 +767,7 @@ class ObjectType(lazy):
         return """class %s(%s):\n\n%s\n\n""" % (self.name, self.parents, body)
 
 
-def generate_types(types_fn, nouns_fn, out_fn):
+def generate_types(types_fn, nouns_fn):
     with open(types_fn) as f:
         types = json.load(f)
     with open(nouns_fn) as f:
@@ -837,6 +839,10 @@ def generate_types(types_fn, nouns_fn, out_fn):
         else:
             objtype.endpoint = endpoint
 
+    return objtypes
+
+
+def write_module(objtypes, out_fn):
     wrote = set(('TypePadObject',))
     wrote_one = True
     with open(out_fn, 'w') as outfile:
@@ -867,6 +873,16 @@ def generate_types(types_fn, nouns_fn, out_fn):
         outfile.write(POSTAMBLE.replace('\n', '', 1))
 
 
+def write_docstrings(objtypes, out_fn):
+
+    docstrings = dict((objtype.name,
+        dict((name, [getattr(prop, 'orig_docstring', None)]) for name, prop in objtype.properties.items()))
+        for objtype in objtypes)
+
+    with open(out_fn, 'w') as outfile:
+        json.dump(docstrings, outfile, indent=4, sort_keys=True)
+
+
 def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
@@ -885,6 +901,7 @@ def main(argv=None):
         description='generate a TypePad client library from json endpoints')
     parser.add_argument('--types', metavar='file', help='parse file for object type info')
     parser.add_argument('--nouns', metavar='file', help='parse file for noun endpoint info')
+    parser.add_argument('--docstrings', action='store_true', help='write docstrings JSON instead of the python module')
     parser.add_argument('-v', action=Add, nargs=0, dest='verbose', default=2, help='be more verbose')
     parser.add_argument('-q', action=Subt, nargs=0, dest='verbose', help='be less verbose')
     parser.add_argument('outfile', help='file to write library to')
@@ -896,7 +913,8 @@ def main(argv=None):
     logging.basicConfig(level=log_level)
     logging.info('Log level set to %s', logging.getLevelName(log_level))
 
-    generate_types(ohyeah.types, ohyeah.nouns, ohyeah.outfile)
+    objtypes = generate_types(ohyeah.types, ohyeah.nouns)
+    (write_docstrings if ohyeah.docstrings else write_module)(objtypes, ohyeah.outfile)
 
     return 0
 
