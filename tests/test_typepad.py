@@ -195,7 +195,7 @@ class TestTypePad(unittest.TestCase):
         typepad.Group.get_by_url_id(group_id).post_assets.post(post1)
         self.assertValidAsset(post1)
 
-        self.testdata['assets_created'].append(post1.xid)
+        self.testdata['assets_created'].append(post1.url_id)
 
         # lets pause to reflect (and allow timestamps between these assets to differ)
         time.sleep(2)
@@ -205,7 +205,7 @@ class TestTypePad(unittest.TestCase):
         typepad.Group.get_by_url_id(group_id).post_assets.post(post2)
         self.assertValidAsset(post2)
 
-        self.testdata['assets_created'].append(post2.xid)
+        self.testdata['assets_created'].append(post2.url_id)
 
         # the older post should be favorited
 
@@ -242,7 +242,7 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(comment1.in_reply_to.url_id, post1.url_id)
         self.assertEquals(comment1.content, content)
 
-        self.testdata['comments_created'].append(comment1.xid)
+        self.testdata['comments_created'].append(comment1.url_id)
 
         content = 'Yeah, what he said.'
 
@@ -254,7 +254,7 @@ class TestTypePad(unittest.TestCase):
         self.assertValidAsset(comment2)
         self.assertEquals(comment2.in_reply_to.url_id, post1.url_id)
 
-        self.testdata['comments_created'].append(comment2.xid)
+        self.testdata['comments_created'].append(comment2.url_id)
 
         # now, load testdata['assets'] with these test assets
         self.load_test_assets()
@@ -725,7 +725,7 @@ class TestTypePad(unittest.TestCase):
         self.assertEquals(comment.in_reply_to.url_id, asset.url_id)
         self.assertEquals(comment.content, content)
 
-        self.testdata['comments_created'].append(comment.xid)
+        self.testdata['comments_created'].append(comment.url_id)
 
     @attr(user='group')
     def test_1_GET_assets_id_favorites(self):
@@ -813,7 +813,7 @@ class TestTypePad(unittest.TestCase):
             self.assertValidAsset(posted_asset)
             self.assertEquals(posted_asset.primary_object_type(), data['objectTypes'][0])
 
-            self.testdata['assets_created'].append(posted_asset.xid)
+            self.testdata['assets_created'].append(posted_asset.url_id)
         else: # test for a failure
             self.assertEquals(int(params['status'][0]), httplib.FORBIDDEN)
 
@@ -1058,7 +1058,7 @@ class TestTypePad(unittest.TestCase):
         typepad.Group.get_by_url_id(group_id).link_assets.post(link)
         self.assertValidAsset(link)
 
-        self.testdata['assets_created'].append(link.xid)
+        self.testdata['assets_created'].append(link.url_id)
 
     @attr(user='group')
     def test_1_GET_groups_id_memberships(self):
@@ -1081,9 +1081,9 @@ class TestTypePad(unittest.TestCase):
             self.assertValidRelationship(rel)
 
         self.assert_(len(everyone) > 0, 'memberships should be non-zero')
-        self.assert_(admin_id in [a.target.xid for a in everyone],
+        self.assert_(admin_id in [a.target.url_id for a in everyone],
             'configured admin should exist in memberships')
-        self.assert_(member_id in [a.target.xid for a in everyone],
+        self.assert_(member_id in [a.target.url_id for a in everyone],
             'configured member should exist in memberships')
 
     @attr(user='group')
@@ -1110,7 +1110,7 @@ class TestTypePad(unittest.TestCase):
 
         # yes, we have one or more admins!
         self.assert_(len(admins) > 0, 'admin membership should be non-zero')
-        self.assert_(admin_id in [a.target.xid for a in admins],
+        self.assert_(admin_id in [a.target.url_id for a in admins],
             'configured admin should exist in admin memberships')
 
         self.assertNotEqual(admins.total_results, everyone.total_results,
@@ -1139,7 +1139,7 @@ class TestTypePad(unittest.TestCase):
         for member in members:
             self.assertValidRelationship(member)
 
-        self.assert_(member_id in [a.target.xid for a in members],
+        self.assert_(member_id in [a.target.url_id for a in members],
             'configured admin should exist in admin memberships')
 
     @attr(user='group')
@@ -1184,7 +1184,7 @@ class TestTypePad(unittest.TestCase):
         typepad.Group.get_by_url_id(group_id).post_assets.post(post)
         self.assertValidAsset(post)
 
-        self.testdata['assets_created'].append(post.xid)
+        self.testdata['assets_created'].append(post.url_id)
 
     @attr(user='group')
     def test_5_POST_groups_id_post_assets__by_group(self):
@@ -1230,7 +1230,7 @@ class TestTypePad(unittest.TestCase):
         typepad.Group.get_by_url_id(group_id).video_assets.post(video)
         self.assertValidAsset(video)
 
-        self.testdata['assets_created'].append(video.xid)
+        self.testdata['assets_created'].append(video.url_id)
 
     @attr(user='group')
     def test_5_POST_groups_id_video_assets__by_group(self):
@@ -1335,7 +1335,7 @@ class TestTypePad(unittest.TestCase):
         self.assertValidUser(user)
         self.assert_(len(memberships) == 1)
         self.assertValidRelationship(memberships[0])
-        self.assertEquals(memberships[0].source.xid, group_id)
+        self.assertEquals(memberships[0].source.url_id, group_id)
 
         if action == 'block':
             self.assert_(not memberships[0].is_blocked())
@@ -1449,16 +1449,7 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
         self.assertValidUser(user)
-        self.assertEquals(user.xid, member_id)
-
-    @attr(user='group')
-    def test_1_GET_users_invalid(self):
-        """GET /users/(invalid).json (group)
-        """
-
-        typepad.client.batch_request()
-        self.assertRaises(ValueError, typepad.User.get_by_url_id, '(invalid)')
-        typepad.client.complete_batch()
+        self.assertEquals(user.url_id, member_id)
 
     @attr(user='group')
     def test_1_GET_users__(self):
@@ -1466,8 +1457,10 @@ class TestTypePad(unittest.TestCase):
         """
 
         typepad.client.batch_request()
-        self.assertRaises(ValueError, typepad.User.get_by_url_id, '')
-        typepad.client.complete_batch()
+        try:
+            self.assertRaises(ValueError, typepad.User.get_by_url_id, '')
+        finally:
+            typepad.client.complete_batch()
 
     @attr(user='group')
     def test_1_GET_users_id_elsewhere_accounts(self):
@@ -1603,7 +1596,7 @@ class TestTypePad(unittest.TestCase):
         self.assertValidFilter(listset)
 
         memberships = listset[0]
-        self.assert_(group_id in [x.source.xid for x in memberships])
+        self.assert_(group_id in [x.source.url_id for x in memberships])
 
     @attr(user='group')
     def test_1_GET_users_id_memberships_admin(self):
@@ -1625,7 +1618,7 @@ class TestTypePad(unittest.TestCase):
         # self.assertValidFilter(listset)
 
         memberships = listset[0]
-        self.assert_(group_id in [x.source.xid for x in memberships])
+        self.assert_(group_id in [x.source.url_id for x in memberships])
 
     @attr(user='group')
     def test_1_GET_users_id_memberships_by_group_id(self):
@@ -1649,7 +1642,7 @@ class TestTypePad(unittest.TestCase):
         # self.assertValidFilter(listset)
 
         # memberships = listset[0]
-        self.assert_(member_id in [x.target.xid for x in memberships])
+        self.assert_(member_id in [x.target.url_id for x in memberships])
 
     @attr(user='group')
     def test_1_GET_users_id_memberships_member(self):
@@ -1672,7 +1665,7 @@ class TestTypePad(unittest.TestCase):
         # self.assertValidFilter(listset)
 
         # memberships = listset[0]
-        self.assert_(group_id in [x.source.xid for x in memberships])
+        self.assert_(group_id in [x.source.url_id for x in memberships])
 
     @attr(user='group')
     def test_1_GET_users_id_notifications(self):
@@ -1723,7 +1716,7 @@ class TestTypePad(unittest.TestCase):
         for contact in contacts:
             self.assertValidRelationship(contact)
 
-        self.assert_(member_id in [x.source.xid for x in contacts])
+        self.assert_(member_id in [x.source.url_id for x in contacts])
 
     @attr(user='group')
     def test_1_GET_users_id_relationships_by_group_id(self):
@@ -1748,7 +1741,7 @@ class TestTypePad(unittest.TestCase):
         for contact in contacts:
             self.assertValidRelationship(contact)
 
-        self.assert_(member_id in [x.source.xid for x in contacts])
+        self.assert_(member_id in [x.source.url_id for x in contacts])
 
     @attr(user='group')
     def test_1_GET_users_id_relationships_follower(self):
@@ -1772,8 +1765,8 @@ class TestTypePad(unittest.TestCase):
         for contact in contacts:
             self.assertValidRelationship(contact)
 
-        self.assert_(admin_id in [x.source.xid for x in contacts])
-        self.assert_(member_id in [x.target.xid for x in contacts])
+        self.assert_(admin_id in [x.source.url_id for x in contacts])
+        self.assert_(member_id in [x.target.url_id for x in contacts])
 
     @attr(user='group')
     def test_1_GET_users_id_relationships_follower_by_group_id(self):
@@ -1799,8 +1792,8 @@ class TestTypePad(unittest.TestCase):
         for contact in contacts:
             self.assertValidRelationship(contact)
 
-        self.assert_(admin_id in [x.source.xid for x in contacts])
-        self.assert_(member_id in [x.target.xid for x in contacts])
+        self.assert_(admin_id in [x.source.url_id for x in contacts])
+        self.assert_(member_id in [x.target.url_id for x in contacts])
 
     @attr(user='group')
     def test_1_GET_users_id_relationships_following(self):
@@ -1824,8 +1817,8 @@ class TestTypePad(unittest.TestCase):
         for contact in contacts:
             self.assertValidRelationship(contact)
 
-        self.assert_(member_id in [x.source.xid for x in contacts])
-        self.assert_(admin_id in [x.target.xid for x in contacts])
+        self.assert_(member_id in [x.source.url_id for x in contacts])
+        self.assert_(admin_id in [x.target.url_id for x in contacts])
 
     @attr(user='group')
     def test_1_GET_users_id_relationships_following_by_group_id(self):
@@ -1851,8 +1844,8 @@ class TestTypePad(unittest.TestCase):
         for contact in contacts:
             self.assertValidRelationship(contact)
 
-        self.assert_(member_id in [x.source.xid for x in contacts])
-        self.assert_(admin_id in [x.target.xid for x in contacts])
+        self.assert_(member_id in [x.source.url_id for x in contacts])
+        self.assert_(admin_id in [x.target.url_id for x in contacts])
 
     @attr(user='member')
     def test_1_GET_users_self__by_member(self):
@@ -1866,7 +1859,7 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
         self.assertValidUser(user)
-        self.assertEquals(user.xid, member_id)
+        self.assertEquals(user.url_id, member_id)
 
     @attr(user='group')
     def test_1_GET_users_id__using_id(self):
@@ -1874,14 +1867,15 @@ class TestTypePad(unittest.TestCase):
         """
 
         member_id = self.testdata['member']['xid']
-        uri = "tag:api.typepad.com,2009:%s" % member_id
 
         typepad.client.batch_request()
-        user = typepad.User.get_by_id(uri)
-        typepad.client.complete_batch()
+        try:
+            user = typepad.User.get_by_url_id(member_id)
+        finally:
+            typepad.client.complete_batch()
 
         self.assertValidUser(user)
-        self.assertEquals(user.xid, member_id)
+        self.assertEquals(user.url_id, member_id)
 
     @attr(user='group')
     def test_1_GET_assets_id__using_id(self):
@@ -1889,14 +1883,15 @@ class TestTypePad(unittest.TestCase):
         """
 
         asset_id = self.testdata['assets'][1]
-        uri = "tag:api.typepad.com,2009:%s" % asset_id
 
         typepad.client.batch_request()
-        asset = typepad.Asset.get_by_id(uri)
-        typepad.client.complete_batch()
+        try:
+            asset = typepad.Asset.get_by_url_id(asset_id)
+        finally:
+            typepad.client.complete_batch()
 
         self.assertValidAsset(asset)
-        self.assertEquals(asset.xid, asset_id)
+        self.assertEquals(asset.url_id, asset_id)
 
     @attr(user='group')
     def test_1_GET_groups_id__using_id(self):
@@ -1904,14 +1899,15 @@ class TestTypePad(unittest.TestCase):
         """
 
         group_id = self.testdata['group']['xid']
-        uri = "tag:api.typepad.com,2009:%s" % group_id
 
         typepad.client.batch_request()
-        group = typepad.Group.get_by_id(uri)
-        typepad.client.complete_batch()
+        try:
+            group = typepad.Group.get_by_url_id(group_id)
+        finally:
+            typepad.client.complete_batch()
 
         self.assertValidGroup(group)
-        self.assertEquals(group.xid, group_id)
+        self.assertEquals(group.url_id, group_id)
 
     ### Supporting functions for this test suite
 
@@ -1950,7 +1946,7 @@ class TestTypePad(unittest.TestCase):
         for event in events:
             # FIXME: https://intranet.sixapart.com/bugs/default.asp?88008
             if event.object and len(event.object.groups) > 0:
-                self.testdata['assets'].append(event.object.xid)
+                self.testdata['assets'].append(event.object.url_id)
 
         self.clear_credentials()
 
@@ -2037,9 +2033,9 @@ class TestTypePad(unittest.TestCase):
             self.assert_(asset.source.permalink_url)
             self.assert_(asset.source.provider)
 
-            self.assert_(asset.source.provider.icon)
-            self.assert_(asset.source.provider.name)
-            self.assert_(asset.source.provider.uri)
+            self.assert_(asset.source.provider['icon'])
+            self.assert_(asset.source.provider['name'])
+            self.assert_(asset.source.provider['uri'])
 
     def assertValidUser(self, user):
         """Checks given asset for properties that should be present on all assets.
@@ -2071,7 +2067,6 @@ class TestTypePad(unittest.TestCase):
         self.assert_(isinstance(event, typepad.Event),
             'object %r is not a typepad.Event' % event)
         self.assert_(event.id)
-        self.assert_(event.xid)
         self.assert_(event.url_id)
         self.assert_(event.published)
         self.assert_(event.make_self_link())
@@ -2240,7 +2235,7 @@ class TestTypePad(unittest.TestCase):
 
     def link_asset(self):
         """Creates a Link asset instance for testing purposes."""
-        link = typepad.LinkAsset()
+        link = typepad.Link()
         link.target_url = 'http://www.typepad.com/'
         link.title = ''
         link.content = 'Test link post'

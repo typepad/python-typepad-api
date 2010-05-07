@@ -163,6 +163,8 @@ class Asset(TypePadObject):
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
+        if url_id == '':
+            raise ValueError("An url_id is required")
         obj = cls.get('/assets/%s.json' % url_id, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
@@ -266,6 +268,8 @@ class AuthToken(TypePadObject):
     def get_by_key_and_token(cls, api_key, auth_token):
         return cls.get('/auth-tokens/%s:%s.json' % (api_key, auth_token))
 
+    target = renamed_property(old='target', new='target_object')
+
 
 class Blog(TypePadObject):
 
@@ -311,6 +315,8 @@ class Blog(TypePadObject):
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
+        if url_id == '':
+            raise ValueError("An url_id is required")
         obj = cls.get('/blogs/%s.json' % url_id, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
@@ -422,6 +428,8 @@ class Event(TypePadObject):
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
+        if url_id == '':
+            raise ValueError("An url_id is required")
         obj = cls.get('/events/%s.json' % url_id, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
@@ -455,6 +463,8 @@ class Favorite(TypePadObject):
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
+        if url_id == '':
+            raise ValueError("An url_id is required")
         obj = cls.get('/favorites/%s.json' % url_id, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
@@ -501,12 +511,7 @@ class ImageLink(TypePadObject, _ImageResizer):
     width = fields.Field()
     """The width of the original image in pixels. Omitted if TypePad does not know the dimensions of this image, for example if the image is not actually hosted on TypePad itself."""
 
-    @property
-    def href(self):
-        import logging
-        logging.getLogger("typepad.api").warn(
-            '%s.href is deprecated; use %s.url instead' % (self.__class__.__name__, self.__class__.__name__))
-        return self.url
+    href = renamed_property(old='url', new='href')
 
 
 class ObjectProperty(TypePadObject):
@@ -585,6 +590,8 @@ class Relationship(TypePadObject):
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
+        if url_id == '':
+            raise ValueError("An url_id is required")
         obj = cls.get('/relationships/%s.json' % url_id, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
@@ -746,6 +753,8 @@ class Application(Entity):
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
+        if url_id == '':
+            raise ValueError("An url_id is required")
         obj = cls.get('/applications/%s.json' % url_id, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
@@ -847,6 +856,8 @@ class Group(Entity):
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
+        if url_id == '':
+            raise ValueError("An url_id is required")
         obj = cls.get('/groups/%s.json' % url_id, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
@@ -965,6 +976,8 @@ class User(Entity):
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
+        if url_id == '':
+            raise ValueError("An url_id is required")
         obj = cls.get('/users/%s.json' % url_id, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id

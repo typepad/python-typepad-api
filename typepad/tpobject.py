@@ -118,9 +118,6 @@ class TypePadObject(remoteobjects.RemoteObject):
     _class_object_type = None
     batch_requests = True
 
-    object_type = fields.Field(api_name='objectType')
-    """A keyword that identifies the type of TypePad content object this is."""
-
     @classmethod
     def get(cls, url, *args, **kwargs):
         """Promises a new `TypePadObject` instance for the named resource.
@@ -313,7 +310,7 @@ class TypePadObject(remoteobjects.RemoteObject):
     def to_dict(self):
         """Encodes the `TypePadObject` instance to a dictionary."""
         ret = super(TypePadObject, self).to_dict()
-        if 'objectType' not in ret and self.object_type is None:
+        if 'objectType' not in ret and hasattr(self, 'object_type'):
             ret['objectType'] = self._class_object_type
         return ret
 
@@ -906,3 +903,13 @@ class _VideoResizer(object):
         vid.width = size
         vid.height = int(self.height * (size / float(self.width)))
         return vid
+
+
+def renamed_property(old, new):
+    @property
+    def prop(self):
+        classname = type(self).__name__
+        logging.getLogger('typepad.api').warn('Property %s.%s is deprecated; use %s.%s instead',
+            classname, old, classname, new)
+        return getattr(self, new)
+    return prop

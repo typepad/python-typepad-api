@@ -308,6 +308,8 @@ CLASS_EXTRAS = {
     @classmethod
     def get_by_key_and_token(cls, api_key, auth_token):
         return cls.get('/auth-tokens/%s:%s.json' % (api_key, auth_token))
+
+    target = renamed_property(old='target', new='target_object')
 ''',
     'Event': '''
     def __unicode__(self):
@@ -327,12 +329,7 @@ CLASS_EXTRAS = {
         return fav.head()
 ''',
     'ImageLink': '''
-    @property
-    def href(self):
-        import logging
-        logging.getLogger("typepad.api").warn(
-            '%s.href is deprecated; use %s.url instead' % (self.__class__.__name__, self.__class__.__name__))
-        return self.url
+    href = renamed_property(old='url', new='href')
 ''',
     'Relationship': '''
     def _rel_type_updater(uri):
@@ -708,6 +705,8 @@ class ObjectType(lazy):
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
+        if url_id == '':
+            raise ValueError("An url_id is required")
         obj = cls.get('/%(endpoint_name)s/%%s.json' %% url_id, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%%s' %% url_id
