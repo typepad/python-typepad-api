@@ -5,6 +5,7 @@ import json
 import logging
 import re
 import sys
+import textwrap
 
 import argparse
 
@@ -548,6 +549,48 @@ class Property(lazy):
     def type(self, val):
         self.__dict__['type'] = val
         self.field.type = val
+
+    @property
+    def docString(self):
+        return self.__dict__['docString']
+
+    @docString.setter
+    def docString(self, val):
+        # Split out any pseudopod tags we may have.
+        tags = re.findall(r'(?xms) T< ([^>]+) >', val)
+        val = re.sub(r'(?xms) T< ([^>]+) >', '', val)
+
+        # Convert pseudopod to reST.
+        val = re.sub(r'(?xms) C< (?P<text> [^>]+ ) >', r'``\g<text>``', val)  # code keyword
+        val = re.sub(r'(?xms) L< (?P<url> [^|]+ ) \| (?P<text> [^>]+ ) >', r'\g<text>', val)  # link
+        # TODO: do something useful with endpoints i guess
+        val = re.sub(r'(?xms) N< (?P<path> [^>]+ ) >', r'``\g<path>``', val)  # endpoint
+        val = re.sub(r'(?xms) O< (?P<text> [^>]+ ) >', r'`\g<text>`', val)  # object type
+        # TODO: convert property names to python format once those are marked up
+        val = re.sub(r'(?xms) P< (?P<text> [^>]+ ) >', r'`\g<text>`', val)  # property
+
+        # Make the first sentence its own graf.
+        lines = re.split(r'(?xms) (?<= \. ) \s+ ', val, 1)
+        if len(lines) > 1:
+            first, rest = lines
+        else:
+            (first,) = lines
+            rest = None
+
+        # Add the pseudopod tags back to the first sentence.
+        first = '%s%s' % (' '.join('**%s.**' % tag for tag in tags), first)
+
+        lines = textwrap.wrap(first, 78, initial_indent='"""')
+        assert lines[0].startswith('"""')
+        lines[0] = lines[0][3:]
+
+        if rest:
+            lines.append('')
+            lines.extend(textwrap.wrap(rest, 78))
+            lines.extend(('', ''))
+
+        val = '\n'.join(lines)
+        self.__dict__['docString'] = val
 
     def __str__(self):
         me = StringIO()
