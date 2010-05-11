@@ -1198,7 +1198,7 @@ class TestTypePad(unittest.TestCase):
         post = self.post_asset()
         post.content = 'Test post asset by group'
 
-        self.assertUnauthorized(
+        self.assertForbidden(
             typepad.Group.get_by_url_id(group_id).post_assets.post, post)
 
     @attr(user='blocked')
@@ -1244,7 +1244,7 @@ class TestTypePad(unittest.TestCase):
         video = self.video_asset()
         video.content = 'Test video post by group'
 
-        self.assertUnauthorized(
+        self.assertForbidden(
             typepad.Group.get_by_url_id(group_id).video_assets.post, video)
 
     @attr(user='blocked')
