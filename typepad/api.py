@@ -49,32 +49,35 @@ class Account(TypePadObject):
     """A user account on an external website."""
 
     crosspostable = fields.Field()
-    """True if this account supports crossposting and the user has enabled it, or
-    false otherwise."""
-    domain = fields.Field()
-    """The DNS domain of the site that the account belongs to."""
-    id = fields.Field()
-    """A URI that serves as a globally-unique id for the account."""
-    provider_icon_url = fields.Field(api_name='providerIconURL')
-    """The URL of a 16x16 pixel icon that represents the service provider of this
-    account."""
-    provider_name = fields.Field(api_name='providerName')
-    """A human-friendly name of the service provider of this account."""
-    provider_url = fields.Field(api_name='providerURL')
-    """The URL of the home page of the service provider of this account."""
-    url = fields.Field()
-    """The URL of the user's profile page or some other primary page on the remote
-    site, if known."""
-    user_id = fields.Field(api_name='userId')
-    """The non-user-friendly id or primary key for the account, if known.
+    """`True` if this account can be used to crosspost, or `False` otherwise.
 
-    (Some sites only have a username.)
+    An account can be used to crosspost if its service supports crossposting and
+    the user has enabled crossposting for the specific account.
+
+    """
+    domain = fields.Field()
+    """The DNS domain of the service that provides the account."""
+    id = fields.Field()
+    """A URI that serves as a globally unique identifier for the account."""
+    provider_icon_url = fields.Field(api_name='providerIconURL')
+    """The URL of a 16-by-16 pixel icon that represents the service that provides
+    this account."""
+    provider_name = fields.Field(api_name='providerName')
+    """A human-friendly name for the service that provides this account."""
+    provider_url = fields.Field(api_name='providerURL')
+    """The URL of the home page of the service that provides this account."""
+    url = fields.Field()
+    """The URL of the user's profile or primary page on the remote site, if known."""
+    user_id = fields.Field(api_name='userId')
+    """The machine identifier or primary key for the account, if known.
+
+    (Some sites only have a `username`.)
 
     """
     username = fields.Field()
     """The username of the account, if known.
 
-    (Some sites only have a userId.)
+    (Some sites only have a `user_id`.)
 
     """
 
@@ -82,8 +85,11 @@ class Account(TypePadObject):
 class ApiKey(TypePadObject):
 
     api_key = fields.Field(api_name='apiKey')
-    """The actual API key string, which is used as the consumer key when making an
-    OAuth request."""
+    """The actual API key string.
+
+    Use this as the consumer key when making an OAuth request.
+
+    """
     owner = fields.Object('Application')
     """The application that owns this API key.
 
@@ -110,18 +116,12 @@ class Asset(TypePadObject):
     _class_object_type = "Asset"
 
     author = fields.Object('User')
-    """The user that created the selected asset.
+    """The user who created the selected asset.
 
     :attrtype:`User`
 
     """
-    categories = fields.List(fields.Field())
-    """A list of categories (strings) associated with the asset.
-
-    :attrtype:`list`
-
-    """
-    categories_obj = fields.Link(ListObject, api_name='categories')
+    categories = fields.Link(ListObject)
     """Get a list of categories into which this asset has been placed within its
     blog.
 
@@ -132,8 +132,12 @@ class Asset(TypePadObject):
 
     """
     comment_count = fields.Field(api_name='commentCount')
-    """The number of comments that have been posted in the comment tree beneath
-    this asset."""
+    """The number of comments that have been posted in reply to this asset.
+
+    This number includes comments that have been posted in response to other
+    comments.
+
+    """
     comment_tree = fields.Link(ListOf('CommentTreeItem'), api_name='comment-tree')
     """Get a list of assets that were posted in response to the selected asset and
     their depth in the response tree
@@ -150,17 +154,27 @@ class Asset(TypePadObject):
     :attrtype:`list of Comment`
 
     """
+    container = fields.Object('ContainerRef')
+    """An object describing the group or blog to which this asset belongs.
+
+    :attrtype:`ContainerRef`
+
+    """
     content = fields.Field()
     """The raw asset content.
 
-    The ``textFormat`` property defines what format this data is in. This property
-    is the field used to set the asset content in write operations; an asset
-    posted in a group may have a content length of up to 10,000 bytes, while a
-    post asset in a blog may have a content length of up to 65,000 bytes.
+    The `text_format` property describes how to format this data. Use this
+    property to set the asset content in write operations. An asset posted in a
+    group may have a `content` value up to 10,000 bytes long, while a `Post` asset
+    in a blog may have up to 65,000 bytes of content.
 
     """
     crosspost_accounts = fields.List(fields.Field(), api_name='crosspostAccounts')
-    """A list of elsewhere account IDs to crosspost to.
+    """**Editable.** A set of identifiers for `Account` objects to which to
+    crosspost this asset when it's posted.
+
+    This property is omitted when retrieving existing assets.
+
 
     :attrtype:`list`
 
@@ -189,29 +203,22 @@ class Asset(TypePadObject):
 
     """
     groups = fields.List(fields.Field())
-    """An array of strings containing the id URIs of the groups that this asset is
-    mapped into, if any.
+    """**Deprecated.** An array of strings containing the `id` URI of the `Group`
+    object that this asset is mapped into, if any.
 
-    At present an asset can only be added to one group, but this may change in
-    future.
+    This property has been superseded by the `container` property.
 
 
     :attrtype:`list`
 
     """
     id = fields.Field()
-    """A URI that serves as a globally-unique id for the user.
-
-    This can be used to recognise where the same user is returned in response to
-    different requests, and as a mapping key for an application's local data
-    store.
-
-    """
+    """A URI that serves as a globally unique identifier for the user."""
     is_favorite_for_current_user = fields.Field(api_name='isFavoriteForCurrentUser')
-    """``true`` if this asset is a favorite for the current user, or ``false``
-    otherwise.
+    """`True` if this asset is a favorite for the currently authenticated user, or
+    `False` otherwise.
 
-    This property is not set for responses to anonymous requests.
+    This property is omitted from responses to anonymous requests.
 
     """
     media_assets = fields.Link(ListOf('Asset'), api_name='media-assets')
@@ -222,28 +229,37 @@ class Asset(TypePadObject):
 
     """
     object_type = fields.Field(api_name='objectType')
-    """The object type identifier"""
+    """The keyword identifying the type of asset this is."""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """**Deprecated.** An array of object type identifier URIs.
+    """**Deprecated.** An array of object type identifier URIs identifying the
+    type of this asset.
 
-    At the present time, only one object type is returned per asset, but this may
-    be extended in future. Clients should scan this list and ignore any types that
-    are not recognised. This list also includes appropriate type URIs as defined
-    by the ActivityStrea.ms schema specification.
+    Only the one object type URI for the particular type of asset this asset is
+    will be present.
 
 
     :attrtype:`list`
 
     """
     permalink_url = fields.Field(api_name='permalinkUrl')
-    """The URL which is considered to be this asset's permalink.
+    """The URL that is this asset's permalink.
 
-    This might be ``null`` if the asset does not have a permalink of its own (for
-    example, if it's embedded in another asset), or if TypePad does not know its
+    This will be omitted if the asset does not have a permalink of its own (for
+    example, if it's embedded in another asset) or if TypePad does not know its
     permalink.
 
     """
-    publication_status = fields.Link('PublicationStatus', api_name='publication-status')
+    publication_status = fields.Object('PublicationStatus', api_name='publicationStatus')
+    """**Editable.** An object describing the visibility status and publication
+    date for this asset.
+
+    Only visibility status is editable.
+
+
+    :attrtype:`PublicationStatus`
+
+    """
+    publication_status_obj = fields.Link('PublicationStatus', api_name='publication-status')
     """Get the publication status of selected asset  PUT: Set the publication
     status of selected asset
 
@@ -251,7 +267,7 @@ class Asset(TypePadObject):
 
     """
     published = fields.Datetime()
-    """The time that the asset was created, as an RFC3339 timestamp.
+    """The time at which the asset was created, as a W3CDTF timestamp.
 
     :attrtype:`datetime`
 
@@ -269,35 +285,33 @@ class Asset(TypePadObject):
 
     """
     source = fields.Object('AssetSource')
-    """An object describing the site from which this asset was retrieved, for
-    assets obtained from external feeds.
+    """An object describing the site from which this asset was retrieved, if the
+    asset was obtained from an external source.
 
     :attrtype:`AssetSource`
 
     """
-    summary = fields.Field()
-    """For a media type of `Asset`, the HTML description or caption given by its
-    author."""
     text_format = fields.Field(api_name='textFormat')
-    """A keyword which indicates what formatting mode is used for the content of
+    """A keyword that indicates what formatting mode to use for the content of
     this asset.
 
-    This can currently be "html" for assets whose content is HTML,
-    "html_convert_linebreaks" for assets whose content is HTML with paragraph tags
-    added automatically, or "markdown" for assets whose content is Markdown. Other
-    formatting modes may be added in future. Applications which present assets for
-    editing should use this property to present an appropriate editor.
+    This can be ``html`` for assets the content of which is HTML,
+    ``html_convert_linebreaks`` for assets the content of which is HTML but where
+    paragraph tags should be added automatically, or ``markdown`` for assets the
+    content of which is Markdown source. Other formatting modes may be added in
+    future. Applications that present assets for editing should use this property
+    to present an appropriate editor.
 
     """
     title = fields.Field()
     """The title of the asset."""
     url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id"
-    for this object in URLs.
+    """A string containing the canonical identifier that can be used to identify
+    this object in URLs.
 
-    However, this should not be used as a database key to avoid collisions when an
-    application is switched to a different backend server; use the "id" property
-    instead.
+    This can be used to recognise where the same user is returned in response to
+    different requests, and as a mapping key for an application's local data
+    store.
 
     """
 
@@ -348,47 +362,34 @@ class AssetRef(TypePadObject):
     content."""
 
     author = fields.Object('User')
-    """The user that created the selected asset.
+    """The user who created the referenced asset.
 
     :attrtype:`User`
 
     """
     href = fields.Field()
-    """The URL at which a representation of the corresponding asset can be
-    retrieved."""
+    """The URL of a representation of the referenced asset."""
     id = fields.Field()
-    """A URI that serves as a globally-unique id for the asset.
-
-    This matches the "id" property in the corresponding `Asset` object.
-
-    """
+    """The URI from the referenced `Asset` object's `id` property."""
     object_type = fields.Field(api_name='objectType')
-    """The object type identifier"""
+    """The keyword identifying the type of asset the referenced `Asset` object is."""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """**Deprecated.** An array of object type identifier URIs.
+    """**Deprecated.** An array of object type identifier URIs identifying the
+    type of the referenced asset.
 
-    At the present time, only one object type is returned per asset, but this may
-    be extended in future. Clients should scan this list and ignore any types that
-    are not recognised. This list also includes appropriate type URIs as defined
-    by the ActivityStrea.ms schema specification.
+    Only the one object type URI for the particular type of asset the referenced
+    asset is will be present.
 
 
     :attrtype:`list`
 
     """
     type = fields.Field()
-    """The MIME type of the representation at the URL given in the "href"
+    """The MIME type of the representation at the URL given in the `href`
     property."""
     url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id"
-    for this object in URLs.
-
-    However, this should not be used as a database key to avoid collisions when an
-    application is switched to a different backend server such as the development
-    server; use the "id" property instead. This matchies the "urlId" propert in
-    the corresponding asset.
-
-    """
+    """The canonical identifier from the referenced `Asset` object's `url_id`
+    property."""
 
     def reclass_for_data(self, data):
         """Returns ``False``.
@@ -407,16 +408,19 @@ class AssetSource(TypePadObject):
     """Information about an `Asset` instance imported from another service."""
 
     by_user = fields.Field(api_name='byUser')
-    """**Deprecated.** ``true`` if this content is considered to be created by its
-    author, or ``false`` if it's actually someone else's content imported by the
+    """**Deprecated.** `True` if this content is considered to be created by its
+    author, or `False` if it's actually someone else's content imported by the
     asset author."""
     permalink_url = fields.Field(api_name='permalinkUrl')
-    """The URL which is considered to be this asset source's permalink."""
+    """The permalink URL of the resource from which the related asset was
+    imported."""
     provider = fields.Dict(fields.Field())
     """**Deprecated.** Description of the external service provider from which
-    this content was imported.
+    this content was imported, if known.
 
-    Contains "name", "icon", and "uri" properties.
+    Contains ``name``, ``icon``, and ``uri`` properties. This property will be
+    omitted if the service from which the related asset was imported is not
+    recognized.
 
 
     :attrtype:`dict`
@@ -429,24 +433,29 @@ class AudioLink(TypePadObject):
     """A link to an audio recording."""
 
     duration = fields.Field()
-    """An optional property representing the duration of the audio stream in
-    seconds, if known."""
+    """The duration of the audio stream in seconds.
+
+    This property will be omitted if the length of the audio stream could not be
+    determined.
+
+    """
     url = fields.Field()
-    """The URL for an MP3 representation of the audio stream."""
+    """The URL of an MP3 representation of the audio stream."""
 
 
 class AuthToken(TypePadObject):
 
     auth_token = fields.Field(api_name='authToken')
-    """The actual auth token string, which is used as the access token when making
-    an OAuth request."""
+    """The actual auth token string.
+
+    Use this as the access token when making an OAuth request.
+
+    """
     target_object = fields.Object('TypePadObject', api_name='targetObject')
     """**Deprecated.** The root object to which this auth token grants access.
 
     This is a legacy field maintained for backwards compatibility with older
-    clients. Auth tokens are no longer scoped to specific objects, so this value
-    will be meaningless in any case except those where a specific object is
-    returned to preserve some client behavior.
+    clients, as auth tokens are no longer scoped to specific objects.
 
 
     :attrtype:`TypePadObject`
@@ -490,13 +499,7 @@ class Blog(TypePadObject):
     home_url = fields.Field(api_name='homeUrl')
     """The URL of the blog's home page."""
     id = fields.Field()
-    """A URI that serves as a globally-unique id for the object.
-
-    This can be used to recognise where the same user is returned in response to
-    different requests, and as a mapping key for an application's local data
-    store.
-
-    """
+    """A URI that serves as a globally unique identifier for the object."""
     media_assets = fields.Link(ListOf('Asset'), api_name='media-assets')
     """POST: Add a new media asset to the account that owns this blog.
 
@@ -504,20 +507,23 @@ class Blog(TypePadObject):
 
     """
     object_type = fields.Field(api_name='objectType')
-    """The object type identifier"""
+    """The keyword identifying the type of object this is.
+
+    For a Blog object, `object_type` will be ``Blog``.
+
+    """
     object_types = fields.List(fields.Field(), api_name='objectTypes')
     """**Deprecated.** An array of object type identifier URIs.
 
-    At the present time, only one object type is returned per object, but this may
-    be extended in future. Clients should scan this list and ignore any types that
-    are not recognized.
+    This set will contain the string ``tag:api.typepad.com,2009:Blog`` for a Blog
+    object.
 
 
     :attrtype:`list`
 
     """
     owner = fields.Object('User')
-    """The user that owns the blog.
+    """The user who owns the blog.
 
     :attrtype:`User`
 
@@ -550,12 +556,12 @@ class Blog(TypePadObject):
     title = fields.Field()
     """The title of the blog."""
     url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id"
-    for this object in URLs.
+    """A string containing the canonical identifier that can be used to identify
+    this object in URLs.
 
-    However, this should not be used as a database key to avoid collisions when an
-    application is switched to a different backend server; use the "id" property
-    instead.
+    This can be used to recognise where the same user is returned in response to
+    different requests, and as a mapping key for an application's local data
+    store.
 
     """
 
@@ -575,39 +581,33 @@ class Blog(TypePadObject):
 class BlogCommentingSettings(TypePadObject):
 
     captcha_required = fields.Field(api_name='captchaRequired')
-    """``true`` if this blog requires anonymous commenters to pass a CAPTCHA
-    before submitting a comment."""
+    """`True` if this blog requires anonymous commenters to pass a CAPTCHA before
+    submitting a comment, or `False` otherwise."""
     email_address_required = fields.Field(api_name='emailAddressRequired')
-    """``true`` if this blog requires anonymous comments to be submitted with an
-    email address."""
+    """`True` if this blog requires anonymous comments to be submitted with an
+    email address, or `False` otherwise."""
     html_allowed = fields.Field(api_name='htmlAllowed')
-    """``true`` if this blog allows commenters to use basic HTML formatting in
-    comments."""
+    """`True` if this blog allows commenters to use basic HTML formatting in
+    comments, or `False` if HTML will be removed."""
     moderation_enabled = fields.Field(api_name='moderationEnabled')
-    """``true`` if this blog places new comments into a moderation queue for
-    approval before they are displayed."""
+    """`True` if this blog places new comments into a moderation queue for
+    approval before they are displayed, or `False` if new comments may be
+    available immediately."""
     signin_allowed = fields.Field(api_name='signinAllowed')
-    """``true`` if this blog allows users to sign in to comment.
-
-    If ``false``, all new comments are anonymous.
-
-    """
+    """`True` if this blog allows users to sign in to comment, or `False` if all
+    new comments are anonymous."""
     signin_required = fields.Field(api_name='signinRequired')
-    """``true`` if this blog requires users to be logged in in order to leave a
-    comment.
-
-    If ``false``, anonymous comments will be rejected.
-
-    """
+    """`True` if this blog requires users to be logged in in order to leave a
+    comment, or `False` if anonymous comments will be rejected."""
     time_limit = fields.Field(api_name='timeLimit')
     """Number of days after a post is published that comments will be allowed.
 
-    Absent if this blog has no time limit for comments.
+    If the blog has no time limit for comments, this property will be omitted.
 
     """
     urls_auto_linked = fields.Field(api_name='urlsAutoLinked')
-    """``true`` if comments in this blog will automatically have any bare URLs
-    turned into links."""
+    """`True` if comments in this blog will automatically have any bare URLs
+    turned into links, or `False` if URLs will be shown unlinked."""
 
 
 class BlogStats(TypePadObject):
@@ -629,19 +629,34 @@ class BlogStats(TypePadObject):
 class CommentTreeItem(TypePadObject):
 
     comment = fields.Object('Asset')
-    """A comment asset in the tree
+    """The comment asset at this point in the tree.
 
     :attrtype:`Asset`
 
     """
     depth = fields.Field()
-    """How many levels deep this comment is in the comment hierarchy.
+    """The number of levels deep this comment is in the tree.
 
-    If a given comment has a depth of 1 then all of the direct replies to that
-    comment will have a depth of 2, and their replies will have depth 3, etc. 1
-    indicates a direct reply to the root asset.
+    A comment that is directly in reply to the root asset is 1 level deep. If a
+    given comment has a depth of 1, all of the direct replies to that comment will
+    have a depth of 2; their replies will have depth 3, and so forth.
 
     """
+
+
+class ContainerRef(TypePadObject):
+
+    display_name = fields.Field(api_name='displayName')
+    """The display name of the blog or group, as set by its owner."""
+    home_url = fields.Field(api_name='homeUrl')
+    """The URL of the home page of the referenced blog or group."""
+    id = fields.Field()
+    """The URI from the `id` property of the referenced blog or group."""
+    object_type = fields.Field(api_name='objectType')
+    """The keyword identifying the type of object the referenced container is."""
+    url_id = fields.Field(api_name='urlId')
+    """The canonical identifier from the `url_id` property of the referenced blog
+    or group."""
 
 
 class Endpoint(TypePadObject):
@@ -653,11 +668,11 @@ class Endpoint(TypePadObject):
 
     """
     can_have_id = fields.Field(api_name='canHaveId')
-    """For noun endpoints, true if an id part is accepted, or false if the noun
-    may only be used alone."""
+    """For noun endpoints, `True` if an id part is accepted, or `False` if the
+    noun may only be used alone."""
     can_omit_id = fields.Field(api_name='canOmitId')
-    """For noun endpoints, true if the id part can be ommitted, or false if it is
-    always required."""
+    """For noun endpoints, `True` if the id part can be ommitted, or `False` if it
+    is always required."""
     filter_endpoints = fields.List(fields.Object('Endpoint'), api_name='filterEndpoints')
     """For endpoints that return lists, an array of filters that can be appended
     to the endpoint.
@@ -666,14 +681,17 @@ class Endpoint(TypePadObject):
 
     """
     format_sensitive = fields.Field(api_name='formatSensitive')
-    """true if this requires expects a format suffix, or false otherwise."""
+    """`True` if this endpoint requires a format suffix, or `False` otherwise."""
     name = fields.Field()
-    """The name of the noun, as it appears in URLs."""
+    """The name of the endpoint, as it appears in URLs."""
     parameterized = fields.Field()
-    """For filter endpoints, true if a parameter is required on the filter, or
-    false if it's a boolean filter."""
+    """For filter endpoints, `True` if a parameter is required on the filter, or
+    `False` if it's a boolean filter."""
     post_object_type = fields.Object('ObjectType', api_name='postObjectType')
-    """The type of object that this endpoint accepts for POST operations.
+    """The type of object that this endpoint accepts for ``POST`` operations.
+
+    This property is omitted if this endpoint does not accept ``POST`` requests.
+
 
     :attrtype:`ObjectType`
 
@@ -685,10 +703,10 @@ class Endpoint(TypePadObject):
 
     """
     resource_object_type = fields.Object('ObjectType', api_name='resourceObjectType')
-    """The type of object that this endpoint represents for GET, PUT and DELETE
-    operations.
+    """The type of object that this endpoint represents for ``GET``, ``PUT`` and
+    ``DELETE`` operations.
 
-    This is not returned for action endpoints, since they do not represent
+    This property is omitted for action endpoints, as they do not represent
     resources.
 
 
@@ -699,15 +717,16 @@ class Endpoint(TypePadObject):
     """For action endpoints, the type of object that this endpoint returns on
     success.
 
-    If the endpoint returns no payload on success, this property is null.
+    If the endpoint returns no payload on success, or if this is not an action
+    endpoint, this property is omitted.
 
 
     :attrtype:`ObjectType`
 
     """
     supported_methods = fields.Dict(fields.Field(), api_name='supportedMethods')
-    """A mapping whose keys are the HTTP method that this endpoint accepts and
-    whose values are docstrings describing the result of each method.
+    """A mapping of the HTTP methods that this endpoint accepts to the docstrings
+    describing the result of each method.
 
     :attrtype:`dict`
 
@@ -723,20 +742,14 @@ class Endpoint(TypePadObject):
 class Entity(TypePadObject):
 
     id = fields.Field()
-    """A URI that serves as a globally-unique id for the object.
+    """A URI that serves as a globally unique identifier for the object."""
+    url_id = fields.Field(api_name='urlId')
+    """A string containing the canonical identifier that can be used to identify
+    this object in URLs.
 
     This can be used to recognise where the same user is returned in response to
     different requests, and as a mapping key for an application's local data
     store.
-
-    """
-    url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id"
-    for this object in URLs.
-
-    However, this should not be used as a database key to avoid collisions when an
-    application is switched to a different backend server; use the "id" property
-    instead.
 
     """
 
@@ -753,38 +766,33 @@ class Event(TypePadObject):
 
     """
 
-    actor = fields.Object('User')
-    """The user that did the action that the event describes.
+    actor = fields.Object('Entity')
+    """The user who performed the action described by this event.
 
-    :attrtype:`User`
+    :attrtype:`Entity`
 
     """
     id = fields.Field()
-    """A URI that serves as a globally-unique id for the user.
+    """A URI that serves as a globally unique identifier for the user."""
+    object = fields.Object('TypePadObject')
+    """The object to which the action described by this event was performed.
+
+    :attrtype:`TypePadObject`
+
+    """
+    published = fields.Field()
+    """The time at which the event was performed, as a W3CDTF timestamp."""
+    url_id = fields.Field(api_name='urlId')
+    """A string containing the canonical identifier that can be used to identify
+    this object in URLs.
 
     This can be used to recognise where the same user is returned in response to
     different requests, and as a mapping key for an application's local data
     store.
 
     """
-    object = fields.Object('TypePadObject')
-    """The object that the action was done to.
-
-    :attrtype:`TypePadObject`
-
-    """
-    published = fields.Datetime()
-    url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id"
-    for this object in URLs.
-
-    However, this should not be used as a database key to avoid collisions when an
-    application is switched to a different backend server; use the "id" property
-    instead.
-
-    """
     verb = fields.List(fields.Field())
-    """A string identifying the event verb (such as 'NewPost')
+    """A keyword identifying the type of event this is.
 
     :attrtype:`list`
 
@@ -792,10 +800,7 @@ class Event(TypePadObject):
     verbs = fields.List(fields.Field())
     """**Deprecated.** An array of verb identifier URIs.
 
-    At the present time, only one verb is returned, but this may be extended in
-    future. Clients should scan this list and ignore any verbs that are not
-    recognised. This list also includes appropriate verb URIs as defined by the
-    ActivityStrea.ms schema specification.
+    This set will contain one verb identifier URI.
 
 
     :attrtype:`list`
@@ -827,38 +832,32 @@ class Favorite(TypePadObject):
     _class_object_type = "Favorite"
 
     author = fields.Object('User')
-    """The owner of this favorite.
+    """The user who saved this favorite.
 
-    This is the user that marked the asset as a favorite, not the owner of the
-    target asset.
+    That is, this property is the user who saved the target asset as a favorite,
+    not the creator of that asset.
 
 
     :attrtype:`User`
 
     """
     id = fields.Field()
-    """A URI that serves as a globally-unique id for the favorite.
-
-    This can be used to recognise where the same favorite is returned in response
-    to different requests, and as a mapping key for an application's local data
-    store.
-
-    """
+    """A URI that serves as a globally unique identifier for the favorite."""
     in_reply_to = fields.Object('AssetRef', api_name='inReplyTo')
-    """A reference to the asset that has been marked as a favorite.
+    """A reference to the target asset that has been marked as a favorite.
 
     :attrtype:`AssetRef`
 
     """
     published = fields.Field()
-    """The time that the favorite was created, as an RFC3339 timestamp."""
+    """The time that the favorite was created, as a W3CDTF timestamp."""
     url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id"
-    for this favorite in URLs.
+    """A string containing the canonical identifier that can be used to identify
+    this favorite in URLs.
 
-    However, this should not be used as a database key to avoid collisions when an
-    application is switched to a different backend server such as the development
-    server; use the "id" property instead.
+    This can be used to recognise where the same favorite is returned in response
+    to different requests, and as a mapping key for an application's local data
+    store.
 
     """
 
@@ -890,11 +889,14 @@ class Favorite(TypePadObject):
 class FeedbackStatus(TypePadObject):
 
     allow_comments = fields.Field(api_name='allowComments')
-    """``true`` if this asset accepts comments, ``false`` otherwise"""
+    """`True` if new comments may be posted to the related asset, or `False` if no
+    new comments are accepted."""
     allow_trackback = fields.Field(api_name='allowTrackback')
-    """``true`` if this asset accepts pings, ``false`` otherwise"""
+    """`True` if new trackback pings may be posted to the related asset, or
+    `False` if no new pings are accepted."""
     show_comments = fields.Field(api_name='showComments')
-    """``true`` if this asset displays comments, ``false`` otherwise"""
+    """`True` if comments should be displayed on the related asset's permalink
+    page, or `False` if they should be hidden."""
 
 
 class ImageLink(TypePadObject, _ImageResizer):
@@ -909,26 +911,26 @@ class ImageLink(TypePadObject, _ImageResizer):
     height = fields.Field()
     """The height of the original image in pixels.
 
-    Omitted if TypePad does not know the dimensions of this image, for example if
-    the image is not actually hosted on TypePad itself.
+    If the height of the image is not available (for example, if the image isn't
+    hosted on TypePad), this property will be omitted.
 
     """
     url = fields.Field()
-    """The URL for the original (full-size) version of this image."""
+    """The URL for the original, full size version of the image."""
     url_template = fields.Field(api_name='urlTemplate')
-    """If TypePad is able to provide a scaled version of this image, a URL
-    template which uses the placeholder ``{spec}`` to represent where to place a
-    sizing spec as described above.
+    """An URL template with which to build alternate sizes of this image.
 
-    Omitted if TypePad is unable to provide a scaled version of this image, for
-    example if the image is not actually hosted on TypePad itself.
+    If present, replace the placeholder string ``{spec}`` with a valid sizing
+    specifier to generate the URL for an alternate version of this image. This
+    property is omitted if TypePad is unable to provide a scaled version of this
+    image (for example, if the image isn't hosted on TypePad).
 
     """
     width = fields.Field()
     """The width of the original image in pixels.
 
-    Omitted if TypePad does not know the dimensions of this image, for example if
-    the image is not actually hosted on TypePad itself.
+    If the width of the image is not available (for example, if the image isn't
+    hosted on TypePad), this property will be omitted.
 
     """
 
@@ -938,7 +940,7 @@ class ImageLink(TypePadObject, _ImageResizer):
 class ObjectProperty(TypePadObject):
 
     doc_string = fields.Field(api_name='docString')
-    """A human-readable documentation string for this property."""
+    """A human-readable description of this property."""
     name = fields.Field()
     """The name of the property."""
     type = fields.Field()
@@ -948,16 +950,20 @@ class ObjectProperty(TypePadObject):
 class ObjectType(TypePadObject):
 
     name = fields.Field()
-    """The name of the type.
+    """The name of this object type.
 
-    Absent if this is an anonymous type representing the request or response of an
-    action endpoint.
+    If this is an anonymous type representing the request or response of an action
+    endpoint, this property is omitted.
 
     """
     parent_type = fields.Field(api_name='parentType')
-    """The name of the parent type, if any."""
+    """The name of the parent type.
+
+    This property is omitted if this object type has no parent type.
+
+    """
     properties = fields.List(fields.Object('ObjectProperty'))
-    """The properties of this type.
+    """The properties belonging to objects of this object type.
 
     :attrtype:`list of ObjectProperty`
 
@@ -967,7 +973,7 @@ class ObjectType(TypePadObject):
 class PostByEmailAddress(TypePadObject):
 
     email_address = fields.Field(api_name='emailAddress')
-    """A private email address for posting via email"""
+    """A private email address for posting via email."""
 
 
 class PublicationStatus(TypePadObject):
@@ -983,9 +989,16 @@ class PublicationStatus(TypePadObject):
     """
 
     draft = fields.Field()
-    """``true`` if this asset is private, ``false`` otherwise"""
+    """`True` if this asset is private (not yet published), or `False` if it has
+    been published."""
     publication_date = fields.Field(api_name='publicationDate')
-    """Represents an asset's publication date (past or future)"""
+    """The time at which the related asset was (or will be) published, as a W3CDTF
+    timestamp.
+
+    If the related asset has been scheduled to be posted later, this property's
+    timestamp will be in the future.
+
+    """
 
 
 class Relationship(TypePadObject):
@@ -1000,23 +1013,28 @@ class Relationship(TypePadObject):
     """
 
     created = fields.Dict(fields.Datetime())
-    id = fields.Field()
-    """A URI that serves as a globally-unique id for the relationship.
+    """A mapping of the relationship types present between the source and target
+    objects to the times those types of relationship were established.
 
-    This can be used to recognise where the same relationship is returned in
-    response to different requests, and as a mapping key for an application's
-    local data store.
+    The keys of the map are the relationship type URIs present in the
+    relationship's `status` property; the values are W3CDTF timestamps for the
+    times those relationship edges were created.
+
+
+    :attrtype:`dict of datetime`
 
     """
+    id = fields.Field()
+    """A URI that serves as a globally unique identifier for the relationship."""
     source = fields.Object('Entity')
-    """The source entity, the 'subject' of the relationship.
+    """The source entity of the relationship.
 
     :attrtype:`Entity`
 
     """
     status = fields.Object('RelationshipStatus')
-    """A RelationshipStatus object describing the types of relationship that
-    currently exist between the source and the target.
+    """An object describing all the types of relationship that currently exist
+    between the source and target objects.
 
     :attrtype:`RelationshipStatus`
 
@@ -1033,18 +1051,18 @@ class Relationship(TypePadObject):
 
     """
     target = fields.Object('Entity')
-    """The target entity, the 'object' of the relationship.
+    """The target entity of the relationship.
 
     :attrtype:`Entity`
 
     """
     url_id = fields.Field(api_name='urlId')
-    """A string containing the canonical identifier that can be used as the "id"
-    for this object in URLs.
+    """A string containing the canonical identifier that can be used to identify
+    this object in URLs.
 
-    However, this should not be used as a database key to avoid collisions when an
-    application is switched to a different backend server; use the "id" property
-    instead.
+    This can be used to recognise where the same relationship is returned in
+    response to different requests, and as a mapping key for an application's
+    local data store.
 
     """
 
@@ -1090,7 +1108,8 @@ class RelationshipStatus(TypePadObject):
     without the associated endpoints."""
 
     types = fields.List(fields.Field())
-    """A list of strings containing relationship type URIs.
+    """A list of relationship type URIs describing the types of the related
+    relationship.
 
     :attrtype:`list`
 
@@ -1108,10 +1127,10 @@ class UserProfile(TypePadObject):
     """
 
     about_me = fields.Field(api_name='aboutMe')
-    """The long-form description or bio, as a free-form string provided by the
-    user."""
+    """The user's long description or biography, as a free-form string they
+    provided."""
     avatar_link = fields.Object('ImageLink', api_name='avatarLink')
-    """Link to this user's avatar (userpic) image.
+    """A link to an image representing this user.
 
     :attrtype:`ImageLink`
 
@@ -1119,63 +1138,74 @@ class UserProfile(TypePadObject):
     display_name = fields.Field(api_name='displayName')
     """The user's chosen display name."""
     email = fields.Field()
-    follow_frame_content_url = fields.Field(api_name='followFrameContentUrl')
-    """URL of a page which can be rendered in an iframe to produce a widget
-    through which the remote user can follow this user.
+    """The user's email address.
 
-    Should be rendered in an iframe that's 300 pixels wide and 125 pixels high.
+    This property is only provided for authenticated requests if the user has
+    shared it with the authenticated application, and the authenticated user is
+    allowed to view it (as with administrators of groups the user has joined). In
+    all other cases, this property is omitted.
+
+    """
+    follow_frame_content_url = fields.Field(api_name='followFrameContentUrl')
+    """The URL of a widget that, when rendered in an ``iframe``, allows viewers to
+    follow this user.
+
+    Render this widget in an ``iframe`` 300 pixels wide and 125 pixels high.
 
     """
     gender = fields.Field()
-    homepage_url = fields.Field(api_name='homepageUrl')
-    """URL that the user has specified as an external website URL.
+    """The user's gender, as they provided it.
 
-    ``null`` if the user has not provided a website URL.
+    This property is only provided for authenticated requests if the user has
+    shared it with the authenticated application, and the authenticated user is
+    allowed to view it (as with administrators of groups the user has joined). In
+    all other cases, this property is omitted.
+
+    """
+    homepage_url = fields.Field(api_name='homepageUrl')
+    """The address of the user's homepage, as a URL they provided.
+
+    This property is omitted if the user has not provided a homepage.
 
     """
     id = fields.Field()
-    """A URI that uniquely identifies the `User` associated with this
-    `UserProfile`."""
+    """The URI from the related `User` object's `id` property."""
     interests = fields.List(fields.Field())
-    """A list of interests provided by the user and displayed on the user's
-    profile page.
+    """A list of interests provided by the user and displayed on their profile
+    page.
 
     :attrtype:`list`
 
     """
     location = fields.Field()
-    """The location of the user, as a free-form string provided by the user."""
+    """The user's location, as a free-form string they provided."""
     membership_management_page_url = fields.Field(api_name='membershipManagementPageUrl')
-    """URL of a page at which this user can manage group memberships.
+    """The URL of a page where this user can manage their group memberships.
 
-    This is present only if the remote user has access to do this.
+    If this is not the authenticated user's UserProfile object, this property is
+    omitted.
 
     """
     preferred_username = fields.Field(api_name='preferredUsername')
-    """The name the user has chosen for use in his TypePad Profile URL.
+    """The name the user has chosen for use in the URL of their TypePad profile
+    page.
 
-    This can be used as the id in the URL to select this user, though it must not
-    be used as a persistent key since it can be changed by the user at any time.
+    This property can be used to select this user in URLs, although it is not a
+    persistent key, as the user can change it at any time.
 
     """
     profile_edit_page_url = fields.Field(api_name='profileEditPageUrl')
-    """URL of a page at which this user can edit the profile information attached
-    to the user account.
+    """The URL of a page where this user can edit their profile information.
 
-    This is present only if the remote user has access to do this.
+    If this is not the authenticated user's UserProfile object, this property is
+    omitted.
 
     """
     profile_page_url = fields.Field(api_name='profilePageUrl')
-    """URL of the user's profile page."""
+    """The URL of the user's TypePad profile page."""
     url_id = fields.Field(api_name='urlId')
-    """An identifier for this `UserProfile` that can be used in URLs.
-
-    A user's `url_id` is unique only across groups in one TypePad environment, so
-    you should use `id`, not `url_id`, to associate data with a `User` (or
-    `UserProfile`). When constructing URLs to API resources in one particular
-    TypePad environment, however, use `url_id`.
-
-    """
+    """The canonical identifier from the related `User` object's `url_id`
+    property."""
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/users/%s/profile.json' % self.url_id)
@@ -1199,14 +1229,13 @@ class VideoLink(TypePadObject, _VideoResizer):
     """A link to a web video."""
 
     embed_code = fields.Field(api_name='embedCode')
-    """An opaque HTML fragment which, when embedded in a HTML page, will provide
-    an inline player for the video."""
+    """An opaque HTML fragment that, when embedded in a HTML page, provides an
+    inline player for the video."""
     permalink_url = fields.Field(api_name='permalinkUrl')
-    """A URL to the HTML permalink page of the video.
+    """**Editable.** The permalink URL for the video on its own site.
 
-    Use this field to specify the video when posting a new `Video` asset. When
-    requesting an existing `Video` instance from the API, `permalink_url` will be
-    ``None``.
+    When posting a new video, send only the `permalink_url` property; videos on
+    supported sites will be discovered and the embed code generated automatically.
 
     """
 
@@ -1229,6 +1258,12 @@ class Application(Entity):
 
     _class_object_type = "Application"
 
+    external_feed_subscriptions = fields.Link(ListOf('ExternalFeedSubscription'), api_name='external-feed-subscriptions')
+    """Get a list of the application's active external feed subscriptions.
+
+    :attrtype:`list of ExternalFeedSubscription`
+
+    """
     name = fields.Field()
     """The name of the application as provided by its developer."""
     oauth_access_token_url = fields.Field(api_name='oauthAccessTokenUrl')
@@ -1236,17 +1271,21 @@ class Application(Entity):
     oauth_authorization_url = fields.Field(api_name='oauthAuthorizationUrl')
     """The URL to send the user's browser to for the user authorization step."""
     oauth_identification_url = fields.Field(api_name='oauthIdentificationUrl')
-    """The URL to send the user's browser to identify which user is logged in (the
-    "signin" link)."""
+    """The URL to send the user's browser to in order to identify who is logged in
+    (that is, the "sign in" link)."""
     oauth_request_token_url = fields.Field(api_name='oauthRequestTokenUrl')
     """The URL of the OAuth request token endpoint for this application."""
     object_type = fields.Field(api_name='objectType')
-    """The object type identifier"""
+    """The keyword identifying the type of object this is.
+
+    For an Application object, `object_type` will be ``Application``.
+
+    """
     object_types = fields.List(fields.Field(), api_name='objectTypes')
     """**Deprecated.** The object types for this object.
 
     This set will contain the string ``tag:api.typepad.com,2009:Application`` for
-    an application object.
+    an Application object.
 
 
     :attrtype:`list`
@@ -1255,7 +1294,7 @@ class Application(Entity):
     session_sync_script_url = fields.Field(api_name='sessionSyncScriptUrl')
     """The URL of the session sync script."""
     signout_url = fields.Field(api_name='signoutUrl')
-    """The URL to send the user's browser to in order to sign out of TypePad."""
+    """The URL to send the user's browser to in order to sign them out of TypePad."""
     user_flyouts_script_url = fields.Field(api_name='userFlyoutsScriptUrl')
     """The URL of a script to embed to enable the user flyouts functionality."""
 
@@ -1303,8 +1342,7 @@ class Audio(Asset):
     _class_object_type = "Audio"
 
     audio_link = fields.Object('AudioLink', api_name='audioLink')
-    """A link to the actual audio stream that provides the primary content for
-    this asset.
+    """A link to the audio stream that is this Audio asset's content.
 
     :attrtype:`AudioLink`
 
@@ -1323,16 +1361,6 @@ class Comment(Asset):
     :attrtype:`AssetRef`
 
     """
-    publication_status = fields.Object('PublicationStatus', api_name='publicationStatus')
-    """**Editable.** An object describing the visibility status and publication
-    date for this page.
-
-    Only visibility status is editable.
-
-
-    :attrtype:`PublicationStatus`
-
-    """
 
 
 class CommentPreview(Asset):
@@ -1341,16 +1369,6 @@ class CommentPreview(Asset):
     """A reference to the asset that this comment is in reply to.
 
     :attrtype:`AssetRef`
-
-    """
-    publication_status = fields.Object('PublicationStatus', api_name='publicationStatus')
-    """**Editable.** An object describing the visibility status and publication
-    date for this page.
-
-    Only visibility status is editable.
-
-
-    :attrtype:`PublicationStatus`
 
     """
 
@@ -1366,8 +1384,13 @@ class Group(Entity):
     _class_object_type = "Group"
 
     audio_assets = fields.Link(ListOf('Audio'), api_name='audio-assets')
+    """POST: Create a new Audio asset within the selected group.
+
+    :attrtype:`list of Audio`
+
+    """
     avatar_link = fields.Object('ImageLink', api_name='avatarLink')
-    """Link to this group's avatar (userpic) image.
+    """A link to an image representing this group.
 
     :attrtype:`ImageLink`
 
@@ -1378,6 +1401,12 @@ class Group(Entity):
     """Get a list of events describing actions performed in the selected group.
 
     :attrtype:`list of Event`
+
+    """
+    external_feed_subscriptions = fields.Link(ListOf('ExternalFeedSubscription'), api_name='external-feed-subscriptions')
+    """Get a list of the group's active external feed subscriptions.
+
+    :attrtype:`list of ExternalFeedSubscription`
 
     """
     link_assets = fields.Link(ListOf('Link'), api_name='link-assets')
@@ -1393,7 +1422,11 @@ class Group(Entity):
 
     """
     object_type = fields.Field(api_name='objectType')
-    """The object type identifier"""
+    """A keyword describing the type of this object.
+
+    For a group object, `object_type` will be ``Group``.
+
+    """
     object_types = fields.List(fields.Field(), api_name='objectTypes')
     """**Deprecated.** An array of object type identifier URIs.
 
@@ -1413,9 +1446,9 @@ class Group(Entity):
 
     """
     site_url = fields.Field(api_name='siteUrl')
-    """The URL of this group's main website."""
+    """The URL to the front page of the group website."""
     tagline = fields.Field()
-    """A tagline describing the group, set by the group's owner."""
+    """A tagline describing the group, as set by the group's owner."""
     video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
     """POST: Create a new Video asset within the selected group.
 
@@ -1463,14 +1496,8 @@ class Page(Asset):
 
     """
     filename = fields.Field()
-    """**Editable.** The base name of the page, used to create the permalinkUrl."""
-    publication_status = fields.Object('PublicationStatus', api_name='publicationStatus')
-    """**Editable.** An object describing the draft status and publication date
-    for this page.
-
-    :attrtype:`PublicationStatus`
-
-    """
+    """**Editable.** The base name of the page, used to create the
+    `permalink_url`."""
 
 
 class Photo(Asset):
@@ -1480,7 +1507,7 @@ class Photo(Asset):
     _class_object_type = "Photo"
 
     image_link = fields.Object('ImageLink', api_name='imageLink')
-    """A link to the image that this Photo asset represents.
+    """A link to the image that is this Photo asset's content.
 
     :attrtype:`ImageLink`
 
@@ -1500,8 +1527,8 @@ class Post(Asset):
 
     """
     embedded_audio_links = fields.List(fields.Object('AudioLink'), api_name='embeddedAudioLinks')
-    """A list of links to the audios that are embedded within the content of this
-    post.
+    """A list of links to the audio streams that are embedded within the content
+    of this post.
 
     :attrtype:`list of AudioLink`
 
@@ -1528,18 +1555,12 @@ class Post(Asset):
 
     """
     filename = fields.Field()
-    """**Editable.** The base name of the post, used to create the permalinkUri."""
-    publication_status = fields.Object('PublicationStatus', api_name='publicationStatus')
-    """**Editable.** An object describing the draft status and publication date
-    for this post.
-
-    :attrtype:`PublicationStatus`
-
-    """
+    """**Editable.** The base name of the post to use when creating its
+    `permalink_url`."""
     reblog_count = fields.Field(api_name='reblogCount')
-    """The number of reblogs that have been posted of this post."""
+    """The number of times this post has been reblogged by other people."""
     reblog_of = fields.Object('AssetRef', api_name='reblogOf')
-    """A reference to the post that this post was reblogged from.
+    """A reference to a post of which this post is a reblog.
 
     :attrtype:`AssetRef`
 
@@ -1559,7 +1580,7 @@ class User(Entity):
     _class_object_type = "User"
 
     avatar_link = fields.Object('ImageLink', api_name='avatarLink')
-    """Link to this user's avatar (userpic) image.
+    """A link to an image representing this user.
 
     :attrtype:`ImageLink`
 
@@ -1579,6 +1600,14 @@ class User(Entity):
 
     """
     email = fields.Field()
+    """**Deprecated.** The user's email address.
+
+    This property is only provided for authenticated requests if the user has
+    shared it with the authenticated application, and the authenticated user is
+    allowed to view it (as with administrators of groups the user has joined). In
+    all other cases, this property is omitted.
+
+    """
     events = fields.Link(ListOf('Event'))
     """Get a list of events describing actions that the selected user performed.
 
@@ -1595,23 +1624,31 @@ class User(Entity):
 
     """
     gender = fields.Field()
+    """**Deprecated.** The user's gender, as they provided it.
+
+    This property is only provided for authenticated requests if the user has
+    shared it with the authenticated application, and the authenticated user is
+    allowed to view it (as with administrators of groups the user has joined). In
+    all other cases, this property is omitted.
+
+    """
     interests = fields.List(fields.Field())
     """**Deprecated.** A list of interests provided by the user and displayed on
     the user's profile page.
 
-    This property will go away in future, since it has moved to the `UserProfile`
-    object type, which can be retrieved from ``/users/{id}/profile``.
+    Use the `interests` property of the `UserProfile` object, which can be
+    retrieved from the ``/users/{id}/profile`` endpoint.
 
 
     :attrtype:`list`
 
     """
     location = fields.Field()
-    """**Deprecated.** The location of the user, as a free-form string provided by
-    the user.
+    """**Deprecated.** The user's location, as a free-form string provided by
+    them.
 
-    This property will go away in future, since it has moved to the `UserProfile`
-    object type, which can be retrieved from ``/users/{id}/profile``.
+    Use the the `location` property of the related `UserProfile` object, which can
+    be retrieved from the ``/users/{id}/profile`` endpoint.
 
     """
     memberships = fields.Link(ListOf('Relationship'))
@@ -1628,7 +1665,11 @@ class User(Entity):
 
     """
     object_type = fields.Field(api_name='objectType')
-    """The object type identifier"""
+    """The keyword identifying the type of object this is.
+
+    For a User object, `object_type` will be ``User``.
+
+    """
     object_types = fields.List(fields.Field(), api_name='objectTypes')
     """**Deprecated.** An array of object type identifier URIs.
 
@@ -1636,10 +1677,11 @@ class User(Entity):
 
     """
     preferred_username = fields.Field(api_name='preferredUsername')
-    """The name the user has chosen for use in his TypePad Profile URL.
+    """The name the user has chosen for use in the URL of their TypePad profile
+    page.
 
-    This can be used as the id in the URL to select this user, though it must not
-    be used as a persistent key since it can be changed by the user at any time.
+    This property can be used to select this user in URLs, although it is not a
+    persistent key, as the user can change it at any time.
 
     """
     profile = fields.Link('UserProfile')
@@ -1650,7 +1692,7 @@ class User(Entity):
 
     """
     profile_page_url = fields.Field(api_name='profilePageUrl')
-    """URL of the user's profile page."""
+    """The URL of the user's TypePad profile page."""
     relationships = fields.Link(ListOf('Relationship'))
     """Get a list of relationships that the selected user has with other users,
     and that other users have with the selected user.
@@ -1685,18 +1727,16 @@ class Video(Asset):
     _class_object_type = "Video"
 
     preview_image_link = fields.Object('ImageLink', api_name='previewImageLink')
-    """A link to an image which serves as a preview or poster frame for this
-    video.
+    """A link to a preview image or poster frame for this video.
 
-    Might be omitted if such an image is not available.
+    This property is omitted if no such image is available.
 
 
     :attrtype:`ImageLink`
 
     """
     video_link = fields.Object('VideoLink', api_name='videoLink')
-    """A link to the actual video that provides the primary content for this
-    asset.
+    """A link to the video that is this Video asset's content.
 
     :attrtype:`VideoLink`
 

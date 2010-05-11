@@ -76,96 +76,26 @@ LINK_PROPERTY_FIXUPS = {
             'name': 'categories_obj',
             'type': 'ListObject',
         },
+        'publication_status': {
+            'name': 'publication_status_obj',
+        },
     },
     'Relationship': {
-        'status': {'name': 'status_obj'},
+        'status': {
+            'name': 'status_obj',
+        },
     },
 }
 
 PROPERTY_FIXUPS = {
     'Asset': {
         'published': {'type': 'datetime'},
-        'categories': {
-            'name': 'categories',
-            'type': 'set<string>',
-            'docString': """A list of categories (strings) associated with the asset.""",
-        },
-        'crosspostAccounts': {
-            'name': 'crosspostAccounts',
-            'type': 'set<string>',
-            'docString': """A list of elsewhere account IDs to crosspost to.""",
-        },
-        'summary': {
-            'name': 'summary',
-            'type': 'string',
-            'docString': """For a media type of `Asset`, the HTML description or caption given by its author.""",
-        },
-    },
-    'Event': {
-        'actor': {
-            'name': 'actor',
-            'type': 'User',
-        },
-        'published': {
-            'name': 'published',
-            'type': 'datetime',
-        },
     },
     'Relationship': {
         'created': {
             'name': 'created',
             'type': 'map<datetime>',
         },
-    },
-    'User': {
-        'email': {
-            'name': 'email',
-            'type': 'string',
-        },
-        'gender': {
-            'name': 'gender',
-            'type': 'string',
-        },
-    },
-    'UserProfile': {
-        'email': {
-            'name': 'email',
-            'type': 'string',
-        },
-        'gender': {
-            'name': 'gender',
-            'type': 'string',
-        },
-        'id': {
-            'name': 'id',
-            'type': 'string',
-            'docString': """A URI that uniquely identifies the `User` associated with this `UserProfile`.""",
-        },
-        'urlId': {
-            'name': 'urlId',
-            'type': 'string',
-            'docString': """An identifier for this `UserProfile` that can be used in URLs.
-
-A user's `url_id` is unique only across groups in one TypePad
-environment, so you should use `id`, not `url_id`, to associate data
-with a `User` (or `UserProfile`). When constructing URLs to API resources
-in one particular TypePad environment, however, use `url_id`.
-
-"""
-        },
-    },
-    'VideoLink': {
-        'permalinkUrl': {
-            'name': 'permalinkUrl',
-            'type': 'string',
-            'docString': """A URL to the HTML permalink page of the video.
-
-Use this field to specify the video when posting a new `Video` asset.
-When requesting an existing `Video` instance from the API,
-`permalink_url` will be ``None``.
-
-""",
-        }
     },
 }
 
@@ -550,6 +480,13 @@ class ObjectRef(Field):
         return repr(self.field_type)
 
 
+def name_to_pyname(name):
+    py_name = name.replace('URL', 'Url')
+    py_name = re.sub(r'[A-Z]', lambda mo: '_' + mo.group(0).lower(), py_name)
+    py_name = py_name.replace('-', '_')
+    return py_name
+
+
 class Property(lazy):
 
     def __init__(self, data):
@@ -562,9 +499,7 @@ class Property(lazy):
 
     @name.setter
     def name(self, name):
-        py_name = name.replace('URL', 'Url')
-        py_name = re.sub(r'[A-Z]', lambda mo: '_' + mo.group(0).lower(), py_name)
-        py_name = py_name.replace('-', '_')
+        py_name = name_to_pyname(name)
         if py_name != name:
             self.field.kwargs['api_name'] = name
         self.__dict__['name'] = py_name
@@ -589,13 +524,13 @@ class Property(lazy):
         val = re.sub(r'(?xms) T< ([^>]+) >', '', val)
 
         # Convert pseudopod to reST.
+        val = val.replace('C<true>', '`True`').replace('C<false>', '`False`').replace('C<null>', '`None`')
         val = re.sub(r'(?xms) C< (?P<text> [^>]+ ) >', r'``\g<text>``', val)  # code keyword
         val = re.sub(r'(?xms) L< (?P<url> [^|]+ ) \| (?P<text> [^>]+ ) >', r'\g<text>', val)  # link
+        val = re.sub(r'(?xms) M< (?P<text> [^>]+ ) >', lambda mo: r'`%s`' % name_to_pyname(mo.group('text')), val)  # member property
         # TODO: do something useful with endpoints i guess
         val = re.sub(r'(?xms) N< (?P<path> [^>]+ ) >', r'``\g<path>``', val)  # endpoint
         val = re.sub(r'(?xms) O< (?P<text> [^>]+ ) >', r'`\g<text>`', val)  # object type
-        # TODO: convert property names to python format once those are marked up
-        val = re.sub(r'(?xms) P< (?P<text> [^>]+ ) >', r'`\g<text>`', val)  # property
 
         # Make the first sentence its own graf.
         lines = re.split(r'(?xms) (?<= \. ) \s+ ', val, 1)
@@ -854,18 +789,6 @@ def generate_types(types_fn, nouns_fn):
         # Fix up relationships to have a correct object type.
         elif endpoint['name'] == 'relationships':
             endpoint['resourceObjectType']['name'] = 'Relationship'
-        # Fix up groups to have an audio-assets property endpoint.
-        elif endpoint['name'] == 'groups':
-            endpoint['propertyEndpoints'].append({
-                'name': 'audio-assets',
-                'resourceObjectType': {
-                    'name': 'List<Audio>',
-                },
-                'supportedMethods': {
-                    'GET': "",
-                    'POST': "",
-                },
-            })
 
         try:
             objtype = objtypes_by_name[endpoint['resourceObjectType']['name']]
