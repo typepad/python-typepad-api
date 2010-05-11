@@ -64,20 +64,18 @@ class DefaultInterpreter(SparseNodeVisitor):
         self.desc_scope = []
 
     def visit_desc(self, node):
-        if node.get('desctype') == 'attribute':
-            self.desc_scope.append(None)
+        self.desc_scope.append(None)
 
     def depart_desc(self, node):
-        if node.get('desctype') == 'attribute':
-            attrtype_text = self.desc_scope.pop()
-            if attrtype_text is not None:
-                # make the insides of the attrtype a crossreferencible reference
-                this_attrtype = desc_attrtype()
-                this_attrtype.append(title_reference(attrtype_text, attrtype_text))
-                # find the desc_signature
-                this_signature = node.traverse(desc_signature)
-                # add the attrtype to the desc_signature
-                this_signature[0].append(this_attrtype)
+        attrtype_text = self.desc_scope.pop()
+        if attrtype_text is not None:
+            # make the insides of the attrtype a crossreferencible reference
+            this_attrtype = desc_attrtype()
+            this_attrtype.append(title_reference(attrtype_text, attrtype_text))
+            # find the desc_signature
+            this_signature = node.traverse(desc_signature)
+            # add the attrtype to the desc_signature
+            this_signature[0].append(this_attrtype)
 
     def depart_attrtype_role(self, node):
         self.desc_scope[-1] = node.children[0].astext()
