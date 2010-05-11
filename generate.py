@@ -491,7 +491,9 @@ class Field(lazy):
             if subtype is None:
                 return facekind
             return '%s of %s' % (facekind, subtype)
-        raise ValueError("Don't know a docstring type for field %r" % self)
+        if self.field_type == 'fields.Link':
+            return self.args[0].docstring_type
+        raise ValueError("Don't know a docstring type for field %r" % str(self))
 
     def __str__(self):
         me = StringIO()
@@ -532,6 +534,14 @@ class ObjectRef(Field):
 
         self.field_type = val
 
+    @property
+    def docstring_type(self):
+        if len(self.args):
+            return 'list of %s' % self.args[0]
+        if self.field_type == 'ListObject':
+            return 'list'
+        return self.field_type
+
     def __str__(self):
         if len(self.args):
             return super(ObjectRef, self).__str__()
@@ -571,9 +581,8 @@ class Property(lazy):
         self.__dict__['type'] = val
         self.field.type = val
 
-    @property
-    def docString(self):
-        val = self.__dict__['docString']
+    def render_docstring(self):
+        val = self.docString
 
         # Split out any pseudopod tags we may have.
         tags = re.findall(r'(?xms) T< ([^>]+) >', val)
@@ -620,12 +629,6 @@ class Property(lazy):
         val = '\n'.join(lines)
         return val
 
-    @docString.setter
-    def docString(self, val):
-        self.orig_docstring = val
-
-        self.__dict__['docString'] = val
-
     def __str__(self):
         me = StringIO()
         me.write(self.name)
@@ -633,7 +636,7 @@ class Property(lazy):
         me.write(str(self.field))
         me.write("\n")
         if hasattr(self, 'docString'):
-            me.write('"""%s"""\n' % self.docString)
+            me.write('"""%s"""\n' % self.render_docstring())
         return me.getvalue()
 
 
@@ -908,7 +911,7 @@ def write_module(objtypes, out_fn):
 def write_docstrings(objtypes, out_fn):
 
     docstrings = dict((objtype.name,
-        dict((name, [getattr(prop, 'orig_docstring', None)]) for name, prop in objtype.properties.items()))
+        dict((name, [getattr(prop, 'docString', None)]) for name, prop in objtype.properties.items()))
         for objtype in objtypes)
 
     with open(out_fn, 'w') as outfile:

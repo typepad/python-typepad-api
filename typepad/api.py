@@ -122,11 +122,34 @@ class Asset(TypePadObject):
 
     """
     categories_obj = fields.Link(ListObject, api_name='categories')
+    """Get a list of categories into which this asset has been placed within its
+    blog.
+
+    Currently supported only for `Post` assets that are posted within a blog.
+
+
+    :attrtype:`list`
+
+    """
     comment_count = fields.Field(api_name='commentCount')
     """The number of comments that have been posted in the comment tree beneath
     this asset."""
     comment_tree = fields.Link(ListOf('CommentTreeItem'), api_name='comment-tree')
+    """Get a list of assets that were posted in response to the selected asset and
+    their depth in the response tree
+
+    :attrtype:`list of CommentTreeItem`
+
+    """
     comments = fields.Link(ListOf('Comment'))
+    """Get a list of assets that were posted in response to the selected asset.
+
+    POST: Create a new Comment asset as a response to the selected asset.
+
+
+    :attrtype:`list of Comment`
+
+    """
     content = fields.Field()
     """The raw asset content.
 
@@ -153,7 +176,18 @@ class Asset(TypePadObject):
     favorite_count = fields.Field(api_name='favoriteCount')
     """The number of distinct users who have added this asset as a favorite."""
     favorites = fields.Link(ListOf('Favorite'))
+    """Get a list of favorites that have been created for the selected asset.
+
+    :attrtype:`list of Favorite`
+
+    """
     feedback_status = fields.Link('FeedbackStatus', api_name='feedback-status')
+    """Get the feedback status of selected asset  PUT: Set the feedback status of
+    selected asset
+
+    :attrtype:`FeedbackStatus`
+
+    """
     groups = fields.List(fields.Field())
     """An array of strings containing the id URIs of the groups that this asset is
     mapped into, if any.
@@ -181,6 +215,12 @@ class Asset(TypePadObject):
 
     """
     media_assets = fields.Link(ListOf('Asset'), api_name='media-assets')
+    """Get a list of media assets that are embedded in the content of the selected
+    asset.
+
+    :attrtype:`list of Asset`
+
+    """
     object_type = fields.Field(api_name='objectType')
     """The object type identifier"""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
@@ -204,6 +244,12 @@ class Asset(TypePadObject):
 
     """
     publication_status = fields.Link('PublicationStatus', api_name='publication-status')
+    """Get the publication status of selected asset  PUT: Set the publication
+    status of selected asset
+
+    :attrtype:`PublicationStatus`
+
+    """
     published = fields.Datetime()
     """The time that the asset was created, as an RFC3339 timestamp.
 
@@ -211,6 +257,11 @@ class Asset(TypePadObject):
 
     """
     reblogs = fields.Link(ListOf('Post'))
+    """Get a list of posts that were posted as reblogs of the selected asset.
+
+    :attrtype:`list of Post`
+
+    """
     rendered_content = fields.Field(api_name='renderedContent')
     """The content of this asset rendered to HTML.
 
@@ -416,9 +467,24 @@ class AuthToken(TypePadObject):
 class Blog(TypePadObject):
 
     categories = fields.Link(ListOf('string'))
+    """Get a list of categories which are defined for the selected blog.
+
+    :attrtype:`list of string`
+
+    """
     commenting_settings = fields.Link('BlogCommentingSettings', api_name='commenting-settings')
+    """Get the commenting-related settings for this blog.
+
+    :attrtype:`BlogCommentingSettings`
+
+    """
     comments = fields.Link(ListOf('Comment'))
     crosspost_accounts = fields.Link(ListOf('Account'), api_name='crosspost-accounts')
+    """Get  a list of accounts that can be used for crossposting with this blog.
+
+    :attrtype:`list of Account`
+
+    """
     description = fields.Field()
     """The description of the blog as provided by its owner."""
     home_url = fields.Field(api_name='homeUrl')
@@ -432,6 +498,11 @@ class Blog(TypePadObject):
 
     """
     media_assets = fields.Link(ListOf('Asset'), api_name='media-assets')
+    """POST: Add a new media asset to the account that owns this blog.
+
+    :attrtype:`list of Asset`
+
+    """
     object_type = fields.Field(api_name='objectType')
     """The object type identifier"""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
@@ -452,9 +523,30 @@ class Blog(TypePadObject):
 
     """
     page_assets = fields.Link(ListOf('Page'), api_name='page-assets')
+    """Get a list of pages associated with the selected blog.
+
+    POST: Add a new page to a blog
+
+
+    :attrtype:`list of Page`
+
+    """
     post_assets = fields.Link(ListOf('Post'), api_name='post-assets')
+    """Get a list of posts associated with the selected blog.
+
+    POST: Add a new post to a blog
+
+
+    :attrtype:`list of Post`
+
+    """
     post_by_email_settings = fields.Link('PostByEmailAddress', api_name='post-by-email-settings')
     stats = fields.Link('BlogStats')
+    """Get data about the pageviews for the selected blog.
+
+    :attrtype:`BlogStats`
+
+    """
     title = fields.Field()
     """The title of the blog."""
     url_id = fields.Field(api_name='urlId')
@@ -930,6 +1022,16 @@ class Relationship(TypePadObject):
 
     """
     status_obj = fields.Link('RelationshipStatus', api_name='status')
+    """Get the status information for the selected relationship, including its
+    types.
+
+    PUT: Change the status information for the selected relationship, including
+    its types.
+
+
+    :attrtype:`RelationshipStatus`
+
+    """
     target = fields.Object('Entity')
     """The target entity, the 'object' of the relationship.
 
@@ -1273,8 +1375,23 @@ class Group(Entity):
     display_name = fields.Field(api_name='displayName')
     """The display name set by the group's owner."""
     events = fields.Link(ListOf('Event'))
+    """Get a list of events describing actions performed in the selected group.
+
+    :attrtype:`list of Event`
+
+    """
     link_assets = fields.Link(ListOf('Link'), api_name='link-assets')
+    """POST: Create a new Link asset within the selected group.
+
+    :attrtype:`list of Link`
+
+    """
     memberships = fields.Link(ListOf('Relationship'))
+    """Get a list of relationships between users and the selected group.
+
+    :attrtype:`list of Relationship`
+
+    """
     object_type = fields.Field(api_name='objectType')
     """The object type identifier"""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
@@ -1284,12 +1401,27 @@ class Group(Entity):
 
     """
     photo_assets = fields.Link(ListOf('Photo'), api_name='photo-assets')
+    """POST: Create a new Photo asset within the selected group.
+
+    :attrtype:`list of Photo`
+
+    """
     post_assets = fields.Link(ListOf('Post'), api_name='post-assets')
+    """POST: Create a new Post asset within the selected group.
+
+    :attrtype:`list of Post`
+
+    """
     site_url = fields.Field(api_name='siteUrl')
     """The URL of this group's main website."""
     tagline = fields.Field()
     """A tagline describing the group, set by the group's owner."""
     video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
+    """POST: Create a new Video asset within the selected group.
+
+    :attrtype:`list of Video`
+
+    """
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/groups/%s.json' % self.url_id)
@@ -1433,12 +1565,35 @@ class User(Entity):
 
     """
     blogs = fields.Link(ListOf('Blog'))
+    """Get a list of blogs that the selected user has access to.
+
+    :attrtype:`list of Blog`
+
+    """
     display_name = fields.Field(api_name='displayName')
     """The user's chosen display name."""
     elsewhere_accounts = fields.Link(ListOf('Account'), api_name='elsewhere-accounts')
+    """Get a list of elsewhere accounts for the selected user.
+
+    :attrtype:`list of Account`
+
+    """
     email = fields.Field()
     events = fields.Link(ListOf('Event'))
+    """Get a list of events describing actions that the selected user performed.
+
+    :attrtype:`list of Event`
+
+    """
     favorites = fields.Link(ListOf('Favorite'))
+    """Get a list of favorites that were listed by the selected user.
+
+    POST: Create a new favorite in the selected user's list of favorites.
+
+
+    :attrtype:`list of Favorite`
+
+    """
     gender = fields.Field()
     interests = fields.List(fields.Field())
     """**Deprecated.** A list of interests provided by the user and displayed on
@@ -1460,7 +1615,18 @@ class User(Entity):
 
     """
     memberships = fields.Link(ListOf('Relationship'))
+    """Get a list of relationships that the selected user has with groups.
+
+    :attrtype:`list of Relationship`
+
+    """
     notifications = fields.Link(ListOf('Event'))
+    """Get a list of events describing actions by users that the selected user is
+    following.
+
+    :attrtype:`list of Event`
+
+    """
     object_type = fields.Field(api_name='objectType')
     """The object type identifier"""
     object_types = fields.List(fields.Field(), api_name='objectTypes')
@@ -1477,9 +1643,21 @@ class User(Entity):
 
     """
     profile = fields.Link('UserProfile')
+    """Get a more extensive set of user properties that can be used to build a
+    user profile page.
+
+    :attrtype:`UserProfile`
+
+    """
     profile_page_url = fields.Field(api_name='profilePageUrl')
     """URL of the user's profile page."""
     relationships = fields.Link(ListOf('Relationship'))
+    """Get a list of relationships that the selected user has with other users,
+    and that other users have with the selected user.
+
+    :attrtype:`list of Relationship`
+
+    """
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/users/%s.json' % self.url_id)
