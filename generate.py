@@ -475,6 +475,24 @@ class Field(lazy):
                 val = 'TypePadObject'
             self.args.append(val)
 
+    @property
+    def docstring_type(self):
+        if not hasattr(self, 'field_type'):
+            raise ValueError("Field %r has no field_type, so it can't have a docstring_type?" % str(self))
+        if self.field_type == 'fields.Field':
+            return None
+        if self.field_type == 'fields.Object':
+            return self.args[0]
+        if self.field_type == 'fields.Datetime':
+            return 'datetime'
+        if self.field_type in ('fields.List', 'fields.Dict'):
+            facekind = {'fields.List': 'list', 'fields.Dict': 'dict'}[self.field_type]
+            subtype = self.args[0].docstring_type
+            if subtype is None:
+                return facekind
+            return '%s of %s' % (facekind, subtype)
+        raise ValueError("Don't know a docstring type for field %r" % self)
+
     def __str__(self):
         me = StringIO()
         if not hasattr(self, 'field_type'):
@@ -543,7 +561,10 @@ class Property(lazy):
 
     @property
     def type(self):
-        return self.__dict__['type']
+        try:
+            return self.__dict__['type']
+        except KeyError:
+            raise AttributeError('type')
 
     @type.setter
     def type(self, val):
@@ -552,11 +573,7 @@ class Property(lazy):
 
     @property
     def docString(self):
-        return self.__dict__['docString']
-
-    @docString.setter
-    def docString(self, val):
-        self.orig_docstring = val
+        val = self.__dict__['docString']
 
         # Split out any pseudopod tags we may have.
         tags = re.findall(r'(?xms) T< ([^>]+) >', val)
@@ -589,9 +606,24 @@ class Property(lazy):
         if rest:
             lines.append('')
             lines.extend(textwrap.wrap(rest, 78))
-            lines.extend(('', ''))
+            lines.append('')
+
+        objtype = self.field.docstring_type
+        if objtype:
+            lines.append('')
+            lines.append(':attrtype:`%s`' % objtype)
+            lines.append('')
+
+        if rest or objtype:
+            lines.append('')
 
         val = '\n'.join(lines)
+        return val
+
+    @docString.setter
+    def docString(self, val):
+        self.orig_docstring = val
+
         self.__dict__['docString'] = val
 
     def __str__(self):
