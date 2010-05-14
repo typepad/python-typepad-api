@@ -107,7 +107,7 @@ class OAuthHttp(httplib2.Http):
 
     """An HTTP user agent for an OAuth web service."""
 
-    default_scheme = None
+    default_scheme = 'https'
 
     def add_credentials(self, name, password, domain=""):
         """Adds a name (or `OAuthConsumer` instance) and password (or
