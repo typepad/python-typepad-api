@@ -666,7 +666,7 @@ class BrowserUploadEndpoint(object):
 
         if 'location' in response:
             urlparts = urlparse(response['location'])
-            query = parse_qs(urlparts[4])
+            query = cgi.parse_qs(urlparts[4])
             if 'asset_url' in query:
                 parts = urlparse(query['asset_url'][0])
                 url = urljoin(typepad.client.endpoint, parts[2])
