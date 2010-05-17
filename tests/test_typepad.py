@@ -971,27 +971,6 @@ class TestTypePad(unittest.TestCase):
         fav = typepad.Favorite.get_by_user_asset(member_id, asset_id)
         self.assertNotFound(typepad.client.complete_batch)
 
-    @attr(user='admin')
-    def test_7_DELETE_favorites_id__by_admin(self):
-        """DELETE /favorites/<id>.json (admin)
-        
-        Tests deletion of a favorite object using admin credentials.
-        """
-
-        raise nose.SkipTest(
-            'FIXME: https://intranet.sixapart.com/bugs/default.asp?87902')
-
-        self.assert_(len(self.testdata['assets_created']))
-
-        member_id = self.testdata['member']['xid']
-        asset_id = self.testdata['assets_created'][1]
-
-        typepad.Favorite.get_by_user_asset(member_id, asset_id).delete()
-
-        typepad.client.batch_request()
-        fav = typepad.Favorite.get_by_user_asset(member_id, asset_id)
-        self.assertNotFound(typepad.client.complete_batch)
-
     @attr(user='group')
     def test_1_GET_groups_id(self):
         """GET /groups/<id>.json (group)
@@ -1197,7 +1176,7 @@ class TestTypePad(unittest.TestCase):
         post = self.post_asset()
         post.content = 'Test post asset by group'
 
-        self.assertUnauthorized(
+        self.assertForbidden(
             typepad.Group.get_by_url_id(group_id).post_assets.post, post)
 
     @attr(user='blocked')
@@ -1243,7 +1222,7 @@ class TestTypePad(unittest.TestCase):
         video = self.video_asset()
         video.content = 'Test video post by group'
 
-        self.assertUnauthorized(
+        self.assertForbidden(
             typepad.Group.get_by_url_id(group_id).video_assets.post, video)
 
     @attr(user='blocked')
