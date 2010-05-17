@@ -784,7 +784,7 @@ class TestTypePad(unittest.TestCase):
 
         asset = typepad.Asset.from_dict(data)
 
-        object_type = asset.primary_object_type() or asset.object_type
+        object_type = asset.object_type
         post_type = object_type.split(':')[2].lower()
 
         asset.groups = [ group.id ]
@@ -811,7 +811,6 @@ class TestTypePad(unittest.TestCase):
             posted_asset = typepad.Asset.get(parts[2], batch=False)
 
             self.assertValidAsset(posted_asset)
-            self.assertEquals(posted_asset.primary_object_type(), data['objectTypes'][0])
 
             self.testdata['assets_created'].append(posted_asset.url_id)
         else: # test for a failure
@@ -1986,8 +1985,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(asset.id)
         self.assert_(asset.url_id)
         self.assert_(len(asset.object_types) > 0)
-        object_type = asset.primary_object_type()
-        self.assert_(object_type)
+        self.assert_(asset.object_type)
         self.assert_(asset.published)
 
         self.assert_(asset.make_self_link())
