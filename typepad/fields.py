@@ -66,7 +66,10 @@ class Link(remoteobjects.fields.Link):
             newurl += '/' + self.api_name
             newurl += '.json'
 
-            ret = self.cls.get(newurl, **kwargs)
+            cls = self.cls
+            if isinstance(cls, basestring):
+                cls = remoteobjects.dataobject.find_by_name(cls)
+            ret = cls.get(newurl, **kwargs)
             return ret
         except Exception, e:
             logging.error(str(e))

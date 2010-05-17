@@ -45,21 +45,31 @@ The module contains:
 
 """
 
-from urlparse import urljoin, urlparse, urlunparse
-from copy import copy
 import cgi
+from copy import copy
+from cStringIO import StringIO
+try:
+    from email.message import Message
+    from email.generator import Generator, _make_boundary
+except ImportError:
+    from email.Message import Message
+    from email.Generator import Generator, _make_boundary
+import httplib
 import inspect
 from itertools import chain
 import logging
+import re
 import sys
 import urllib
+from urlparse import urljoin, urlparse, urlunparse
 
 from batchhttp.client import BatchError
+import httplib2
 import remoteobjects
 from remoteobjects.dataobject import find_by_name
 from remoteobjects.promise import PromiseError
 import remoteobjects.listobject
-import httplib2
+import simplejson as json
 
 import typepad
 from typepad import fields
@@ -84,7 +94,7 @@ class TypePadObjectMetaclass(remoteobjects.RemoteObject.__metaclass__):
     def __new__(cls, name, bases, attrs):
         newcls = super(TypePadObjectMetaclass, cls).__new__(cls, name, bases, attrs)
         try:
-            api_type = attrs['object_type']
+            api_type = attrs['_class_object_type']
         except KeyError:
             pass
         else:
@@ -105,12 +115,8 @@ class TypePadObject(remoteobjects.RemoteObject):
 
     __metaclass__ = TypePadObjectMetaclass
 
-    object_type = None
+    _class_object_type = None
     batch_requests = True
-
-    object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """A list of URIs that identify the type of TypePad content object this
-    is."""
 
     @classmethod
     def get(cls, url, *args, **kwargs):
@@ -223,25 +229,23 @@ class TypePadObject(remoteobjects.RemoteObject):
 
         """
         # What should I be?
-        objtypes = ()
         try:
-            objtypes = data['objectTypes']
+            objtype = data['objectType']
         except (TypeError, KeyError):
             pass
-
-        for objtype in objtypes:
+        else:
             try:
                 objclsname = classes_by_object_type[objtype]
                 objcls = find_by_name(objclsname)  # KeyError
             except KeyError:
-                continue
+                pass
+            else:
+                # Is that a change?
+                if objcls is not self.__class__:
+                    self.__class__ = objcls
 
-            # Is that a change?
-            if objcls is not self.__class__:
-                self.__class__ = objcls
-
-                # Have update_from_dict() start over.
-                return True
+                    # Have update_from_dict() start over.
+                    return True
 
         # We're already that class, so go ahead.
         return False
@@ -306,8 +310,8 @@ class TypePadObject(remoteobjects.RemoteObject):
     def to_dict(self):
         """Encodes the `TypePadObject` instance to a dictionary."""
         ret = super(TypePadObject, self).to_dict()
-        if 'objectTypes' not in ret and self.object_type is not None:
-            ret['objectTypes'] = (self.object_type,)
+        if 'objectType' not in ret and hasattr(self, 'object_type'):
+            ret['objectType'] = self._class_object_type
         return ret
 
     def deliver(self):
@@ -479,3 +483,443 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
     def __repr__(self):
         return '<%s.%s %r>' % (type(self).__module__, type(self).__name__,
             getattr(self, '_location', None))
+
+
+class BrowserUploadEndpoint(object):
+
+    class NetworkGenerator(Generator):
+
+        def __init__(self, outfp, mangle_from_=True, maxheaderlen=78, write_headers=True):
+            self.write_headers = write_headers
+            Generator.__init__(self, outfp, mangle_from_, maxheaderlen)
+
+        def _write_headers(self, msg):
+            """Writes this `NetworkMessage` instance's headers to
+            the given generator's output file with network style CR
+            LF character pair line endings.
+
+            If called during a `NetworkMessage.as_string()` to which
+            the `write_headers` option was ``False``, this method
+            does nothing.
+
+            """
+            if not self.write_headers:
+                return
+
+            headerfile = self._fp
+            unixheaderfile = StringIO()
+            try:
+                self._fp = unixheaderfile
+                Generator._write_headers(self, msg)
+            finally:
+                self._fp = headerfile
+
+            headers = unixheaderfile.getvalue()
+            headerfile.write(headers.replace('\n', '\r\n'))
+
+        def _flatten_submessage(self, part):
+            s = StringIO()
+            g = self.clone(s)
+            g.flatten(part, unixfrom=False)
+            return s.getvalue()
+
+        def _handle_multipart(self, msg):
+            subparts = msg.get_payload()
+            if subparts is None:
+                subparts = []
+            elif isinstance(subparts, basestring):
+                self._fp.write(subparts)
+                return
+            elif not isinstance(subparts, list):
+                subparts = [subparts]
+
+            msgtexts = [self._flatten_submessage(part) for part in subparts]
+
+            alltext = '\r\n'.join(msgtexts)
+
+            no_boundary = object()
+            boundary = msg.get_boundary(failobj=no_boundary)
+            if boundary is no_boundary:
+                boundary = _make_boundary(alltext)
+                msg.set_boundary(boundary)
+
+            if msg.preamble is not None:
+                self._fp.write(msg.preamble)
+                self._fp.write('\r\n')
+            self._fp.write('--' + boundary)
+
+            for body_part in msgtexts:
+                self._fp.write('\r\n')
+                self._fp.write(body_part)
+                self._fp.write('\r\n--' + boundary)
+            self._fp.write('--\r\n')
+
+            if msg.epilogue is not None:
+                self._fp.write('\r\n')
+                self._fp.write(msg.epilogue)
+
+    class NetworkMessage(Message):
+
+        """A MIME `Message` that has its headers separated by the
+        network style CR LF character pairs, not only UNIX style LF
+        characters.
+
+        As noted in Python issue 1349106, the default behavior of
+        the `email.message.Message` implementation is to use plain
+        system line endings when writing its headers, and having the
+        protocol module such as `smtplib` convert the headers to
+        network style when sending them on the wire. In order to
+        work with protocol libraries that are not aware of MIME
+        messages, flattening a `NetworkMessage` with `as_string()`
+        produces network style CR LF line endings.
+
+        """
+
+        def as_string(self, unixfrom=False, write_headers=True):
+            """Flattens this `NetworkMessage` instance to a string.
+
+            If `write_headers` is ``True``, the headers of this
+            `NetworkMessage` instance are included in the result.
+            Headers of sub-messages contained in this message's
+            payload are always included.
+
+            """
+            fp = StringIO()
+            g = BrowserUploadEndpoint.NetworkGenerator(fp, write_headers=write_headers)
+            g.flatten(self, unixfrom=unixfrom)
+            return fp.getvalue()
+
+    def raise_error_for_response(self, resp, obj):
+        if resp.status != 302 or 'location' not in resp:
+            raise ValueError('Response is not a browser upload response: not a 302 or has no Location header')
+
+        urlparts = urlparse(resp['location'])
+        query = cgi.parse_qs(urlparts[4])
+
+        try:
+            status = query['status'][0]
+        except (KeyError, IndexError):
+            raise ValueError("Response is not a browser upload response: no 'status' query parameter")
+        try:
+            status = int(status)
+        except KeyError:
+            raise ValueError("Response is not a browser upload response: non-numeric 'status' query parameter %r" % status)
+
+        if status == 201:
+            # Yay, no error! Return the query params in case we want to pull asset_url out of it.
+            return query
+
+        # Not a 201 means it was an error. But which?
+        err_classes = {
+            httplib.NOT_FOUND: obj.NotFound,
+            httplib.UNAUTHORIZED: obj.Unauthorized,
+            httplib.FORBIDDEN: obj.Forbidden,
+            httplib.PRECONDITION_FAILED: obj.PreconditionFailed,
+            httplib.INTERNAL_SERVER_ERROR: obj.ServerError,
+            httplib.BAD_REQUEST: obj.RequestError,
+        }
+        try:
+            err_cls = err_classes[status]
+        except KeyError:
+            raise ValueError("Response is not a browser upload response: unexpected 'status' query parameter %r" % status)
+
+        try:
+            message = query['error'][0]
+        except (KeyError, IndexError):
+            # Not all these error responses have an error message, so that's okay.
+            raise err_cls()
+        raise err_cls(message)
+
+    def upload(self, obj, fileobj, content_type='application/octet-stream', **kwargs):
+        http = typepad.client
+
+        data = dict(kwargs)
+        data['asset'] = json.dumps(obj.to_dict())
+
+        bodyobj = self.NetworkMessage()
+        bodyobj.set_type('multipart/form-data')
+        bodyobj.preamble = "multipart snowform for you"
+        for key, value in data.iteritems():
+            msg = self.NetworkMessage()
+            msg.add_header('Content-Disposition', 'form-data', name=key)
+            msg.set_payload(value)
+            bodyobj.attach(msg)
+
+        filemsg = self.NetworkMessage()
+        filemsg.set_type(content_type)
+        filemsg.add_header('Content-Disposition', 'form-data', name="file",
+            filename="file")
+        filemsg.add_header('Content-Transfer-Encoding', 'identity')
+        filecontent = fileobj.read()
+        filemsg.set_payload(filecontent)
+        filemsg.add_header('Content-Length', str(len(filecontent)))
+        bodyobj.attach(filemsg)
+
+        # Serialize the message first, so we have the generated MIME
+        # boundary when we pull the headers out.
+        body = bodyobj.as_string(write_headers=False)
+        headers = dict(bodyobj.items())
+
+        request = obj.get_request(url='/browser-upload.json', method='POST',
+            headers=headers, body=body)
+        response, content = http.signed_request(**request)
+
+        if 'location' in response:
+            urlparts = urlparse(response['location'])
+            query = parse_qs(urlparts[4])
+            if 'asset_url' in query:
+                parts = urlparse(query['asset_url'][0])
+                url = urljoin(typepad.client.endpoint, parts[2])
+                request2 = obj.get_request(url=url, method='GET')
+                response2, content2 = http.request(**request2)
+                obj.update_from_response(url, response2, content2)
+
+        return response, content
+
+
+class _ImageResizer(object):
+
+    """Logic for resizing TypePad images.
+
+    The `_ImageResizer` is an abstract mixin providing helper methods for TypePad images. A concrete implementation must
+    provide implementations for several properties:
+
+    * `url`, the default URL for the image. Required if `url_template` is not present.
+    * `url_template`, the URL template to a TypePad image containing an image sizing specifier.
+    * `width`, the width of the full unresized version of the image.
+    * `height`, the height of the full unresized version of the image.
+
+    """
+
+    _PI = (        50, 75,      115, 120,      200,                320, 350,           500,                640,                800,                1024)
+    _WI = (        50, 75, 100, 115, 120, 150, 200,      250, 300, 320, 350, 400, 450, 500, 550, 580, 600, 640, 650, 700, 750, 800, 850, 900, 950, 1024)
+    _HI = (            75,                               250)
+    _SI = (16, 20, 50, 75,      115, 120, 150,      220, 250)
+
+    valid_specs = set(chain(
+        ('%dpi' % x for x in _PI),
+        ('%dwi' % x for x in _WI),
+        ('%dhi' % x for x in _HI),
+        ('%dsi' % x for x in _SI),
+        ('pi',),
+    ))
+    """A set of all known valid image sizing specs."""
+
+    # selection algorithm to scale to fit both dimensions
+    def inscribe(self, size):
+        """Given a size, return an `ImageLink` of an image that is no taller
+        or wider than the requested size.
+
+        This mode takes the largest dimension (either width or height) and
+        scales the image so that dimension is the size specified in the spec.
+        The other dimension is scaled to maintain the image's aspect ratio.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None: size = max(self.width, self.height)
+
+        if self.width > self.height:
+            if size > self.width:
+                size = self.width
+        else:
+            if size > self.height:
+                size = self.height
+
+        pi = size
+        if pi not in self._PI:
+            pi = self._PI[-1]
+            if size > pi:
+                size = pi
+            else:
+                for x in self._PI:
+                    if x > size:
+                        pi = x
+                        break
+
+        if self.height > self.width:
+            # scale by height
+            new_height = size
+            new_width = int(self.width * (new_height / float(self.height)))
+        else:
+            # scale by width
+            new_width = size
+            new_height = int(self.height * (new_width / float(self.width)))
+
+        url = copy(self)
+        url.width = new_width
+        url.height = new_height
+        url.url = self.at_size('%dpi' % pi)
+        return url
+
+    # selection algorithm to scale to fit width
+    def by_width(self, size):
+        """Given a size, return an `ImageLink` of an image that is no wider
+        than the requested size.
+
+        This mode scales the image such that the width is the size specified
+        in the spec, and the height is scaled to maintain the image's aspect
+        ratio.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None or size > self.width: size = self.width
+
+        wi = size
+        if size not in self._WI:
+            wi = self._WI[-1]
+            if size > wi:
+                size = wi
+            else:
+                for x in self._WI:
+                    if x > size:
+                        wi = x
+                        break
+
+        url = copy(self)
+        url.width = size
+        url.height = int(self.height * (size / float(self.width)))
+        url.url = self.at_size('%dwi' % wi)
+        return url
+
+    # selection algorithm to scale to fit height
+    def by_height(self, size):
+        """Given a size, return an `ImageLink` of an image that is no
+        taller than the requested size.
+
+        This mode scales the image such that the height is the size specified
+        in the spec, and the width is scaled to maintain the image's aspect
+        ratio.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None or size > self.height: size = self.height
+
+        hi = size
+        if size not in self._HI:
+            hi = self._HI[-1]
+            if size > hi:
+                size = hi
+            else:
+                for x in self._HI:
+                    if x > size:
+                        hi = x
+                        break
+
+        url = copy(self)
+        url.height = size
+        url.width = int(self.width * (size / float(self.height)))
+        url.url = self.at_size('%dhi' % hi)
+        return url
+
+    # selection algorithm to scale and crop to square
+    def square(self, size):
+        """Given a size, return an `ImageLink` of an image that fits within a
+        square of the requested size.
+
+        This results in a square image whose width and height are both the
+        size specified. If the original image isn't square, the image is
+        cropped across its longest dimension, showing only the central portion
+        which fits inside the square.
+
+        """
+        if self.url_template is None: return self
+        if size == 0 or size is None: size = max(self.width, self.height)
+        if self.width > self.height:
+            if size > self.width:
+                size = self.width
+        else:
+            if size > self.height:
+                size = self.height
+
+        si = size
+        if si not in self._SI:
+            si = self._SI[-1]
+            if size > si:
+                size = si
+            else:
+                for x in self._SI:
+                    if x > size:
+                        si = x
+                        break
+
+        url = copy(self)
+        url.width = size
+        url.height = size
+        url.url = self.at_size('%dsi' % si)
+        return url
+
+    def at_size(self, spec):
+        """Returns the URL for the image at size given by `spec`.
+
+        You can request images from TypePad in several sizes, using an
+        *image sizing spec*. For example, the image spec ``pi`` means the
+        original size of the image, whereas ``75si`` means a 75 pixel
+        square.
+
+        If `spec` is not a valid image sizing spec, this method raises a
+        `ValueError`.
+
+        """
+        if self.url_template is None: return self.url
+        if spec not in self.valid_specs:
+            raise ValueError('String %r is not a valid image sizing spec' % spec)
+        return self.url_template.replace('{spec}', spec)
+
+
+class _VideoResizer(object):
+
+    _width = None
+    _height = None
+
+    def get_width(self):
+        if self._width is None:
+            match = re.search('\swidth="(\d+)"', self.embed_code)
+            if match:
+                self._width = int(match.group(1))
+        return self._width
+
+    def get_height(self):
+        if self._height is None:
+            match = re.search('\sheight="(\d+)"', self.embed_code)
+            if match:
+                self._height = int(match.group(1))
+        return self._height
+
+    def set_width(self, width):
+        self._width = width
+        self._update_embed()
+
+    def set_height(self, height):
+        self._height = height
+        self._update_embed()
+
+    width = property(get_width, set_width)
+    height = property(get_height, set_height)
+
+    def _update_embed(self):
+        self.embed_code = re.sub('(\swidth=)"\d+"', '\\1"%d"' % self.width, self.embed_code)
+        self.embed_code = re.sub('(\sheight=)"\d+"', '\\1"%d"' % self.height, self.embed_code)
+
+    # selection algorithm to scale to fit width
+    def by_width(self, size):
+        """Given a size, return a `VideoLink` of a video that is as wide
+        as the requested size.
+
+        This mode scales the video such that the width is the size specified
+        and the height is scaled to maintain the video's aspect ratio.
+
+        """
+        vid = copy(self)
+        vid.width = size
+        vid.height = int(self.height * (size / float(self.width)))
+        return vid
+
+
+def renamed_property(old, new):
+    @property
+    def prop(self):
+        classname = type(self).__name__
+        logging.getLogger('typepad.api').warn('Property %s.%s is deprecated; use %s.%s instead',
+            classname, old, classname, new)
+        return getattr(self, new)
+    return prop
