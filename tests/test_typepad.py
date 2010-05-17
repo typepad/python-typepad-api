@@ -785,7 +785,7 @@ class TestTypePad(unittest.TestCase):
         asset = typepad.Asset.from_dict(data)
 
         object_type = asset.object_type
-        post_type = object_type.split(':')[2].lower()
+        post_type = object_type.lower()
 
         asset.groups = [ group.id ]
         response, content = typepad.api.browser_upload.upload(
@@ -1973,28 +1973,28 @@ class TestTypePad(unittest.TestCase):
         # TODO: alternate was optional before, so maybe permalink_url might be None sometimes?
         self.assert_(asset.permalink_url is not None)
 
-        self.assert_(object_type.startswith('tag:api.typepad.com'))
+        object_type = asset.object_type
         self.assertValidAssetRef(asset.asset_ref)
-        if object_type == 'tag:api.typepad.com,2009:Link':
+        if object_type == 'Link':
             # additional properties we expect for link assets
             self.assert_(asset.target_url is not None)
-        elif object_type == 'tag:api.typepad.com,2009:Photo':
+        elif object_type == 'Photo':
             # additional properties we expect for photo assets
             self.assert_(asset.image_link is not None)
             self.assert_(asset.image_link.url_template is not None)
             self.assert_(asset.image_link.width is not None)
             self.assert_(asset.image_link.height is not None)
-        elif object_type == 'tag:api.typepad.com,2009:Audio':
+        elif object_type == 'Audio':
             self.assert_(asset.audio_link is not None)
             self.assert_(asset.audio_link.url is not None)
-        elif object_type == 'tag:api.typepad.com,2009:Post':
+        elif object_type == 'Post':
             pass
-        elif object_type == 'tag:api.typepad.com,2009:Comment':
+        elif object_type == 'Comment':
             # FIXME: we have a data problem for one of our comments; parent object was deleted but the comment remained
             if len(asset.groups) > 0:
                 self.assert_(asset.in_reply_to)
                 self.assertValidAssetRef(asset.in_reply_to)
-        elif object_type == 'tag:api.typepad.com,2009:Video':
+        elif object_type == 'Video':
             self.assert_(asset.video_link is not None)
             self.assert_(asset.video_link.embed_code is not None)
 
@@ -2025,6 +2025,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(len(user.object_types) > 0)
         self.assertEquals(user.object_types[0],
             'tag:api.typepad.com,2009:User')
+        self.assertEquals(user.object_type, 'User')
         # this asserts as false when the user's interests is empty
         # self.assert_(user.interests)
 
@@ -2079,6 +2080,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(len(group.object_types) > 0)
         self.assertEquals(group.object_types[0],
             'tag:api.typepad.com,2009:Group')
+        self.assertEquals(group.object_type, 'Group')
 
     def assertValidApplication(self, app):
         self.assert_(isinstance(app, typepad.Application),
@@ -2130,21 +2132,21 @@ class TestTypePad(unittest.TestCase):
             self.assert_(len(rel.status.types) > 0)
             self.assert_(rel.status.types[0] in rel.created)
         self.assert_(rel.source)
-        if rel.source.object_types[0] == 'tag:api.typepad.com,2009:Group':
+        if rel.source.object_type == 'Group':
             self.assertValidGroup(rel.source)
-        elif rel.source.object_types[0] == 'tag:api.typepad.com,2009:User':
+        elif rel.source.object_type == 'User':
             self.assertValidUser(rel.source)
         else:
             self.fail('unexpected object type %s for relationship source' % \
                 rel.source.object_types[0])
         self.assert_(rel.target)
-        if rel.target.object_types[0] == 'tag:api.typepad.com,2009:Group':
+        if rel.target.object_type == 'Group':
             self.assertValidGroup(rel.target)
-        elif rel.target.object_types[0] == 'tag:api.typepad.com,2009:User':
+        elif rel.target.object_type == 'User':
             self.assertValidUser(rel.target)
         else:
             self.fail('unexpected object type %s for relationship target' % \
-                rel.target.object_types[0])
+                rel.target.object_type)
 
     def assertValidAssetRef(self, ref):
         self.assert_(ref.url_id)
@@ -2156,6 +2158,7 @@ class TestTypePad(unittest.TestCase):
         self.assert_(ref.object_types)
         self.assert_(len(ref.object_types) > 0)
         self.assert_(ref.object_types[0].startswith('tag:api.typepad.com'))
+        self.assert_(ref.object_type)
 
     def filterEndpoint(self, endpoint, *args, **kwargs):
         full = endpoint.filter(**kwargs)
