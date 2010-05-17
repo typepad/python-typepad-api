@@ -318,6 +318,15 @@ class Asset(TypePadObject):
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/assets/%s.json' % self.url_id)
 
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
+
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
@@ -327,14 +336,13 @@ class Asset(TypePadObject):
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return obj
 
-    @property
-    def actor(self):
-        """This asset's author.
+    actor = renamed_property(old='actor', new='author')
 
-        This alias lets us use `Asset` instances interchangeably with `Event`
-        instances in templates.
-        """
-        return self.author
+    def primary_object_type(self):
+        try:
+            return self.object_types[0]
+        except (TypeError, IndexError):
+            return
 
     @property
     def asset_ref(self):
@@ -347,13 +355,10 @@ class Asset(TypePadObject):
                         object_types=self.object_types)
 
     def __unicode__(self):
-        return self.title or self.summary or self.content
+        return self.title or self.content
 
-    def primary_object_type(self):
-        if not self.object_types: return None
-        for object_type in self.object_types:
-            return object_type
-        return None
+    def __str__(self):
+        return self.__unicode__()
 
 
 class AssetRef(TypePadObject):
@@ -568,6 +573,15 @@ class Blog(TypePadObject):
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/blogs/%s.json' % self.url_id)
 
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
+
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
@@ -780,8 +794,12 @@ class Event(TypePadObject):
     :attrtype:`TypePadObject`
 
     """
-    published = fields.Field()
-    """The time at which the event was performed, as a W3CDTF timestamp."""
+    published = fields.Datetime()
+    """The time at which the event was performed, as a W3CDTF timestamp.
+
+    :attrtype:`datetime`
+
+    """
     url_id = fields.Field(api_name='urlId')
     """A string containing the canonical identifier that can be used to identify
     this object in URLs.
@@ -809,6 +827,15 @@ class Event(TypePadObject):
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/events/%s.json' % self.url_id)
+
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -863,6 +890,15 @@ class Favorite(TypePadObject):
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/favorites/%s.json' % self.url_id)
+
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -1069,6 +1105,15 @@ class Relationship(TypePadObject):
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/relationships/%s.json' % self.url_id)
 
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
+
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
@@ -1210,6 +1255,15 @@ class UserProfile(TypePadObject):
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/users/%s/profile.json' % self.url_id)
 
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
+
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
         """Returns the `UserProfile` instance with the given URL identifier."""
@@ -1300,6 +1354,15 @@ class Application(Entity):
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/applications/%s.json' % self.url_id)
+
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -1458,6 +1521,15 @@ class Group(Entity):
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/groups/%s.json' % self.url_id)
+
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -1703,6 +1775,15 @@ class User(Entity):
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/users/%s.json' % self.url_id)
+
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):

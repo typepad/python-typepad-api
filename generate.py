@@ -91,6 +91,9 @@ PROPERTY_FIXUPS = {
     'Asset': {
         'published': {'type': 'datetime'},
     },
+    'Event': {
+        'published': {'type': 'datetime'},
+    },
     'Relationship': {
         'created': {
             'name': 'created',
@@ -190,15 +193,39 @@ CLASS_EXTRAS = {
         assert re.match('^\w+$', api_key), "invalid api_key parameter given"
         return cls.get('/api-keys/%s.json' % api_key)
 ''',
-    'Asset': '''
-    @property
-    def actor(self):
-        """This asset's author.
+    'Application': '''
+    @classmethod
+    def get_by_api_key(cls, api_key, **kwargs):
+        """Returns an `Application` instance by the API key.
 
-        This alias lets us use `Asset` instances interchangeably with `Event`
-        instances in templates.
-        """
-        return self.author
+        Asserts that the api_key parameter matches ^\w+$."""
+        assert re.match('^\w+$', api_key), "invalid api_key parameter given"
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.get_by_api_key is deprecated' % cls.__name__)
+        return cls.get('/applications/%s.json' % api_key, **kwargs)
+
+    @property
+    def browser_upload_endpoint(self):
+        """The endpoint to use for uploading file assets directly to
+        TypePad."""
+        return urljoin(typepad.client.endpoint, '/browser-upload.json')
+
+    @property
+    def user_flyouts_script(self):
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead' % (self.__class__.__name__, self.__class__.__name__))
+        return self.user_flyouts_script_url
+''',
+    'Asset': '''
+    actor = renamed_property(old='actor', new='author')
+
+    def primary_object_type(self):
+        try:
+            return self.object_types[0]
+        except (TypeError, IndexError):
+            return
 
     @property
     def asset_ref(self):
@@ -211,13 +238,10 @@ CLASS_EXTRAS = {
                         object_types=self.object_types)
 
     def __unicode__(self):
-        return self.title or self.summary or self.content
+        return self.title or self.content
 
-    def primary_object_type(self):
-        if not self.object_types: return None
-        for object_type in self.object_types:
-            return object_type
-        return None
+    def __str__(self):
+        return self.__unicode__()
 ''',
     'AssetRef': '''
     def reclass_for_data(self, data):
@@ -286,39 +310,6 @@ CLASS_EXTRAS = {
     is_admin = _rel_type_checker("tag:api.typepad.com,2009:Admin")
     is_blocked = _rel_type_checker("tag:api.typepad.com,2009:Blocked")
 ''',
-    'VideoLink': '''
-    @property
-    def html(self):
-        import logging
-        logging.getLogger("typepad.api").warn(
-            '%s.html is deprecated; use %s.embed_code instead' % (self.__class__.__name__, self.__class__.__name__))
-        return self.embed_code
-''',
-    'Application': '''
-    @classmethod
-    def get_by_api_key(cls, api_key, **kwargs):
-        """Returns an `Application` instance by the API key.
-
-        Asserts that the api_key parameter matches ^\w+$."""
-        assert re.match('^\w+$', api_key), "invalid api_key parameter given"
-        import logging
-        logging.getLogger("typepad.api").warn(
-            '%s.get_by_api_key is deprecated' % cls.__name__)
-        return cls.get('/applications/%s.json' % api_key, **kwargs)
-
-    @property
-    def browser_upload_endpoint(self):
-        """The endpoint to use for uploading file assets directly to
-        TypePad."""
-        return urljoin(typepad.client.endpoint, '/browser-upload.json')
-
-    @property
-    def user_flyouts_script(self):
-        import logging
-        logging.getLogger("typepad.api").warn(
-            '%s.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead' % (self.__class__.__name__, self.__class__.__name__))
-        return self.user_flyouts_script_url
-''',
     'User': '''
     @classmethod
     def get_self(cls, **kwargs):
@@ -329,6 +320,15 @@ CLASS_EXTRAS = {
     'UserProfile': '''
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/users/%s/profile.json' % self.url_id)
+
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
@@ -342,6 +342,14 @@ CLASS_EXTRAS = {
         """Returns a `User` instance for the TypePad member whose
         `UserProfile` this is."""
         return find_by_name('User').get_by_url_id(self.url_id)
+''',
+    'VideoLink': '''
+    @property
+    def html(self):
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.html is deprecated; use %s.embed_code instead' % (self.__class__.__name__, self.__class__.__name__))
+        return self.embed_code
 ''',
 }
 
@@ -717,6 +725,15 @@ class ObjectType(lazy):
             me.write("""
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/%(endpoint_name)s/%%s.json' %% self.url_id)
+
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
 
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
