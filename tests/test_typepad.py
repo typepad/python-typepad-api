@@ -823,7 +823,7 @@ class TestTypePad(unittest.TestCase):
 
         asset = {
             'content': 'This is a test upload',
-            'objectTypes': ['tag:api.typepad.com,2009:Photo']
+            'objectType': 'Photo',
         }
         content = "\n".join(
             """iVBORw0KGgoAAAANSUhEUgAAACAAAAAWCAYAAAChWZ5EAAAAqUlEQVRIx8XTsQ2AIBCFYcM+OoOV"""
@@ -840,7 +840,7 @@ class TestTypePad(unittest.TestCase):
 
         asset = {
             'content': 'A small audio post',
-            'objectTypes': ['tag:api.typepad.com,2009:Audio']
+            'objectType': 'Audio',
         }
         content = "\n".join(
             """//tQZAAAAAAAf4UAAAgAAA0goAABFVWnQ7kKAAAAADSDAAAAgEAYCAQCAUBAIAYABADkguG8AkDk"""
@@ -876,7 +876,7 @@ class TestTypePad(unittest.TestCase):
 
         asset = {
             'content': 'This is a test upload',
-            'objectTypes': ['tag:api.typepad.com,2009:Photo']
+            'objectType': 'Photo',
         }
         content = "\n".join(
             """iVBORw0KGgoAAAANSUhEUgAAACAAAAAWCAYAAAChWZ5EAAAAqUlEQVRIx8XTsQ2AIBCFYcM+OoOV"""
