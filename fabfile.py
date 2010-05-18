@@ -69,6 +69,10 @@ def _download_source(server, path):
 def regenerate(server=None):
     if server is None:
         server = 'http://api.typepad.com/'
+    if not server.startswith('http'):
+        server = 'http://%s' % server
+    if not server.endswith('/'):
+        server = '%s/' % server
 
     with _download_source(server, 'nouns.json') as nouns_filename:
         with _download_source(server, 'object-types.json') as types_filename:
