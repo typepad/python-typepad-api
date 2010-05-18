@@ -193,6 +193,11 @@ CLASS_EXTRAS = {
         assert re.match('^\w+$', api_key), "invalid api_key parameter given"
         return cls.get('/api-keys/%s.json' % api_key)
 ''',
+    'Account': '''
+    @property
+    def xid(self):
+        return self.id.rsplit(':', 1)[-1]
+''',
     'Application': '''
     @classmethod
     def get_by_api_key(cls, api_key, **kwargs):

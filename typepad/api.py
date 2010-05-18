@@ -81,6 +81,10 @@ class Account(TypePadObject):
 
     """
 
+    @property
+    def xid(self):
+        return self.id.rsplit(':', 1)[-1]
+
 
 class ApiKey(TypePadObject):
 
