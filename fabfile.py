@@ -51,9 +51,6 @@ def check_changes(ver):
         if not found:
             abort("Version %s doesn't appear in the CHANGES.rst" % (ver,))
 
-def sdist():
-    local('python setup.py sdist')
-
 @contextmanager
 def _download_source(server, path):
     http = Http()
@@ -81,6 +78,9 @@ def regenerate(server=None):
 
             # generate a new docs section
             #local('python generate.py --nouns %s --types %s --docs typepad/doc/api/' % (nouns_filename, types_filename))
+
+def sdist():
+    local('python setup.py sdist')
 
 def docs(zipname):
     target_dir = tempfile.mkdtemp()
