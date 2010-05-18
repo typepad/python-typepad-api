@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 
+import codecs
 from cStringIO import StringIO
 import json
 import logging
+from os.path import join
 import re
 import sys
 import textwrap
@@ -657,6 +659,30 @@ class ObjectType(lazy):
         return self.types_by_name[self.parentType].has_get_by_url_id
 
     @property
+    def docString(self):
+        try:
+            return self.__dict__['docString']
+        except KeyError:
+            pass
+
+        try:
+            return CLASS_DOCSTRINGS[self.name]
+        except KeyError:
+            raise AttributeError('docString')
+
+    @docString.setter
+    def docString(self, val):
+        self.__dict__['docString'] = val
+
+    @property
+    def synopsis(self):
+        docstr = self.docString
+        logging.debug('Making synopsis for %s, got %r for docstring', self.name, docstr)
+        first_line = docstr.split('\n')[0]
+        logging.debug('    First line of that docstring is %r', first_line)
+        return first_line.rstrip('.')
+
+    @property
     def endpoint(self):
         return self.__dict__['endpoint']
 
@@ -714,9 +740,9 @@ class ObjectType(lazy):
     def __str__(self):
         me = StringIO()
 
-        if self.name in CLASS_DOCSTRINGS:
+        if hasattr(self, 'docString'):
             me.write('    """')
-            me.write(CLASS_DOCSTRINGS[self.name])
+            me.write(self.docString)
             me.write('"""\n\n')
 
         if self.name in CLASS_HAS_OBJECT_TYPE:
@@ -864,6 +890,29 @@ def write_docstrings(objtypes, out_fn):
         json.dump(docstrings, outfile, indent=4, sort_keys=True)
 
 
+def write_docs(objtypes, out_dir):
+    for objtype in objtypes:
+
+        data = {
+            'name': objtype.name,
+            'synopsis': getattr(objtype, 'synopsis', None)
+        }
+        data['header'] = ('`%(name)s`' if data['synopsis'] is None else u'`%(name)s` \u2013 %(synopsis)s') % data
+        data['line'] = '=' * len(data['header'])
+
+        doc = """
+%(header)s
+%(line)s
+
+.. autoclass:: typepad.api.%(name)s
+   :members:
+""" % data
+
+        filename = '%s.rst' % objtype.name.lower()
+        with codecs.open(join(out_dir, filename), 'w', 'utf-8') as outfile:
+            outfile.write(doc.lstrip())
+
+
 def main(argv=None):
     if argv is None:
         argv = sys.argv[1:]
@@ -882,10 +931,13 @@ def main(argv=None):
         description='generate a TypePad client library from json endpoints')
     parser.add_argument('--types', metavar='file', help='parse file for object type info')
     parser.add_argument('--nouns', metavar='file', help='parse file for noun endpoint info')
-    parser.add_argument('--docstrings', action='store_true', help='write docstrings JSON instead of the python module')
     parser.add_argument('-v', action=Add, nargs=0, dest='verbose', default=2, help='be more verbose')
     parser.add_argument('-q', action=Subt, nargs=0, dest='verbose', help='be less verbose')
     parser.add_argument('outfile', help='file to write library to')
+
+    parser.add_argument('--docstrings', action='store_true', help='write docstrings JSON instead of the python module')
+    parser.add_argument('--docs', action='store_true', help='write doc .rst files to the outfile directory instead of the python module')
+
     ohyeah = parser.parse_args(argv)
 
     log_level = ohyeah.verbose
@@ -895,7 +947,13 @@ def main(argv=None):
     logging.info('Log level set to %s', logging.getLevelName(log_level))
 
     objtypes = generate_types(ohyeah.types, ohyeah.nouns)
-    (write_docstrings if ohyeah.docstrings else write_module)(objtypes, ohyeah.outfile)
+    if ohyeah.docstrings:
+        fn = write_docstrings
+    elif ohyeah.docs:
+        fn = write_docs
+    else:
+        fn = write_module
+    fn(objtypes, ohyeah.outfile)
 
     return 0
 
