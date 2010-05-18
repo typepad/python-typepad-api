@@ -14,10 +14,7 @@ Package contents
 .. toctree::
    :maxdepth: 2
 
-   tpobject
-   api
-   fields
-   oauthclient
+   ref/index
 
 Indices and tables
 ==================
