@@ -61,7 +61,7 @@ TypePad is mostly about blogs, so let's see what we can do with them.
 Listing a user's blogs
 ----------------------
 
-You can also list what blogs a user has. (Without authentication, you'll only see the account's public, shared blogs, but that's okay for now.)
+You can also *list what blogs a user has*. (Without authentication, you'll only see the account's public, shared blogs, but that's okay for now.)
 
 ::
 
@@ -82,7 +82,7 @@ Let's pick one blog to look at::
    'markpasc'
    >>> 
 
-Once we have the blog, we can list what posts are available in that blog::
+Once we have the blog, we can *list what posts are available* in that blog::
 
    >>> posts = blog.post_assets
    >>> len(posts)
