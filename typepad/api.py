@@ -814,12 +814,8 @@ class Event(TypePadObject):
     store.
 
     """
-    verb = fields.List(fields.Field())
-    """A keyword identifying the type of event this is.
-
-    :attrtype:`list`
-
-    """
+    verb = fields.Field()
+    """A keyword identifying the type of event this is."""
     verbs = fields.List(fields.Field())
     """**Deprecated.** An array of verb identifier URIs.
 

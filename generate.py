@@ -95,6 +95,7 @@ PROPERTY_FIXUPS = {
     },
     'Event': {
         'published': {'type': 'datetime'},
+        'verb': {'type': 'string'},
     },
     'Relationship': {
         'created': {
