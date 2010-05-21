@@ -66,7 +66,7 @@ class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
 
     """
 
-    endpoint = 'https://api.typepad.com'
+    endpoint = 'http://api.typepad.com'
     """The URL against which to perform TypePad API requests."""
 
     subrequest_limit = 20
