@@ -503,7 +503,7 @@ class TestBrowserUpload(unittest.TestCase):
         mock.VerifyAll()
 
         self.assert_(self.uri)
-        self.assert_(self.uri.startswith('https://api.typepad.com/browser-upload.json'))
+        self.assert_(self.uri.startswith('http://api.typepad.com/browser-upload.json'))
         uriparts = list(urlparse(self.uri))
         querydict = cgi.parse_qs(uriparts[4])
 
