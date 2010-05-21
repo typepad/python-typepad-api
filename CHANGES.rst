@@ -1,11 +1,11 @@
 typepad Changelog
 =================
 
-(unreleased)
+1.2 (?)
 ------------
 
 * Now thread-safe.
-* Changed default typepad.client.endpoint to https://api.typepad.com
+* Library is now mostly generated from the TypePad API itself.
 
 
 1.1.2 (2010-04-20)

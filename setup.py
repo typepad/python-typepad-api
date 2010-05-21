@@ -39,9 +39,9 @@ except Exception:
 
 setup(
     name='typepad',
-    version='1.1.2',
+    version='1.2',
     description='TypePad API SDK',
-    author='Six Apart',
+    author='Six Apart Ltd.',
     author_email='python@sixapart.com',
     url='http://github.com/sixapart/python-typepad-api',
 
@@ -60,6 +60,6 @@ setup(
 
     packages=['typepad'],
     provides=['typepad'],
-    requires=['oauth(>=1.0.1)', 'remoteobjects(==1.1)', 'batchhttp(==1.1.1)'],
-    install_requires=['oauth>=1.0.1', 'remoteobjects==1.1', 'batchhttp==1.1.1'],
+    requires=['oauth(>=1.0.1)', 'remoteobjects(==1.1.1)', 'batchhttp(==1.1.1)'],
+    install_requires=['oauth>=1.0.1', 'remoteobjects==1.1.1', 'batchhttp==1.1.1'],
 )
