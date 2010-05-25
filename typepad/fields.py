@@ -74,3 +74,34 @@ class Link(remoteobjects.fields.Link):
         except Exception, e:
             logging.error(str(e))
             raise
+
+
+class ActionEndpoint(remoteobjects.fields.Property):
+
+    def __init__(self, api_name, post_type, response_type=None, **kwargs):
+        self.api_name = api_name
+        self.post_type = post_type
+        self.response_type = response_type
+        super(ActionEndpoint, self).__init__(**kwargs)
+
+    def install(self, attrname, cls):
+        self.of_cls = cls
+        self.attrname = attrname
+        if self.api_name is None:
+            self.api_name = attrname
+
+    def __get__(self, instance, owner):
+        if instance._location is None:
+            raise AttributeError('Cannot find URL of %s relative to URL-less %s' % (self.cls.__name__, owner.__name__))
+
+        assert instance._location.endswith('.json')
+        newurl = instance._location[:-5]
+        newurl += '/' + self.api_name
+        newurl += '.json'
+
+        def post(**kwargs):
+            response = self.response_type.get(newurl)
+            post_obj = self.post_type(**kwargs)
+            return response.post(post_obj)
+
+        return post
