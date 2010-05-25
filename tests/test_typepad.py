@@ -1953,7 +1953,6 @@ class TestTypePad(unittest.TestCase):
         self.assert_(isinstance(asset, typepad.Asset),
             'object %r is not a typepad.Asset' % asset)
         self.assert_(asset.author)
-        self.assert_(asset.actor)
         self.assertValidUser(asset.author)
         # asset.content is not required for some asset types
         # self.assert_(asset.content)
