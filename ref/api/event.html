@@ -1,0 +1,170 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Event – An action that a user or group did &mdash; typepad v1.1.2 documentation</title>
+    <link rel="stylesheet" href="../../static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../static/doctools.js"></script>
+    <link rel="top" title="typepad v1.1.2 documentation" href="../../index.html" />
+    <link rel="up" title="typepad.api – content objects" href="index.html" />
+    <link rel="next" title="Favorite – A favorite of some other asset" href="favorite.html" />
+    <link rel="prev" title="Entity" href="entity.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="favorite.html" title="Favorite – A favorite of some other asset"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="entity.html" title="Entity"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U"><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="event-an-action-that-a-user-or-group-did">
+<h1><cite>Event</cite> – An action that a user or group did<a class="headerlink" href="#event-an-action-that-a-user-or-group-did" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="typepad.api.Event">
+<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Event</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Event" title="Permalink to this definition">¶</a></dt>
+<dd><p>An action that a user or group did.</p>
+<p>An event has an <a title="typepad.api.Event.actor" class="reference internal" href="#typepad.api.Event.actor"><tt class="xref docutils literal"><span class="pre">actor</span></tt></a>, which is the user or group that did the action; a
+set of <a title="typepad.api.Event.verbs" class="reference internal" href="#typepad.api.Event.verbs"><tt class="xref docutils literal"><span class="pre">verbs</span></tt></a> that describe what kind of action occured; and an <a title="typepad.api.Event.object" class="reference internal" href="#typepad.api.Event.object"><tt class="xref docutils literal"><span class="pre">object</span></tt></a>
+that is the object that the action was done to. In the current TypePad API
+implementation, only assets, users and groups can be the object of an
+event.</p>
+<dl class="attribute">
+<dt id="typepad.api.Event.actor">
+<tt class="descname">actor</tt> &rarr; <cite>Entity</cite><a class="headerlink" href="#typepad.api.Event.actor" title="Permalink to this definition">¶</a></dt>
+<dd>The user who performed the action described by this event.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Event.id">
+<tt class="descname">id</tt><a class="headerlink" href="#typepad.api.Event.id" title="Permalink to this definition">¶</a></dt>
+<dd>A URI that serves as a globally unique identifier for the user.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Event.object">
+<tt class="descname">object</tt> &rarr; <cite>TypePadObject</cite><a class="headerlink" href="#typepad.api.Event.object" title="Permalink to this definition">¶</a></dt>
+<dd>The object to which the action described by this event was performed.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Event.published">
+<tt class="descname">published</tt> &rarr; <cite>datetime</cite><a class="headerlink" href="#typepad.api.Event.published" title="Permalink to this definition">¶</a></dt>
+<dd>The time at which the event was performed, as a W3CDTF timestamp.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Event.url_id">
+<tt class="descname">url_id</tt><a class="headerlink" href="#typepad.api.Event.url_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string containing the canonical identifier that can be used to identify
+this object in URLs.</p>
+<p>This can be used to recognise where the same user is returned in response to
+different requests, and as a mapping key for an application&#8217;s local data
+store.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Event.verb">
+<tt class="descname">verb</tt><a class="headerlink" href="#typepad.api.Event.verb" title="Permalink to this definition">¶</a></dt>
+<dd>A keyword identifying the type of event this is.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Event.verbs">
+<tt class="descname">verbs</tt> &rarr; <cite>list</cite><a class="headerlink" href="#typepad.api.Event.verbs" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Deprecated.</strong> An array of verb identifier URIs.</p>
+<p>This set will contain one verb identifier URI.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="entity.html"
+                                  title="previous chapter"><cite>Entity</cite></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="favorite.html"
+                                  title="next chapter"><cite>Favorite</cite> – A favorite of some other asset</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../sources/ref/api/event.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="favorite.html" title="Favorite – A favorite of some other asset"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="entity.html" title="Entity"
+             >previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" ><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

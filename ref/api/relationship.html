@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Relationship – The unidirectional relationship between a pair of entities &mdash; typepad v1.1.2 documentation</title>
+    <link rel="stylesheet" href="../../static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../static/doctools.js"></script>
+    <link rel="top" title="typepad v1.1.2 documentation" href="../../index.html" />
+    <link rel="up" title="typepad.api – content objects" href="index.html" />
+    <link rel="next" title="RelationshipStatus – A representation of just the relationship types of a relationship," href="relationshipstatus.html" />
+    <link rel="prev" title="PublicationStatus – A container for the flags that represent an asset’s publication status" href="publicationstatus.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="relationshipstatus.html" title="RelationshipStatus – A representation of just the relationship types of a relationship,"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="publicationstatus.html" title="PublicationStatus – A container for the flags that represent an asset’s publication status"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U"><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="relationship-the-unidirectional-relationship-between-a-pair-of-entities">
+<h1><cite>Relationship</cite> – The unidirectional relationship between a pair of entities<a class="headerlink" href="#relationship-the-unidirectional-relationship-between-a-pair-of-entities" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="typepad.api.Relationship">
+<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Relationship</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Relationship" title="Permalink to this definition">¶</a></dt>
+<dd><p>The unidirectional relationship between a pair of entities.</p>
+<p>A Relationship can be between a user and a user (a contact relationship),
+or a user and a group (a membership). In either case, the relationship&#8217;s
+status shows <em>all</em> the unidirectional relationships between the source and
+target entities.</p>
+<dl class="attribute">
+<dt id="typepad.api.Relationship.created">
+<tt class="descname">created</tt> &rarr; <cite>dict of datetime</cite><a class="headerlink" href="#typepad.api.Relationship.created" title="Permalink to this definition">¶</a></dt>
+<dd><p>A mapping of the relationship types present between the source and target
+objects to the times those types of relationship were established.</p>
+<p>The keys of the map are the relationship type URIs present in the
+relationship&#8217;s <a title="typepad.api.Relationship.status" class="reference internal" href="#typepad.api.Relationship.status"><tt class="xref docutils literal"><span class="pre">status</span></tt></a> property; the values are W3CDTF timestamps for the
+times those relationship edges were created.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Relationship.id">
+<tt class="descname">id</tt><a class="headerlink" href="#typepad.api.Relationship.id" title="Permalink to this definition">¶</a></dt>
+<dd>A URI that serves as a globally unique identifier for the relationship.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Relationship.source">
+<tt class="descname">source</tt> &rarr; <cite>Entity</cite><a class="headerlink" href="#typepad.api.Relationship.source" title="Permalink to this definition">¶</a></dt>
+<dd>The source entity of the relationship.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Relationship.status">
+<tt class="descname">status</tt> &rarr; <cite>RelationshipStatus</cite><a class="headerlink" href="#typepad.api.Relationship.status" title="Permalink to this definition">¶</a></dt>
+<dd>An object describing all the types of relationship that currently exist
+between the source and target objects.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Relationship.status_obj">
+<tt class="descname">status_obj</tt> &rarr; <cite>RelationshipStatus</cite><a class="headerlink" href="#typepad.api.Relationship.status_obj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the status information for the selected relationship, including its
+types.</p>
+<p>PUT: Change the status information for the selected relationship, including
+its types.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Relationship.target">
+<tt class="descname">target</tt> &rarr; <cite>Entity</cite><a class="headerlink" href="#typepad.api.Relationship.target" title="Permalink to this definition">¶</a></dt>
+<dd>The target entity of the relationship.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Relationship.url_id">
+<tt class="descname">url_id</tt><a class="headerlink" href="#typepad.api.Relationship.url_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string containing the canonical identifier that can be used to identify
+this object in URLs.</p>
+<p>This can be used to recognise where the same relationship is returned in
+response to different requests, and as a mapping key for an application&#8217;s
+local data store.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="publicationstatus.html"
+                                  title="previous chapter"><cite>PublicationStatus</cite> – A container for the flags that represent an asset&#8217;s publication status</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="relationshipstatus.html"
+                                  title="next chapter"><cite>RelationshipStatus</cite> – A representation of just the relationship types of a relationship,</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../sources/ref/api/relationship.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="relationshipstatus.html" title="RelationshipStatus – A representation of just the relationship types of a relationship,"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="publicationstatus.html" title="PublicationStatus – A container for the flags that represent an asset’s publication status"
+             >previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" ><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

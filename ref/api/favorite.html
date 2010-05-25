@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Favorite – A favorite of some other asset &mdash; typepad v1.1.2 documentation</title>
+    <link rel="stylesheet" href="../../static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../static/doctools.js"></script>
+    <link rel="top" title="typepad v1.1.2 documentation" href="../../index.html" />
+    <link rel="up" title="typepad.api – content objects" href="index.html" />
+    <link rel="next" title="FeedbackStatus" href="feedbackstatus.html" />
+    <link rel="prev" title="Event – An action that a user or group did" href="event.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="feedbackstatus.html" title="FeedbackStatus"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="event.html" title="Event – An action that a user or group did"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U"><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="favorite-a-favorite-of-some-other-asset">
+<h1><cite>Favorite</cite> – A favorite of some other asset<a class="headerlink" href="#favorite-a-favorite-of-some-other-asset" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="typepad.api.Favorite">
+<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Favorite</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Favorite" title="Permalink to this definition">¶</a></dt>
+<dd><p>A favorite of some other asset.</p>
+<p>Asserts that the user_id and asset_id parameter match ^w+$.</p>
+<dl class="attribute">
+<dt id="typepad.api.Favorite.author">
+<tt class="descname">author</tt> &rarr; <cite>User</cite><a class="headerlink" href="#typepad.api.Favorite.author" title="Permalink to this definition">¶</a></dt>
+<dd><p>The user who saved this favorite.</p>
+<p>That is, this property is the user who saved the target asset as a favorite,
+not the creator of that asset.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Favorite.id">
+<tt class="descname">id</tt><a class="headerlink" href="#typepad.api.Favorite.id" title="Permalink to this definition">¶</a></dt>
+<dd>A URI that serves as a globally unique identifier for the favorite.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Favorite.in_reply_to">
+<tt class="descname">in_reply_to</tt> &rarr; <cite>AssetRef</cite><a class="headerlink" href="#typepad.api.Favorite.in_reply_to" title="Permalink to this definition">¶</a></dt>
+<dd>A reference to the target asset that has been marked as a favorite.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Favorite.published">
+<tt class="descname">published</tt><a class="headerlink" href="#typepad.api.Favorite.published" title="Permalink to this definition">¶</a></dt>
+<dd>The time that the favorite was created, as a W3CDTF timestamp.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Favorite.url_id">
+<tt class="descname">url_id</tt><a class="headerlink" href="#typepad.api.Favorite.url_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>A string containing the canonical identifier that can be used to identify
+this favorite in URLs.</p>
+<p>This can be used to recognise where the same favorite is returned in response
+to different requests, and as a mapping key for an application&#8217;s local data
+store.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="event.html"
+                                  title="previous chapter"><cite>Event</cite> – An action that a user or group did</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="feedbackstatus.html"
+                                  title="next chapter"><cite>FeedbackStatus</cite></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../sources/ref/api/favorite.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="feedbackstatus.html" title="FeedbackStatus"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="event.html" title="Event – An action that a user or group did"
+             >previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" ><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

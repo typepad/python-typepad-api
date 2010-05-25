@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>AssetSource – Information about an Asset instance imported from another service &mdash; typepad v1.1.2 documentation</title>
+    <link rel="stylesheet" href="../../static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../static/doctools.js"></script>
+    <link rel="top" title="typepad v1.1.2 documentation" href="../../index.html" />
+    <link rel="up" title="typepad.api – content objects" href="index.html" />
+    <link rel="next" title="Audio – An entry in a blog" href="audio.html" />
+    <link rel="prev" title="AssetRef – A structure that refers to an asset without including its full" href="assetref.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="audio.html" title="Audio – An entry in a blog"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="assetref.html" title="AssetRef – A structure that refers to an asset without including its full"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U"><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="assetsource-information-about-an-asset-instance-imported-from-another-service">
+<h1><cite>AssetSource</cite> – Information about an <cite>Asset</cite> instance imported from another service<a class="headerlink" href="#assetsource-information-about-an-asset-instance-imported-from-another-service" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="typepad.api.AssetSource">
+<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">AssetSource</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.AssetSource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Information about an <cite>Asset</cite> instance imported from another service.</p>
+<dl class="attribute">
+<dt id="typepad.api.AssetSource.by_user">
+<tt class="descname">by_user</tt><a class="headerlink" href="#typepad.api.AssetSource.by_user" title="Permalink to this definition">¶</a></dt>
+<dd><strong>Deprecated.</strong> <cite>True</cite> if this content is considered to be created by its
+author, or <cite>False</cite> if it&#8217;s actually someone else&#8217;s content imported by the
+asset author.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.AssetSource.permalink_url">
+<tt class="descname">permalink_url</tt><a class="headerlink" href="#typepad.api.AssetSource.permalink_url" title="Permalink to this definition">¶</a></dt>
+<dd>The permalink URL of the resource from which the related asset was
+imported.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.AssetSource.provider">
+<tt class="descname">provider</tt> &rarr; <cite>dict</cite><a class="headerlink" href="#typepad.api.AssetSource.provider" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Deprecated.</strong> Description of the external service provider from which
+this content was imported, if known.</p>
+<p>Contains <tt class="docutils literal"><span class="pre">name</span></tt>, <tt class="docutils literal"><span class="pre">icon</span></tt>, and <tt class="docutils literal"><span class="pre">uri</span></tt> properties. This property will be
+omitted if the service from which the related asset was imported is not
+recognized.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="assetref.html"
+                                  title="previous chapter"><cite>AssetRef</cite> – A structure that refers to an asset without including its full</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="audio.html"
+                                  title="next chapter"><cite>Audio</cite> – An entry in a blog</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../sources/ref/api/assetsource.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="audio.html" title="Audio – An entry in a blog"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="assetref.html" title="AssetRef – A structure that refers to an asset without including its full"
+             >previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" ><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>BlogCommentingSettings &mdash; typepad v1.1.2 documentation</title>
+    <link rel="stylesheet" href="../../static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../static/doctools.js"></script>
+    <link rel="top" title="typepad v1.1.2 documentation" href="../../index.html" />
+    <link rel="up" title="typepad.api – content objects" href="index.html" />
+    <link rel="next" title="BlogStats" href="blogstats.html" />
+    <link rel="prev" title="Blog" href="blog.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="blogstats.html" title="BlogStats"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="blog.html" title="Blog"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U"><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="blogcommentingsettings">
+<h1><cite>BlogCommentingSettings</cite><a class="headerlink" href="#blogcommentingsettings" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="typepad.api.BlogCommentingSettings">
+<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">BlogCommentingSettings</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.BlogCommentingSettings" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="typepad.api.BlogCommentingSettings.captcha_required">
+<tt class="descname">captcha_required</tt><a class="headerlink" href="#typepad.api.BlogCommentingSettings.captcha_required" title="Permalink to this definition">¶</a></dt>
+<dd><cite>True</cite> if this blog requires anonymous commenters to pass a CAPTCHA before
+submitting a comment, or <cite>False</cite> otherwise.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.BlogCommentingSettings.email_address_required">
+<tt class="descname">email_address_required</tt><a class="headerlink" href="#typepad.api.BlogCommentingSettings.email_address_required" title="Permalink to this definition">¶</a></dt>
+<dd><cite>True</cite> if this blog requires anonymous comments to be submitted with an
+email address, or <cite>False</cite> otherwise.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.BlogCommentingSettings.html_allowed">
+<tt class="descname">html_allowed</tt><a class="headerlink" href="#typepad.api.BlogCommentingSettings.html_allowed" title="Permalink to this definition">¶</a></dt>
+<dd><cite>True</cite> if this blog allows commenters to use basic HTML formatting in
+comments, or <cite>False</cite> if HTML will be removed.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.BlogCommentingSettings.moderation_enabled">
+<tt class="descname">moderation_enabled</tt><a class="headerlink" href="#typepad.api.BlogCommentingSettings.moderation_enabled" title="Permalink to this definition">¶</a></dt>
+<dd><cite>True</cite> if this blog places new comments into a moderation queue for
+approval before they are displayed, or <cite>False</cite> if new comments may be
+available immediately.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.BlogCommentingSettings.signin_allowed">
+<tt class="descname">signin_allowed</tt><a class="headerlink" href="#typepad.api.BlogCommentingSettings.signin_allowed" title="Permalink to this definition">¶</a></dt>
+<dd><cite>True</cite> if this blog allows users to sign in to comment, or <cite>False</cite> if all
+new comments are anonymous.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.BlogCommentingSettings.signin_required">
+<tt class="descname">signin_required</tt><a class="headerlink" href="#typepad.api.BlogCommentingSettings.signin_required" title="Permalink to this definition">¶</a></dt>
+<dd><cite>True</cite> if this blog requires users to be logged in in order to leave a
+comment, or <cite>False</cite> if anonymous comments will be rejected.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.BlogCommentingSettings.time_limit">
+<tt class="descname">time_limit</tt><a class="headerlink" href="#typepad.api.BlogCommentingSettings.time_limit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of days after a post is published that comments will be allowed.</p>
+<p>If the blog has no time limit for comments, this property will be omitted.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.BlogCommentingSettings.urls_auto_linked">
+<tt class="descname">urls_auto_linked</tt><a class="headerlink" href="#typepad.api.BlogCommentingSettings.urls_auto_linked" title="Permalink to this definition">¶</a></dt>
+<dd><cite>True</cite> if comments in this blog will automatically have any bare URLs
+turned into links, or <cite>False</cite> if URLs will be shown unlinked.</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="blog.html"
+                                  title="previous chapter"><cite>Blog</cite></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="blogstats.html"
+                                  title="next chapter"><cite>BlogStats</cite></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../sources/ref/api/blogcommentingsettings.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="blogstats.html" title="BlogStats"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="blog.html" title="Blog"
+             >previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" ><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

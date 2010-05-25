@@ -1,0 +1,251 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>User – A TypePad user &mdash; typepad v1.1.2 documentation</title>
+    <link rel="stylesheet" href="../../static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../static/doctools.js"></script>
+    <link rel="top" title="typepad v1.1.2 documentation" href="../../index.html" />
+    <link rel="up" title="typepad.api – content objects" href="index.html" />
+    <link rel="next" title="UserProfile – Additional profile information about a TypePad user" href="userprofile.html" />
+    <link rel="prev" title="RelationshipStatus – A representation of just the relationship types of a relationship," href="relationshipstatus.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="userprofile.html" title="UserProfile – Additional profile information about a TypePad user"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="relationshipstatus.html" title="RelationshipStatus – A representation of just the relationship types of a relationship,"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U"><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="user-a-typepad-user">
+<h1><cite>User</cite> – A TypePad user<a class="headerlink" href="#user-a-typepad-user" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="typepad.api.User">
+<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">User</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.User" title="Permalink to this definition">¶</a></dt>
+<dd><p>A TypePad user.</p>
+<p>This includes those who own TypePad blogs, those who use TypePad Connect
+and registered commenters who have either created a TypePad account or
+signed in with OpenID.</p>
+<dl class="attribute">
+<dt id="typepad.api.User.avatar_link">
+<tt class="descname">avatar_link</tt> &rarr; <cite>ImageLink</cite><a class="headerlink" href="#typepad.api.User.avatar_link" title="Permalink to this definition">¶</a></dt>
+<dd>A link to an image representing this user.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.blogs">
+<tt class="descname">blogs</tt> &rarr; <cite>list of Blog</cite><a class="headerlink" href="#typepad.api.User.blogs" title="Permalink to this definition">¶</a></dt>
+<dd>Get a list of blogs that the selected user has access to.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.display_name">
+<tt class="descname">display_name</tt><a class="headerlink" href="#typepad.api.User.display_name" title="Permalink to this definition">¶</a></dt>
+<dd>The user&#8217;s chosen display name.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.elsewhere_accounts">
+<tt class="descname">elsewhere_accounts</tt> &rarr; <cite>list of Account</cite><a class="headerlink" href="#typepad.api.User.elsewhere_accounts" title="Permalink to this definition">¶</a></dt>
+<dd>Get a list of elsewhere accounts for the selected user.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.email">
+<tt class="descname">email</tt><a class="headerlink" href="#typepad.api.User.email" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Deprecated.</strong> The user&#8217;s email address.</p>
+<p>This property is only provided for authenticated requests if the user has
+shared it with the authenticated application, and the authenticated user is
+allowed to view it (as with administrators of groups the user has joined). In
+all other cases, this property is omitted.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.events">
+<tt class="descname">events</tt> &rarr; <cite>list of Event</cite><a class="headerlink" href="#typepad.api.User.events" title="Permalink to this definition">¶</a></dt>
+<dd>Get a list of events describing actions that the selected user performed.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.favorites">
+<tt class="descname">favorites</tt> &rarr; <cite>list of Favorite</cite><a class="headerlink" href="#typepad.api.User.favorites" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of favorites that were listed by the selected user.</p>
+<p>POST: Create a new favorite in the selected user&#8217;s list of favorites.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.gender">
+<tt class="descname">gender</tt><a class="headerlink" href="#typepad.api.User.gender" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Deprecated.</strong> The user&#8217;s gender, as they provided it.</p>
+<p>This property is only provided for authenticated requests if the user has
+shared it with the authenticated application, and the authenticated user is
+allowed to view it (as with administrators of groups the user has joined). In
+all other cases, this property is omitted.</p>
+</dd></dl>
+
+<dl class="classmethod">
+<dt id="typepad.api.User.get_self">
+<em class="property">classmethod </em><tt class="descname">get_self</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.User.get_self" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a <cite>User</cite> instance representing the account as whom the
+client library is authenticating.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.interests">
+<tt class="descname">interests</tt> &rarr; <cite>list</cite><a class="headerlink" href="#typepad.api.User.interests" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Deprecated.</strong> A list of interests provided by the user and displayed on
+the user&#8217;s profile page.</p>
+<p>Use the <cite>interests</cite> property of the <cite>UserProfile</cite> object, which can be
+retrieved from the <tt class="docutils literal"><span class="pre">/users/{id}/profile</span></tt> endpoint.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.location">
+<tt class="descname">location</tt><a class="headerlink" href="#typepad.api.User.location" title="Permalink to this definition">¶</a></dt>
+<dd><p><strong>Deprecated.</strong> The user&#8217;s location, as a free-form string provided by
+them.</p>
+<p>Use the the <cite>location</cite> property of the related <cite>UserProfile</cite> object, which can
+be retrieved from the <tt class="docutils literal"><span class="pre">/users/{id}/profile</span></tt> endpoint.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.memberships">
+<tt class="descname">memberships</tt> &rarr; <cite>list of Relationship</cite><a class="headerlink" href="#typepad.api.User.memberships" title="Permalink to this definition">¶</a></dt>
+<dd>Get a list of relationships that the selected user has with groups.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.notifications">
+<tt class="descname">notifications</tt> &rarr; <cite>list of Event</cite><a class="headerlink" href="#typepad.api.User.notifications" title="Permalink to this definition">¶</a></dt>
+<dd>Get a list of events describing actions by users that the selected user is
+following.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.object_type">
+<tt class="descname">object_type</tt><a class="headerlink" href="#typepad.api.User.object_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The keyword identifying the type of object this is.</p>
+<p>For a User object, <cite>object_type</cite> will be <tt class="docutils literal"><span class="pre">User</span></tt>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.object_types">
+<tt class="descname">object_types</tt> &rarr; <cite>list</cite><a class="headerlink" href="#typepad.api.User.object_types" title="Permalink to this definition">¶</a></dt>
+<dd><strong>Deprecated.</strong> An array of object type identifier URIs.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.preferred_username">
+<tt class="descname">preferred_username</tt><a class="headerlink" href="#typepad.api.User.preferred_username" title="Permalink to this definition">¶</a></dt>
+<dd><p>The name the user has chosen for use in the URL of their TypePad profile
+page.</p>
+<p>This property can be used to select this user in URLs, although it is not a
+persistent key, as the user can change it at any time.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.profile">
+<tt class="descname">profile</tt> &rarr; <cite>UserProfile</cite><a class="headerlink" href="#typepad.api.User.profile" title="Permalink to this definition">¶</a></dt>
+<dd>Get a more extensive set of user properties that can be used to build a
+user profile page.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.profile_page_url">
+<tt class="descname">profile_page_url</tt><a class="headerlink" href="#typepad.api.User.profile_page_url" title="Permalink to this definition">¶</a></dt>
+<dd>The URL of the user&#8217;s TypePad profile page.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.User.relationships">
+<tt class="descname">relationships</tt> &rarr; <cite>list of Relationship</cite><a class="headerlink" href="#typepad.api.User.relationships" title="Permalink to this definition">¶</a></dt>
+<dd>Get a list of relationships that the selected user has with other users,
+and that other users have with the selected user.</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="relationshipstatus.html"
+                                  title="previous chapter"><cite>RelationshipStatus</cite> – A representation of just the relationship types of a relationship,</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="userprofile.html"
+                                  title="next chapter"><cite>UserProfile</cite> – Additional profile information about a TypePad user</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../sources/ref/api/user.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="userprofile.html" title="UserProfile – Additional profile information about a TypePad user"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="relationshipstatus.html" title="RelationshipStatus – A representation of just the relationship types of a relationship,"
+             >previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" ><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

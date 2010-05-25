@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Endpoint &mdash; typepad v1.1.2 documentation</title>
+    <link rel="stylesheet" href="../../static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../static/doctools.js"></script>
+    <link rel="top" title="typepad v1.1.2 documentation" href="../../index.html" />
+    <link rel="up" title="typepad.api – content objects" href="index.html" />
+    <link rel="next" title="Entity" href="entity.html" />
+    <link rel="prev" title="ContainerRef" href="containerref.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="entity.html" title="Entity"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="containerref.html" title="ContainerRef"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U"><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="endpoint">
+<h1><cite>Endpoint</cite><a class="headerlink" href="#endpoint" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="typepad.api.Endpoint">
+<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Endpoint</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Endpoint" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="typepad.api.Endpoint.action_endpoints">
+<tt class="descname">action_endpoints</tt> &rarr; <cite>list of Endpoint</cite><a class="headerlink" href="#typepad.api.Endpoint.action_endpoints" title="Permalink to this definition">¶</a></dt>
+<dd>For noun endpoints, an array of action endpoints that it supports.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.can_have_id">
+<tt class="descname">can_have_id</tt><a class="headerlink" href="#typepad.api.Endpoint.can_have_id" title="Permalink to this definition">¶</a></dt>
+<dd>For noun endpoints, <cite>True</cite> if an id part is accepted, or <cite>False</cite> if the
+noun may only be used alone.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.can_omit_id">
+<tt class="descname">can_omit_id</tt><a class="headerlink" href="#typepad.api.Endpoint.can_omit_id" title="Permalink to this definition">¶</a></dt>
+<dd>For noun endpoints, <cite>True</cite> if the id part can be ommitted, or <cite>False</cite> if it
+is always required.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.filter_endpoints">
+<tt class="descname">filter_endpoints</tt> &rarr; <cite>list of Endpoint</cite><a class="headerlink" href="#typepad.api.Endpoint.filter_endpoints" title="Permalink to this definition">¶</a></dt>
+<dd>For endpoints that return lists, an array of filters that can be appended
+to the endpoint.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.format_sensitive">
+<tt class="descname">format_sensitive</tt><a class="headerlink" href="#typepad.api.Endpoint.format_sensitive" title="Permalink to this definition">¶</a></dt>
+<dd><cite>True</cite> if this endpoint requires a format suffix, or <cite>False</cite> otherwise.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.name">
+<tt class="descname">name</tt><a class="headerlink" href="#typepad.api.Endpoint.name" title="Permalink to this definition">¶</a></dt>
+<dd>The name of the endpoint, as it appears in URLs.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.parameterized">
+<tt class="descname">parameterized</tt><a class="headerlink" href="#typepad.api.Endpoint.parameterized" title="Permalink to this definition">¶</a></dt>
+<dd>For filter endpoints, <cite>True</cite> if a parameter is required on the filter, or
+<cite>False</cite> if it&#8217;s a boolean filter.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.post_object_type">
+<tt class="descname">post_object_type</tt> &rarr; <cite>ObjectType</cite><a class="headerlink" href="#typepad.api.Endpoint.post_object_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The type of object that this endpoint accepts for <tt class="docutils literal"><span class="pre">POST</span></tt> operations.</p>
+<p>This property is omitted if this endpoint does not accept <tt class="docutils literal"><span class="pre">POST</span></tt> requests.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.property_endpoints">
+<tt class="descname">property_endpoints</tt> &rarr; <cite>list of Endpoint</cite><a class="headerlink" href="#typepad.api.Endpoint.property_endpoints" title="Permalink to this definition">¶</a></dt>
+<dd>For noun endpoints, an array of property endpoints that it supports.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.resource_object_type">
+<tt class="descname">resource_object_type</tt> &rarr; <cite>ObjectType</cite><a class="headerlink" href="#typepad.api.Endpoint.resource_object_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>The type of object that this endpoint represents for <tt class="docutils literal"><span class="pre">GET</span></tt>, <tt class="docutils literal"><span class="pre">PUT</span></tt> and
+<tt class="docutils literal"><span class="pre">DELETE</span></tt> operations.</p>
+<p>This property is omitted for action endpoints, as they do not represent
+resources.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.response_object_type">
+<tt class="descname">response_object_type</tt> &rarr; <cite>ObjectType</cite><a class="headerlink" href="#typepad.api.Endpoint.response_object_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>For action endpoints, the type of object that this endpoint returns on
+success.</p>
+<p>If the endpoint returns no payload on success, or if this is not an action
+endpoint, this property is omitted.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.supported_methods">
+<tt class="descname">supported_methods</tt> &rarr; <cite>dict</cite><a class="headerlink" href="#typepad.api.Endpoint.supported_methods" title="Permalink to this definition">¶</a></dt>
+<dd>A mapping of the HTTP methods that this endpoint accepts to the docstrings
+describing the result of each method.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.Endpoint.supported_query_arguments">
+<tt class="descname">supported_query_arguments</tt> &rarr; <cite>list</cite><a class="headerlink" href="#typepad.api.Endpoint.supported_query_arguments" title="Permalink to this definition">¶</a></dt>
+<dd>The names of the query string arguments that this endpoint accepts.</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="containerref.html"
+                                  title="previous chapter"><cite>ContainerRef</cite></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="entity.html"
+                                  title="next chapter"><cite>Entity</cite></a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../sources/ref/api/endpoint.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="entity.html" title="Entity"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="containerref.html" title="ContainerRef"
+             >previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" ><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

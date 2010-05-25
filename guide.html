@@ -1,0 +1,222 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Getting started with typepad &mdash; typepad v1.1.2 documentation</title>
+    <link rel="stylesheet" href="static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '#',
+        VERSION:     '1.1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="typepad v1.1.2 documentation" href="index.html" />
+    <link rel="next" title="API reference" href="ref/index.html" />
+    <link rel="prev" title="typepad" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="ref/index.html" title="API reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="typepad"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">typepad v1.1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="getting-started-with-typepad">
+<h1>Getting started with <cite>typepad</cite><a class="headerlink" href="#getting-started-with-typepad" title="Permalink to this headline">¶</a></h1>
+<p>Let&#8217;s look at some examples to see what you can do with the <cite>typepad</cite> library and the TypePad API.</p>
+<div class="section" id="setting-up-the-typepad-library">
+<h2>Setting up the <cite>typepad</cite> library<a class="headerlink" href="#setting-up-the-typepad-library" title="Permalink to this headline">¶</a></h2>
+<p>First, if you&#8217;d like to follow along in your Python shell, you can install the <cite>typepad</cite> library with <tt class="docutils literal"><span class="pre">pip</span></tt> or <tt class="docutils literal"><span class="pre">easy_install</span></tt> (you need only use one):</p>
+<div class="highlight-python"><pre>$ pip install typepad
+$ easy_install typepad</pre>
+</div>
+<p>Then you can start the Python shell and make <cite>typepad</cite> available by importing it:</p>
+<div class="highlight-python"><pre>$ python
+Python 2.6.1 (r261:67515, Feb 11 2010, 00:51:29)
+[GCC 4.2.1 (Apple Inc. build 5646)] on darwin
+Type "help", "copyright", "credits" or "license" for more information.
+&gt;&gt;&gt; import typepad
+&gt;&gt;&gt;</pre>
+</div>
+<p>For these basic requests we&#8217;re going to do, we&#8217;ll need to disable the library&#8217;s batch request and authentication features. Do this by also entering:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">typepad</span><span class="o">.</span><span class="n">TypePadObject</span><span class="o">.</span><span class="n">batch_requests</span> <span class="o">=</span> <span class="bp">False</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">typepad</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">=</span> <span class="s">&#39;http://api.typepad.com&#39;</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>Now we&#8217;re ready to try some requests.</p>
+</div>
+<div class="section" id="looking-at-users">
+<h2>Looking at users<a class="headerlink" href="#looking-at-users" title="Permalink to this headline">¶</a></h2>
+<p>When making requests for users, you&#8217;ll need to know an <em>identifier</em> for the user account you want to know about. Usually this is the <em>URL identifier</em>, the account name that starts with <tt class="docutils literal"><span class="pre">6p</span></tt>. For users, though, you can also use the <em>preferred username</em> they&#8217;ve set in TypePad. This is the part you can enter in the &#8220;Profile URL&#8221; section when <a class="reference external" href="http://www.typepad.com/profile/edit">editing your profile</a>.</p>
+<div class="section" id="retrieving-a-user-s-profile">
+<h3>Retrieving a user&#8217;s profile<a class="headerlink" href="#retrieving-a-user-s-profile" title="Permalink to this headline">¶</a></h3>
+<p>Once you have an URL identifier or preferred username, you can <strong>get a user object</strong> this way:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">user</span> <span class="o">=</span> <span class="n">typepad</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">get_by_url_id</span><span class="p">(</span><span class="s">&#39;markpasc&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">user</span><span class="o">.</span><span class="n">display_name</span>
+<span class="go">&#39;markpasc&#39;</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="retrieving-a-user-s-profile-events">
+<h3>Retrieving a user&#8217;s profile events<a class="headerlink" href="#retrieving-a-user-s-profile-events" title="Permalink to this headline">¶</a></h3>
+<p>In addition to the <cite>User</cite> object data, you can request several property endpoints for that user directly from the object. Here, let&#8217;s <strong>get that user&#8217;s events</strong>, the things they did on TypePad recently that shows on their profile:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">events</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">events</span><span class="p">)</span>
+<span class="go">50</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">event</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">event</span><span class="o">.</span><span class="n">verb</span>
+<span class="go">&#39;AddedFavorite&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">event</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">title</span>
+<span class="go">&#39;Hallo&#39;</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="working-with-blogs">
+<h2>Working with blogs<a class="headerlink" href="#working-with-blogs" title="Permalink to this headline">¶</a></h2>
+<p>TypePad is mostly about blogs, so let&#8217;s see what we can do with them.</p>
+<div class="section" id="listing-a-user-s-blogs">
+<h3>Listing a user&#8217;s blogs<a class="headerlink" href="#listing-a-user-s-blogs" title="Permalink to this headline">¶</a></h3>
+<p>You can also <em>list what blogs a user has</em>. (Without authentication, you&#8217;ll only see the account&#8217;s public, shared blogs, but that&#8217;s okay for now.)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">blogs</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">blogs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">blogs</span><span class="p">)</span>
+<span class="go">3</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">blog</span><span class="o">.</span><span class="n">title</span> <span class="k">for</span> <span class="n">blog</span> <span class="ow">in</span> <span class="n">blogs</span><span class="p">]</span>
+<span class="go">[&#39;markpasc&#39;, &#39;Advent Calendar of 2009 Advent Calendars 2009&#39;, &#39;Best Endtimes Ever&#39;]</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="seeing-the-posts-in-a-blog">
+<h3>Seeing the posts in a blog<a class="headerlink" href="#seeing-the-posts-in-a-blog" title="Permalink to this headline">¶</a></h3>
+<p>Let&#8217;s pick one blog to look at:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">blog</span> <span class="o">=</span> <span class="n">blogs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blog</span><span class="o">.</span><span class="n">title</span>
+<span class="go">&#39;markpasc&#39;</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>Once we have the blog, we can <em>list what posts are available</em> in that blog:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">posts</span> <span class="o">=</span> <span class="n">blog</span><span class="o">.</span><span class="n">post_assets</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">posts</span><span class="p">)</span>
+<span class="go">50</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span> <span class="o">=</span> <span class="n">posts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span><span class="o">.</span><span class="n">title</span>
+<span class="go">&#39;Bicycle rush hour&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span><span class="o">.</span><span class="n">permalink_url</span>
+<span class="go">&#39;http://markpasc.typepad.com/blog/2010/05/bicycle-rush-hour.html&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span><span class="o">.</span><span class="n">published</span>
+<span class="go">datetime.datetime(2010, 5, 15, 21, 51, 26)</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Getting started with <cite>typepad</cite></a><ul>
+<li><a class="reference external" href="#setting-up-the-typepad-library">Setting up the <cite>typepad</cite> library</a></li>
+<li><a class="reference external" href="#looking-at-users">Looking at users</a><ul>
+<li><a class="reference external" href="#retrieving-a-user-s-profile">Retrieving a user&#8217;s profile</a></li>
+<li><a class="reference external" href="#retrieving-a-user-s-profile-events">Retrieving a user&#8217;s profile events</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#working-with-blogs">Working with blogs</a><ul>
+<li><a class="reference external" href="#listing-a-user-s-blogs">Listing a user&#8217;s blogs</a></li>
+<li><a class="reference external" href="#seeing-the-posts-in-a-blog">Seeing the posts in a blog</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="index.html"
+                                  title="previous chapter">typepad</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="ref/index.html"
+                                  title="next chapter">API reference</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="sources/guide.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="ref/index.html" title="API reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="typepad"
+             >previous</a> |</li>
+        <li><a href="index.html">typepad v1.1.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

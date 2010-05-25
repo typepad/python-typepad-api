@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>PublicationStatus – A container for the flags that represent an asset’s publication status &mdash; typepad v1.1.2 documentation</title>
+    <link rel="stylesheet" href="../../static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../static/jquery.js"></script>
+    <script type="text/javascript" src="../../static/doctools.js"></script>
+    <link rel="top" title="typepad v1.1.2 documentation" href="../../index.html" />
+    <link rel="up" title="typepad.api – content objects" href="index.html" />
+    <link rel="next" title="Relationship – The unidirectional relationship between a pair of entities" href="relationship.html" />
+    <link rel="prev" title="PostByEmailAddress" href="postbyemailaddress.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="relationship.html" title="Relationship – The unidirectional relationship between a pair of entities"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="postbyemailaddress.html" title="PostByEmailAddress"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U"><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="publicationstatus-a-container-for-the-flags-that-represent-an-asset-s-publication-status">
+<h1><cite>PublicationStatus</cite> – A container for the flags that represent an asset&#8217;s publication status<a class="headerlink" href="#publicationstatus-a-container-for-the-flags-that-represent-an-asset-s-publication-status" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="typepad.api.PublicationStatus">
+<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">PublicationStatus</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.PublicationStatus" title="Permalink to this definition">¶</a></dt>
+<dd><p>A container for the flags that represent an asset&#8217;s publication status.</p>
+<p>Publication status is currently represented by two flags: published and
+spam. The published flag is false when an asset is held for moderation,
+and can be set to true to publish the asset. The spam flag is true when
+TypePad&#8217;s spam filter has determined that an asset is spam, or when the
+asset has been marked as spam by a moderator.</p>
+<dl class="attribute">
+<dt id="typepad.api.PublicationStatus.draft">
+<tt class="descname">draft</tt><a class="headerlink" href="#typepad.api.PublicationStatus.draft" title="Permalink to this definition">¶</a></dt>
+<dd><cite>True</cite> if this asset is private (not yet published), or <cite>False</cite> if it has
+been published.</dd></dl>
+
+<dl class="attribute">
+<dt id="typepad.api.PublicationStatus.publication_date">
+<tt class="descname">publication_date</tt><a class="headerlink" href="#typepad.api.PublicationStatus.publication_date" title="Permalink to this definition">¶</a></dt>
+<dd><p>The time at which the related asset was (or will be) published, as a W3CDTF
+timestamp.</p>
+<p>If the related asset has been scheduled to be posted later, this property&#8217;s
+timestamp will be in the future.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="postbyemailaddress.html"
+                                  title="previous chapter"><cite>PostByEmailAddress</cite></a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="relationship.html"
+                                  title="next chapter"><cite>Relationship</cite> – The unidirectional relationship between a pair of entities</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../../sources/ref/api/publicationstatus.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="relationship.html" title="Relationship – The unidirectional relationship between a pair of entities"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="postbyemailaddress.html" title="PostByEmailAddress"
+             >previous</a> |</li>
+        <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >API reference</a> &raquo;</li>
+          <li><a href="index.html" ><cite>typepad.api</cite> – content objects</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>
