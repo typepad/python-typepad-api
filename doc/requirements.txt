@@ -1,1 +1,2 @@
-Sphinx==0.6.2
+Sphinx==0.6.5
+-e git://github.com/michaeljones/sphinx-to-github.git#egg=sphinx-to-github
