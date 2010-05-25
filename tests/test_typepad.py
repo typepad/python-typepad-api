@@ -1839,6 +1839,9 @@ class TestTypePad(unittest.TestCase):
         self.assertValidUser(user)
         self.assertEquals(user.url_id, member_id)
 
+        scheme, netloc, path, query, fragment = urlsplit(user._location)
+        self.assertEquals(path, '/users/%s.json' % user.url_id)
+
     @attr(user='group')
     def test_1_GET_users_id__using_id(self):
         """GET /users/id.json (group)
