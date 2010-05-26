@@ -1652,6 +1652,9 @@ class TestTypePad(unittest.TestCase):
         Tests the endpoint for gathering a user's notifications.
         """
 
+        raise nose.SkipTest(
+            'FIXME: https://intranet.sixapart.com/bugs/default.asp?95720')
+
         self.assert_(len(self.testdata['assets']) >= 2,
             'Must have 2 or more assets to test')
 
