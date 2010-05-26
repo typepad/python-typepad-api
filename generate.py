@@ -400,7 +400,7 @@ class Field(lazy):
         if mo is not None:
             container, subtype = mo.groups((1, 2))
 
-            if container in ('set', 'array'):
+            if container in ('set', 'array', 'List'):
                 self.field_type = 'fields.List'
             elif container == 'map':
                 self.field_type = 'fields.Dict'
@@ -453,7 +453,7 @@ class Field(lazy):
         if self.kwargs:
             if self.args:
                 me.write(', ')
-            me.write(', '.join('%s=%r' % (k, v) for k, v in self.kwargs.items()))
+            me.write(', '.join(('%s=%s' if isinstance(v, Field) else '%s=%r') % (k, v) for k, v in self.kwargs.items()))
         me.write(""")""")
         return me.getvalue()
 
@@ -497,11 +497,26 @@ class ObjectRef(Field):
         return repr(self.field_type)
 
 
+class ClassRef(Field):
+
+    def __str__(self):
+        return self.type
+
+
 def name_to_pyname(name):
     py_name = name.replace('URL', 'Url')
     py_name = re.sub(r'[A-Z]', lambda mo: '_' + mo.group(0).lower(), py_name)
     py_name = py_name.replace('-', '_')
     return py_name
+
+
+def pyname_to_classname(name):
+    cls_name = re.sub(r'(?xms) (?:^|_) ([a-z])', lambda mo: mo.group(1).upper(), name)
+    return cls_name
+
+
+def indent(text):
+    return re.sub(r'(?xms)^(?=[^\n])', '    ', text)
 
 
 class Property(lazy):
@@ -589,6 +604,50 @@ class Property(lazy):
         me.write("\n")
         if hasattr(self, 'docString'):
             me.write('"""%s"""\n' % self.render_docstring())
+        return me.getvalue()
+
+
+class ActionEndpoint(Property):
+
+    def __init__(self, data):
+        super(ActionEndpoint, self).__init__(data)
+        self.field.field_type = 'fields.ActionEndpoint'
+
+    @property
+    def postType(self):
+        return self.__dict__['postType']
+
+    @postType.setter
+    def postType(self, val):
+        cls_name = '_%sPost' % pyname_to_classname(self.name)
+        self.field.kwargs['post_type'] = ClassRef({'type': cls_name})
+
+        post_type = ObjectType({'name': cls_name, 'properties': val, 'parentType': 'TypePadObject', 'squashed': True})
+        self.__dict__['postType'] = post_type
+
+    @property
+    def responseType(self):
+        return self.__dict__['responseType']
+
+    @responseType.setter
+    def responseType(self, val):
+        cls_name = '_%sResponse' % pyname_to_classname(self.name)
+        self.field.kwargs['response_type'] = ClassRef({'type': cls_name})
+
+        resp_type = ObjectType({'name': cls_name, 'properties': val, 'parentType': 'TypePadObject', 'squashed': True})
+        self.__dict__['responseType'] = resp_type
+
+    def __str__(self):
+        me = StringIO()
+
+        me.write(str(self.postType).rstrip('\n'))
+        me.write('\n')
+        if hasattr(self, 'responseType'):
+            me.write(str(self.responseType).rstrip('\n'))
+            me.write('\n')
+        me.write(super(ActionEndpoint, self).__str__())
+
+        me.write('\n')
         return me.getvalue()
 
 
@@ -696,44 +755,65 @@ class ObjectType(lazy):
         logging.debug('Object %s has properties %r', self.name, self.__dict__['properties'].keys())
 
         for endp in val['propertyEndpoints']:
-            name = endp['name']
+            self.add_property_endpoint(endp)
 
+        for endp in val['actionEndpoints']:
+            self.add_action_endpoint(endp)
+
+    def add_action_endpoint(self, endp):
+        name = endp['name']
+
+        try:
+            endpoints = self.action_endpoints
+        except AttributeError:
+            endpoints = self.action_endpoints = {}
+
+        endp_obj = ActionEndpoint({'name': name})
+        endp_obj.postType = endp['postObjectType']['properties']
+        if 'responseObjectType' in endp:
+            endp_obj.responseType = endp['responseObjectType']['properties']
+
+        endpoints[endp_obj.name] = endp_obj
+
+    def add_property_endpoint(self, endp):
+        name = endp['name']
+
+        try:
+            value_type = LINK_PROPERTY_FIXUPS[self.name][name]['type']
+        except KeyError:
             try:
-                value_type = LINK_PROPERTY_FIXUPS[self.name][name]['type']
+                value_type = endp['resourceObjectType']['name']
             except KeyError:
-                try:
-                    value_type = endp['resourceObjectType']['name']
-                except KeyError:
-                    logging.info('Skipping endpoint %s.%s since it has no resourceObjectType', self.endpoint_name, name)
-                    continue
-            else:
-                logging.info("Used property override for %s.%s property", self.name, name)
+                logging.info('Skipping endpoint %s.%s since it has no resourceObjectType', self.endpoint_name, name)
+                return
+        else:
+            logging.info("Used property override for %s.%s property", self.name, name)
 
-            docstrings = sorted(endp['supportedMethods'].items(), key=lambda x: x[0])
-            docstrings = [desc if method == 'GET' else '%s: %s' % (method, desc) for method, desc in docstrings if desc]
-            docstring = '\n\n'.join(docstrings).encode('utf-8')
+        docstrings = sorted(endp['supportedMethods'].items(), key=lambda x: x[0])
+        docstrings = [desc if method == 'GET' else '%s: %s' % (method, desc) for method, desc in docstrings if desc]
+        docstring = '\n\n'.join(docstrings).encode('utf-8')
 
-            prop = Property({'name': name})
-            if docstring:
-                prop.docString = docstring
-            prop.field.field_type = 'fields.Link'
-            subfield = ObjectRef({'type': value_type})
-            prop.field.args.append(subfield)
+        prop = Property({'name': name})
+        if docstring:
+            prop.docString = docstring
+        prop.field.field_type = 'fields.Link'
+        subfield = ObjectRef({'type': value_type})
+        prop.field.args.append(subfield)
 
-            if prop.name in self.properties:
-                try:
-                    new_name = LINK_PROPERTY_FIXUPS[self.name][prop.name]['name']
-                except KeyError:
-                    raise ValueError("Oops, wanted to add a Link property called %s to %s, but there's already a property "
-                        "named that (%r)" % (prop.name, self.name, str(self.properties[prop.name])))
+        if prop.name in self.properties:
+            try:
+                new_name = LINK_PROPERTY_FIXUPS[self.name][prop.name]['name']
+            except KeyError:
+                raise ValueError("Oops, wanted to add a Link property called %s to %s, but there's already a property "
+                    "named that (%r)" % (prop.name, self.name, str(self.properties[prop.name])))
 
-                logging.info("Used property name override to rename %s.%s as %r", self.name, endp['name'], name)
-                if 'api_name' not in prop.field.kwargs:
-                    prop.field.kwargs['api_name'] = prop.name
-                prop.name = new_name
+            logging.info("Used property name override to rename %s.%s as %r", self.name, endp['name'], name)
+            if 'api_name' not in prop.field.kwargs:
+                prop.field.kwargs['api_name'] = prop.name
+            prop.name = new_name
 
-            logging.debug('Adding Link property %s.%s', self.name, prop.name)
-            self.properties[prop.name] = prop
+        logging.debug('Adding Link property %s.%s', self.name, prop.name)
+        self.properties[prop.name] = prop
 
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
@@ -751,8 +831,17 @@ class ObjectType(lazy):
 
         for name, prop in sorted(self.properties.items(), key=lambda x: x[0]):
             prop_text = str(prop)
-            prop_text = re.sub(r'(?xms)^(?=[^\n])', '    ', prop_text)
+            prop_text = indent(prop_text)
             me.write(prop_text)
+        if self.properties:
+            me.write('\n')
+
+        action_endpoints = getattr(self, 'action_endpoints', {})
+        for name, endpoint in sorted(action_endpoints.items(), key=lambda x: x[0]):
+            endp_text = str(endpoint)
+            endp_text = indent(endp_text)
+            endp_text = endp_text.rstrip('\n') + '\n\n'
+            me.write(endp_text)
 
         if hasattr(self, 'endpoint_name') and self.has_get_by_url_id:
             me.write("""
@@ -776,15 +865,19 @@ class ObjectType(lazy):
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%%s' %% url_id
         return obj
-""" % {'endpoint_name': self.endpoint_name})
+
+""".lstrip('\n') % {'endpoint_name': self.endpoint_name})
 
         if self.name in CLASS_EXTRAS:
-            me.write(CLASS_EXTRAS[self.name])
+            me.write(CLASS_EXTRAS[self.name].lstrip('\n'))
+            me.write('\n')
 
         body = me.getvalue()
         if not len(body):
             body = "    pass\n"
-        return """class %s(%s):\n\n%s\n\n""" % (self.name, self.parents, body)
+        squash = getattr(self, 'squashed', False)
+        return """class %s(%s):%s%s%s""" % (self.name, self.parents, '\n' if squash else '\n\n',
+            body, '' if squash else '\n')
 
 
 def generate_types(types_fn, nouns_fn):
@@ -803,12 +896,6 @@ def generate_types(types_fn, nouns_fn):
                 del typedata[name]
                 continue
 
-            # Fix up ExternalFeedSubscription by ignoring it for now.
-            if name == 'ExternalFeedSubscription':
-                logging.info("Skipping ExternalFeedSubscription, since it isn't supposed to exist yet")
-                del typedata[name]
-                continue
-
             # Fix up Relationship to have a parentType.
             if name == 'Relationship':
                 info['parentType'] = 'Base'
@@ -818,7 +905,7 @@ def generate_types(types_fn, nouns_fn):
             if info['parentType'] == 'Base':
                 info['parentType'] = u'TypePadObject'
             elif info['parentType'] not in objtypes_by_name:
-                logging.debug("Skipping %s until the next round, since %s I haven't seen %s yet", name, info['parentType'])
+                logging.debug("Skipping %s until the next round, since I haven't seen %s yet", name, info['parentType'])
                 continue
 
             del typedata[name]
@@ -841,7 +928,9 @@ def generate_types(types_fn, nouns_fn):
             endpoint['resourceObjectType']['name'] = 'Relationship'
 
         try:
-            objtype = objtypes_by_name[endpoint['resourceObjectType']['name']]
+            resource_name = endpoint['resourceObjectType']['name']
+            logging.debug('Finding object for type %s so it can have endpoint %r', resource_name, objtypes_by_name.get(resource_name))
+            objtype = objtypes_by_name[resource_name]
         except KeyError:
             pass
         else:

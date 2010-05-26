@@ -319,6 +319,28 @@ class Asset(TypePadObject):
 
     """
 
+    class _AddCategoryPost(TypePadObject):
+        category = fields.Field()
+        """The category to add"""
+    add_category = fields.ActionEndpoint(api_name='add-category', post_type=_AddCategoryPost)
+
+    class _MakeCommentPreviewPost(TypePadObject):
+        content = fields.Field()
+        """The body of the comment."""
+    class _MakeCommentPreviewResponse(TypePadObject):
+        comment = fields.Object('Asset')
+        """A mockup of the future comment.
+
+        :attrtype:`Asset`
+
+        """
+    make_comment_preview = fields.ActionEndpoint(api_name='make-comment-preview', post_type=_MakeCommentPreviewPost, response_type=_MakeCommentPreviewResponse)
+
+    class _RemoveCategoryPost(TypePadObject):
+        category = fields.Field()
+        """The category to remove"""
+    remove_category = fields.ActionEndpoint(api_name='remove-category', post_type=_RemoveCategoryPost)
+
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/assets/%s.json' % self.url_id)
 
@@ -574,6 +596,28 @@ class Blog(TypePadObject):
     store.
 
     """
+
+    class _AddCategoryPost(TypePadObject):
+        category = fields.Field()
+        """The category to add"""
+    add_category = fields.ActionEndpoint(api_name='add-category', post_type=_AddCategoryPost)
+
+    class _DiscoverExternalPostAssetPost(TypePadObject):
+        permalink_url = fields.Field(api_name='permalinkUrl')
+        """The URL of the page whose external post stub is being retrieved."""
+    class _DiscoverExternalPostAssetResponse(TypePadObject):
+        asset = fields.Object('Asset')
+        """The asset that acts as a stub for the given permalink.
+
+        :attrtype:`Asset`
+
+        """
+    discover_external_post_asset = fields.ActionEndpoint(api_name='discover-external-post-asset', post_type=_DiscoverExternalPostAssetPost, response_type=_DiscoverExternalPostAssetResponse)
+
+    class _RemoveCategoryPost(TypePadObject):
+        category = fields.Field()
+        """The category to remove"""
+    remove_category = fields.ActionEndpoint(api_name='remove-category', post_type=_RemoveCategoryPost)
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/blogs/%s.json' % self.url_id)
@@ -849,6 +893,118 @@ class Event(TypePadObject):
 
     def __unicode__(self):
         return unicode(self.object)
+
+
+class ExternalFeedSubscription(TypePadObject):
+
+    callback_status = fields.Field(api_name='callbackStatus')
+    """The HTTP status code that was returned by the last call to the
+    subscription's callback URL."""
+    callback_url = fields.Field(api_name='callbackUrl')
+    """The URL to which to send notifications of new items in this subscription's
+    feeds."""
+    feeds = fields.Link(ListOf('string'))
+    """Get a list of strings containing the identifiers of the feeds to which this
+    subscription is subscribed.
+
+    :attrtype:`list of string`
+
+    """
+    filter_rules = fields.List(fields.Field(), api_name='filterRules')
+    """A list of rules for filtering notifications to this subscription.
+
+    Each rule is a full-text search query string, like those used with the
+    ``/assets`` endpoint. An item will be delivered to the `callback_url` if it
+    matches any one of these query strings.
+
+
+    :attrtype:`list`
+
+    """
+    post_as_user_id = fields.List(fields.Field(), api_name='postAsUserId')
+    """For a Group-owned subscription, the urlId of the User who will own the
+    items posted into the group by the subscription.
+
+    :attrtype:`list`
+
+    """
+    url_id = fields.Field(api_name='urlId')
+    """The canonical identifier that can be used to identify this object in URLs.
+
+    This can be used to recognise where the same user is returned in response to
+    different requests, and as a mapping key for an application's local data
+    store.
+
+    """
+
+    class _AddFeedsPost(TypePadObject):
+        feed_idents = fields.List(fields.Field(), api_name='feedIdents')
+        """A list of identifiers to be added to the subscription's set of feeds.
+
+        :attrtype:`list`
+
+        """
+    add_feeds = fields.ActionEndpoint(api_name='add-feeds', post_type=_AddFeedsPost)
+
+    class _RemoveFeedsPost(TypePadObject):
+        feed_idents = fields.List(fields.Field(), api_name='feedIdents')
+        """A list of identifiers to be removed from the subscription's set of feeds.
+
+        :attrtype:`list`
+
+        """
+    remove_feeds = fields.ActionEndpoint(api_name='remove-feeds', post_type=_RemoveFeedsPost)
+
+    class _UpdateFiltersPost(TypePadObject):
+        filter_rules = fields.List(fields.Field(), api_name='filterRules')
+        """The new list of rules for filtering notifications to this subscription;
+        this will replace the subscription's existing rules.
+
+        :attrtype:`list`
+
+        """
+    update_filters = fields.ActionEndpoint(api_name='update-filters', post_type=_UpdateFiltersPost)
+
+    class _UpdateNotificationSettingsPost(TypePadObject):
+        callback_url = fields.Field(api_name='callbackUrl')
+        """The new callback URL to receive notifications of new content in this
+        subscription's feeds."""
+        verify_token = fields.Field(api_name='verifyToken')
+        """A subscriber-provided opaque token that will be echoed back in the
+        verification request to assist the subscriber in identifying which
+        subscription request is being verified."""
+    update_notification_settings = fields.ActionEndpoint(api_name='update-notification-settings', post_type=_UpdateNotificationSettingsPost)
+
+    class _UpdateUserPost(TypePadObject):
+        post_as_user_id = fields.Field(api_name='postAsUserId')
+        """the urlId of the user who will own the assets and events posted into the
+        group's stream by this subscription.
+
+        The user must be an administrator of the group.
+
+        """
+    update_user = fields.ActionEndpoint(api_name='update-user', post_type=_UpdateUserPost)
+
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/external-feed-subscriptions/%s.json' % self.url_id)
+
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
+
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        if url_id == '':
+            raise ValueError("An url_id is required")
+        obj = cls.get('/external-feed-subscriptions/%s.json' % url_id, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
+        return obj
 
 
 class Favorite(TypePadObject):
@@ -1353,6 +1509,39 @@ class Application(Entity):
     user_flyouts_script_url = fields.Field(api_name='userFlyoutsScriptUrl')
     """The URL of a script to embed to enable the user flyouts functionality."""
 
+    class _CreateExternalFeedSubscriptionPost(TypePadObject):
+        calllback_url = fields.Field(api_name='calllbackUrl')
+        """The URL which will receive notifications of new content in the subscribed
+        feeds."""
+        feed_idents = fields.List(fields.Field(), api_name='feedIdents')
+        """A list of identifiers of the initial set of feeds to be subscribed to.
+
+        :attrtype:`list`
+
+        """
+        filter_rules = fields.List(fields.Field(), api_name='filterRules')
+        """A list of rules for filtering notifications to this subscription; each rule
+        is a query string using the search API's syntax.
+
+        :attrtype:`list`
+
+        """
+        secret = fields.Field()
+        """An optional subscriber-provided opaque token that will be used to compute
+        an HMAC digest to be sent along with each item delivered to the callbackUrl."""
+        verify_token = fields.Field(api_name='verifyToken')
+        """A subscriber-provided opaque token that will be echoed back in the
+        verification request to assist the subscriber in identifying which
+        subscription request is being verified."""
+    class _CreateExternalFeedSubscriptionResponse(TypePadObject):
+        subscription = fields.Object('ExternalFeedSubscription')
+        """The subscription object that was created.
+
+        :attrtype:`ExternalFeedSubscription`
+
+        """
+    create_external_feed_subscription = fields.ActionEndpoint(api_name='create-external-feed-subscription', post_type=_CreateExternalFeedSubscriptionPost, response_type=_CreateExternalFeedSubscriptionResponse)
+
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/applications/%s.json' % self.url_id)
 
@@ -1519,6 +1708,36 @@ class Group(Entity):
     :attrtype:`list of Video`
 
     """
+
+    class _CreateExternalFeedSubscriptionPost(TypePadObject):
+        feed_idents = fields.List(fields.Field(), api_name='feedIdents')
+        """A list of identifiers of the initial set of feeds to be subscribed to.
+
+        :attrtype:`list`
+
+        """
+        filter_rules = fields.List(fields.Field(), api_name='filterRules')
+        """A list of rules for filtering notifications to this subscription; each rule
+        is a query string using the search API's syntax.
+
+        :attrtype:`list`
+
+        """
+        post_as_user_id = fields.Field(api_name='postAsUserId')
+        """the urlId of the user who will own the assets and events posted into the
+        group's stream by this subscription.
+
+        The user must be an administrator of the group.
+
+        """
+    class _CreateExternalFeedSubscriptionResponse(TypePadObject):
+        subscription = fields.Object('ExternalFeedSubscription')
+        """The subscription object that was created.
+
+        :attrtype:`ExternalFeedSubscription`
+
+        """
+    create_external_feed_subscription = fields.ActionEndpoint(api_name='create-external-feed-subscription', post_type=_CreateExternalFeedSubscriptionPost, response_type=_CreateExternalFeedSubscriptionResponse)
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/groups/%s.json' % self.url_id)
