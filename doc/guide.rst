@@ -51,8 +51,30 @@ In addition to the `User` object data, you can request several property endpoint
    >>> event = events[0]
    >>> event.verb
    'AddedFavorite'
+   >>> str(event.published)
+   '2010-05-27 20:00:21'
    >>> event.object.title
-   'Hallo'
+   'A face'
+   >>>
+
+As you can see, this set of ``user.events`` has 50 items in it. However, the user's events endpoint actually has many more::
+
+   >>> events.estimated_total_results
+   832
+   >>>
+
+Many endpoints are *stream* endpoints, meaning they only return some results in each request. As long as there are some, we can get the next set of results::
+
+   >>> more_events = events.next()
+   >>> len(more_events)
+   50
+   >>> event = more_events[0]
+   >>> event.verb
+   'NewAsset'
+   >>> str(event.published)
+   '2010-05-10 17:31:16'
+   >>> event.object.title
+   'A new Super Mario Bros.'
    >>>
 
 Working with blogs
