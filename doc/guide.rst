@@ -4,6 +4,7 @@ Getting started with `typepad`
 
 Let's look at some examples to see what you can do with the `typepad` library and the TypePad API.
 
+
 Setting up the `typepad` library
 ================================
 
@@ -22,6 +23,7 @@ Then you can start the Python shell and make `typepad` available by importing it
    >>>
 
 Now we're ready to try some requests.
+
 
 Looking at users
 ================
@@ -77,6 +79,7 @@ Many endpoints are *stream* endpoints, meaning they only return some results in 
    'A new Super Mario Bros.'
    >>>
 
+
 Working with blogs
 ==================
 
@@ -123,3 +126,15 @@ Once we have the blog, we can **list what posts are available** in that blog::
    datetime.datetime(2010, 5, 15, 21, 51, 26)
    >>>
 
+
+Further work
+============
+
+These simple requests should you give you a bit of a feel for the TypePad API. When you're ready to move on, try:
+
+* :doc:`ref/api/index`
+* `The TypePad API reference documentation`_
+* `Help from developer.typepad.com`_
+
+.. _The TypePad API reference documentation: http://www.typepad.com/services/apidocs
+.. _Help from developer.typepad.com: http://developer.typepad.com/help/
