@@ -21,10 +21,9 @@ Then you can start the Python shell and make `typepad` available by importing it
    >>> import typepad
    >>>
 
-For these basic requests we're going to do, we'll need to disable the library's batch request and authentication features. Do this by also entering:
+For these basic requests we're going to do, we'll need to disable the library's batch request feature. Do this by also entering:
 
    >>> typepad.TypePadObject.batch_requests = False
-   >>> typepad.client.endpoint = 'http://api.typepad.com'
    >>>
 
 Now we're ready to try some requests.
