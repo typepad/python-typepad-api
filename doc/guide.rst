@@ -89,6 +89,7 @@ You can also **list what blogs a user has**. (Without authentication, you'll onl
 
 ::
 
+   >>> user = typepad.User.get_by_url_id('markpasc')
    >>> blogs = user.blogs
    >>> len(blogs)
    3
@@ -104,6 +105,8 @@ Let's pick one blog to look at::
    >>> blog = blogs[0]
    >>> blog.title
    'markpasc'
+   >>> blog.home_url
+   'http://markpasc.typepad.com/blog/'
    >>>
 
 Once we have the blog, we can **list what posts are available** in that blog::
