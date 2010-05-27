@@ -141,13 +141,14 @@ class TypePadObject(remoteobjects.RemoteObject):
         ret = super(TypePadObject, cls).get(url, *args, **kwargs)
         ret.batch_requests = kwargs.get('batch', cls.batch_requests)
         if ret.batch_requests:
+            # Schedule for batching, if there's a batch request open.
             cb = kwargs.get('callback', ret.update_from_response)
             try:
                 typepad.client.batch(ret.get_request(), cb)
             except BatchError, ex:
-                # Remember our caller in case we need to complain about
-                # delivery later.
+                # Remember our caller in case we need to debug delivery later.
                 ret._origin = inspect.stack()[1][1:4]
+
         return ret
 
     def post(self, obj, http=None):
@@ -313,26 +314,6 @@ class TypePadObject(remoteobjects.RemoteObject):
         if 'objectType' not in ret and hasattr(self, 'object_type'):
             ret['objectType'] = self._class_object_type
         return ret
-
-    def deliver(self):
-        """Prevents self-delivery of this instance if batch requests are
-        enabled for `TypePadObject` instances.
-
-        If batch requests are not enabled, delivers the object as by
-        `PromiseObject.deliver()`.
-
-        """
-        if self.batch_requests:
-            if hasattr(self, '_origin'):
-                origin = self._origin
-                raise PromiseError("Cannot deliver %s %s created by %s at "
-                    "%s line %d except by batch request"
-                    % (type(self).__name__, self._location, origin[2],
-                       origin[0], origin[1]))
-            else:
-                raise PromiseError("Cannot deliver %s %s except by batch request"
-                    % (type(self).__name__, self._location))
-        return super(TypePadObject, self).deliver()
 
 
 class ListOf(remoteobjects.listobject.PageOf, TypePadObjectMetaclass):
