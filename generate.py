@@ -473,7 +473,7 @@ class ObjectRef(Field):
             container, subtype = mo.groups((1, 2))
 
             if container in ('List', 'Stream'):
-                self.field_type = 'ListOf'
+                self.field_type = 'ListOf' if container == 'List' else 'StreamOf'
                 self.args.append(subtype)
                 return
 

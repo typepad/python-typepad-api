@@ -316,6 +316,37 @@ class TypePadObject(remoteobjects.RemoteObject):
         return ret
 
 
+class StreamOf(remoteobjects.listobject.PageOf, TypePadObjectMetaclass):
+
+    _modulename = 'typepad.tpobject._streams'
+
+
+class StreamObject(TypePadObject, remoteobjects.PageObject):
+
+    __metaclass__ = StreamOf
+
+    more_results_token = fields.Field(api_name='moreResultsToken')
+    estimated_total_results = fields.Field(api_name='estimatedTotalResults')
+
+    def next(self):
+        if self.more_results_token is None:
+            return
+        return self.filter(start_token=self.more_results_token)
+
+    def filter(self, **kwargs):
+        """Returns a new `StreamObject` instance representing the same endpoint
+        as this `StreamObject` instance with the additional filtering applied.
+
+        This method filters the `StreamObject` as does
+        `RemoteObject.filter()`, but converts query parameters for
+        compatibility with the TypePad API. That is, underscore characters in
+        query parameter names are converted to dashes.
+
+        """
+        newargs = dict((k.replace('_', '-'), v) for k, v in kwargs.items())
+        return super(StreamObject, self).filter(**newargs)
+
+
 class ListOf(remoteobjects.listobject.PageOf, TypePadObjectMetaclass):
 
     _modulename = 'typepad.tpobject._lists'

@@ -1900,7 +1900,7 @@ class User(Entity):
     all other cases, this property is omitted.
 
     """
-    events = fields.Link(ListOf('Event'))
+    events = fields.Link(StreamOf('Event'))
     """Get a list of events describing actions that the selected user performed.
 
     :attrtype:`list of Event`
