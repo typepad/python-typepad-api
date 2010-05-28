@@ -316,89 +316,7 @@ class TypePadObject(remoteobjects.RemoteObject):
         return ret
 
 
-class StreamOf(remoteobjects.listobject.PageOf, TypePadObjectMetaclass):
-
-    _modulename = 'typepad.tpobject._streams'
-
-
-class StreamObject(TypePadObject, remoteobjects.PageObject):
-
-    __metaclass__ = StreamOf
-
-    more_results_token = fields.Field(api_name='moreResultsToken')
-    estimated_total_results = fields.Field(api_name='estimatedTotalResults')
-
-    def next(self):
-        if self.more_results_token is None:
-            return
-        return self.filter(start_token=self.more_results_token)
-
-    def filter(self, **kwargs):
-        """Returns a new `StreamObject` instance representing the same endpoint
-        as this `StreamObject` instance with the additional filtering applied.
-
-        This method filters the `StreamObject` as does
-        `RemoteObject.filter()`, but converts query parameters for
-        compatibility with the TypePad API. That is, underscore characters in
-        query parameter names are converted to dashes.
-
-        """
-        newargs = dict((k.replace('_', '-'), v) for k, v in kwargs.items())
-        return super(StreamObject, self).filter(**newargs)
-
-
-class ListOf(remoteobjects.listobject.PageOf, TypePadObjectMetaclass):
-
-    _modulename = 'typepad.tpobject._lists'
-
-
-class ListObject(TypePadObject, remoteobjects.PageObject):
-
-    """A `TypePadObject` representing a list of other `TypePadObject`
-    instances.
-
-    Endpoints in the TypePad API can be either objects themselves or sets of
-    objects, which are represented in the client library as `ListObject`
-    instances. As the API lists are homogeneous, all `ListObject` instances
-    you'll use in practice are configured for particular `TypePadObject`
-    classes (their "entry classes"). A `ListObject` instance will hold only
-    instances of its configured class.
-
-    The primary way to reference a `ListObject` class is to call its
-    metaclass, `ListOf`, with a reference to or name of that class.
-
-    >>> ListOfEntry = ListOf(Entry)
-
-    For an `Entry` list you then fetch with the `ListOfEntry` class's `get()`
-    method, all the entities in the list resource's `entries` member will be
-    decoded into `Entry` instances.
-
-    """
-
-    __metaclass__ = ListOf
-
-    total_results = fields.Field(api_name='totalResults')
-    """The total number of items in the overall list resource (of which this
-    `ListObject` instance may be only a segment)."""
-    start_index   = fields.Field(api_name='startIndex')
-    """The index in the overall list resource of the first item in this
-    `ListObject` instance.
-
-    The first item in the list has index 1.
-
-    """
-    entries       = fields.List(fields.Field())
-    """A list of items in this list resource."""
-
-    filterorder = ['following', 'follower', 'blocked', 'friend',
-        'nonreciprocal', 'published', 'unpublished', 'spam', 'admin',
-        'member', 'by-group', 'by-user', 'photo', 'post', 'video', 'audio',
-        'comment', 'link', 'recent']
-
-    def count(self):
-        """Returns the number of items in the overall list resource, of which
-        this `ListObject` instance may be only a segment."""
-        return int(self.total_results)
+class _PageFilterer(object):
 
     def filter(self, **kwargs):
         """Returns a new `ListObject` instance representing the same endpoint
@@ -476,6 +394,78 @@ class ListObject(TypePadObject, remoteobjects.PageObject):
         if 'batch' in kwargs:
             getargs['batch'] = kwargs['batch']
         return self.get(newurl, **getargs)
+
+
+class StreamOf(remoteobjects.listobject.PageOf, TypePadObjectMetaclass):
+
+    _modulename = 'typepad.tpobject._streams'
+
+
+class StreamObject(_PageFilterer, TypePadObject, remoteobjects.PageObject):
+
+    __metaclass__ = StreamOf
+
+    more_results_token = fields.Field(api_name='moreResultsToken')
+    estimated_total_results = fields.Field(api_name='estimatedTotalResults')
+
+    def next(self):
+        if self.more_results_token is None:
+            return
+        return self.filter(start_token=self.more_results_token)
+
+
+class ListOf(remoteobjects.listobject.PageOf, TypePadObjectMetaclass):
+
+    _modulename = 'typepad.tpobject._lists'
+
+
+class ListObject(_PageFilterer, TypePadObject, remoteobjects.PageObject):
+
+    """A `TypePadObject` representing a list of other `TypePadObject`
+    instances.
+
+    Endpoints in the TypePad API can be either objects themselves or sets of
+    objects, which are represented in the client library as `ListObject`
+    instances. As the API lists are homogeneous, all `ListObject` instances
+    you'll use in practice are configured for particular `TypePadObject`
+    classes (their "entry classes"). A `ListObject` instance will hold only
+    instances of its configured class.
+
+    The primary way to reference a `ListObject` class is to call its
+    metaclass, `ListOf`, with a reference to or name of that class.
+
+    >>> ListOfEntry = ListOf(Entry)
+
+    For an `Entry` list you then fetch with the `ListOfEntry` class's `get()`
+    method, all the entities in the list resource's `entries` member will be
+    decoded into `Entry` instances.
+
+    """
+
+    __metaclass__ = ListOf
+
+    total_results = fields.Field(api_name='totalResults')
+    """The total number of items in the overall list resource (of which this
+    `ListObject` instance may be only a segment)."""
+    start_index   = fields.Field(api_name='startIndex')
+    """The index in the overall list resource of the first item in this
+    `ListObject` instance.
+
+    The first item in the list has index 1.
+
+    """
+    entries       = fields.List(fields.Field())
+    """A list of items in this list resource."""
+
+    filterorder = ['following', 'follower', 'blocked', 'friend',
+        'nonreciprocal', 'published', 'unpublished', 'spam', 'admin',
+        'member', 'by-group', 'by-user', 'photo', 'post', 'video', 'audio',
+        'comment', 'link', 'recent']
+
+    def count(self):
+        """Returns the number of items in the overall list resource, of which
+        this `ListObject` instance may be only a segment."""
+        return int(self.total_results)
 
     def __getitem__(self, key):
         """Returns the specified members of the `ListObject` instance's
