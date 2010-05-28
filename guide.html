@@ -65,12 +65,6 @@ Type "help", "copyright", "credits" or "license" for more information.
 &gt;&gt;&gt; import typepad
 &gt;&gt;&gt;</pre>
 </div>
-<p>For these basic requests we&#8217;re going to do, we&#8217;ll need to disable the library&#8217;s batch request and authentication features. Do this by also entering:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">typepad</span><span class="o">.</span><span class="n">TypePadObject</span><span class="o">.</span><span class="n">batch_requests</span> <span class="o">=</span> <span class="bp">False</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">typepad</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">endpoint</span> <span class="o">=</span> <span class="s">&#39;http://api.typepad.com&#39;</span>
-<span class="go">&gt;&gt;&gt;</span>
-</pre></div>
-</div>
 <p>Now we&#8217;re ready to try some requests.</p>
 </div>
 <div class="section" id="looking-at-users">
@@ -95,8 +89,30 @@ Type "help", "copyright", "credits" or "license" for more information.
 <span class="gp">&gt;&gt;&gt; </span><span class="n">event</span> <span class="o">=</span> <span class="n">events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">event</span><span class="o">.</span><span class="n">verb</span>
 <span class="go">&#39;AddedFavorite&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">published</span><span class="p">)</span>
+<span class="go">&#39;2010-05-27 20:00:21&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">event</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">title</span>
-<span class="go">&#39;Hallo&#39;</span>
+<span class="go">&#39;A face&#39;</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>As you can see, this set of <tt class="docutils literal"><span class="pre">user.events</span></tt> has 50 items in it. However, the user&#8217;s events endpoint actually has many more:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">events</span><span class="o">.</span><span class="n">estimated_total_results</span>
+<span class="go">832</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>Many endpoints are <em>stream</em> endpoints, meaning they only return some results in each request. As long as there are some, we can <strong>get the next set of results</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">more_events</span> <span class="o">=</span> <span class="n">events</span><span class="o">.</span><span class="n">next</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">more_events</span><span class="p">)</span>
+<span class="go">50</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">event</span> <span class="o">=</span> <span class="n">more_events</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">event</span><span class="o">.</span><span class="n">verb</span>
+<span class="go">&#39;NewAsset&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">str</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">published</span><span class="p">)</span>
+<span class="go">&#39;2010-05-10 17:31:16&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">event</span><span class="o">.</span><span class="n">object</span><span class="o">.</span><span class="n">title</span>
+<span class="go">&#39;A new Super Mario Bros.&#39;</span>
 <span class="go">&gt;&gt;&gt;</span>
 </pre></div>
 </div>
@@ -107,8 +123,9 @@ Type "help", "copyright", "credits" or "license" for more information.
 <p>TypePad is mostly about blogs, so let&#8217;s see what we can do with them.</p>
 <div class="section" id="listing-a-user-s-blogs">
 <h3>Listing a user&#8217;s blogs<a class="headerlink" href="#listing-a-user-s-blogs" title="Permalink to this headline">¶</a></h3>
-<p>You can also <em>list what blogs a user has</em>. (Without authentication, you&#8217;ll only see the account&#8217;s public, shared blogs, but that&#8217;s okay for now.)</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">blogs</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">blogs</span>
+<p>You can also <strong>list what blogs a user has</strong>. (Without authentication, you&#8217;ll only see the account&#8217;s public, shared blogs, but that&#8217;s okay for now.)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">user</span> <span class="o">=</span> <span class="n">typepad</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">get_by_url_id</span><span class="p">(</span><span class="s">&#39;markpasc&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blogs</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">blogs</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">blogs</span><span class="p">)</span>
 <span class="go">3</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">blog</span><span class="o">.</span><span class="n">title</span> <span class="k">for</span> <span class="n">blog</span> <span class="ow">in</span> <span class="n">blogs</span><span class="p">]</span>
@@ -123,10 +140,12 @@ Type "help", "copyright", "credits" or "license" for more information.
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">blog</span> <span class="o">=</span> <span class="n">blogs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">blog</span><span class="o">.</span><span class="n">title</span>
 <span class="go">&#39;markpasc&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blog</span><span class="o">.</span><span class="n">home_url</span>
+<span class="go">&#39;http://markpasc.typepad.com/blog/&#39;</span>
 <span class="go">&gt;&gt;&gt;</span>
 </pre></div>
 </div>
-<p>Once we have the blog, we can <em>list what posts are available</em> in that blog:</p>
+<p>Once we have the blog, we can <strong>list what posts are available</strong> in that blog:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">posts</span> <span class="o">=</span> <span class="n">blog</span><span class="o">.</span><span class="n">post_assets</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">posts</span><span class="p">)</span>
 <span class="go">50</span>
@@ -141,6 +160,15 @@ Type "help", "copyright", "credits" or "license" for more information.
 </pre></div>
 </div>
 </div>
+</div>
+<div class="section" id="further-work">
+<h2>Further work<a class="headerlink" href="#further-work" title="Permalink to this headline">¶</a></h2>
+<p>These simple requests should you give you a bit of a feel for the TypePad API. When you&#8217;re ready to move on, try:</p>
+<ul class="simple">
+<li><a class="reference external" href="ref/api/index.html"><em>typepad.api – content objects</em></a></li>
+<li><a class="reference external" href="http://www.typepad.com/services/apidocs">The TypePad API reference documentation</a></li>
+<li><a class="reference external" href="http://developer.typepad.com/help/">Help from developer.typepad.com</a></li>
+</ul>
 </div>
 </div>
 
@@ -164,6 +192,7 @@ Type "help", "copyright", "credits" or "license" for more information.
 <li><a class="reference external" href="#seeing-the-posts-in-a-blog">Seeing the posts in a blog</a></li>
 </ul>
 </li>
+<li><a class="reference external" href="#further-work">Further work</a></li>
 </ul>
 </li>
 </ul>

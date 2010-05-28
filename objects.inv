@@ -195,7 +195,6 @@ typepad.api.Post.embedded_image_links attribute ref/api/post.html
 typepad.api.BlogStats class ref/api/blogstats.html
 typepad.api.Blog.media_assets attribute ref/api/blog.html
 typepad.tpobject.TypePadObject.to_dict method ref/tpobject.html
-typepad.tpobject.TypePadObject.deliver method ref/tpobject.html
 typepad.api.ObjectProperty.doc_string attribute ref/api/objectproperty.html
 typepad.api.UserProfile.homepage_url attribute ref/api/userprofile.html
 typepad.api.Asset.id attribute ref/api/asset.html
