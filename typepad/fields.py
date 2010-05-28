@@ -29,9 +29,12 @@
 
 import logging
 
+import simplejson as json
+
 import remoteobjects.dataobject
 import remoteobjects.fields
 from remoteobjects.fields import *
+import remoteobjects.http
 import typepad.tpobject
 
 
@@ -100,8 +103,18 @@ class ActionEndpoint(remoteobjects.fields.Property):
         newurl += '.json'
 
         def post(**kwargs):
-            response = self.response_type.get(newurl)
             post_obj = self.post_type(**kwargs)
-            return response.post(post_obj)
+
+            body = json.dumps(post_obj.to_dict(), default=remoteobjects.http.omit_nulls)
+            headers = {'content-type': post_obj.content_types[0]}
+            request = post_obj.get_request(url=newurl, method='POST',
+                body=body, headers=headers)
+
+            resp, content = typepad.client.request(**request)
+
+            # TODO: handle when there's no response_type
+            resp_obj = self.response_type.get(newurl)
+            resp_obj.update_from_response(newurl, resp, content)
+            return resp_obj
 
         return post
