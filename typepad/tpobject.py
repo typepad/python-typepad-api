@@ -318,6 +318,11 @@ class TypePadObject(remoteobjects.RemoteObject):
 
 class _PageFilterer(object):
 
+    filterorder = ['following', 'follower', 'blocked', 'friend',
+        'nonreciprocal', 'published', 'unpublished', 'spam', 'admin',
+        'member', 'by-group', 'by-user', 'photo', 'post', 'video', 'audio',
+        'comment', 'link', 'recent']
+
     def filter(self, **kwargs):
         """Returns a new `ListObject` instance representing the same endpoint
         as this `ListObject` instance with the additional filtering applied.
@@ -456,11 +461,6 @@ class ListObject(_PageFilterer, TypePadObject, remoteobjects.PageObject):
     """
     entries       = fields.List(fields.Field())
     """A list of items in this list resource."""
-
-    filterorder = ['following', 'follower', 'blocked', 'friend',
-        'nonreciprocal', 'published', 'unpublished', 'spam', 'admin',
-        'member', 'by-group', 'by-user', 'photo', 'post', 'video', 'audio',
-        'comment', 'link', 'recent']
 
     def count(self):
         """Returns the number of items in the overall list resource, of which
