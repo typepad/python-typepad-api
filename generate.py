@@ -82,6 +82,16 @@ LINK_PROPERTY_FIXUPS = {
             'name': 'publication_status_obj',
         },
     },
+    'Blog': {
+        'categories': {
+            'type': 'ListObject',
+        },
+    },
+    'ExternalFeedSubscription': {
+        'feeds': {
+            'type': 'ListObject',
+        }
+    },
     'Relationship': {
         'status': {
             'name': 'status_obj',

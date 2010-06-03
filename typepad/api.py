@@ -507,10 +507,10 @@ class AuthToken(TypePadObject):
 
 class Blog(TypePadObject):
 
-    categories = fields.Link(ListOf('string'))
+    categories = fields.Link(ListObject)
     """Get a list of categories which are defined for the selected blog.
 
-    :attrtype:`list of string`
+    :attrtype:`list`
 
     """
     commenting_settings = fields.Link('BlogCommentingSettings', api_name='commenting-settings')
@@ -903,11 +903,11 @@ class ExternalFeedSubscription(TypePadObject):
     callback_url = fields.Field(api_name='callbackUrl')
     """The URL to which to send notifications of new items in this subscription's
     feeds."""
-    feeds = fields.Link(ListOf('string'))
+    feeds = fields.Link(ListObject)
     """Get a list of strings containing the identifiers of the feeds to which this
     subscription is subscribed.
 
-    :attrtype:`list of string`
+    :attrtype:`list`
 
     """
     filter_rules = fields.List(fields.Field(), api_name='filterRules')
