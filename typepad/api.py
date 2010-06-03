@@ -59,13 +59,14 @@ class Account(TypePadObject):
     """The DNS domain of the service that provides the account."""
     id = fields.Field()
     """A URI that serves as a globally unique identifier for the account."""
-    provider_icon_url = fields.Field(api_name='providerIconURL')
+    provider_icon_url = fields.Field(api_name='providerIconUrl')
     """The URL of a 16-by-16 pixel icon that represents the service that provides
     this account."""
     provider_name = fields.Field(api_name='providerName')
     """A human-friendly name for the service that provides this account."""
     provider_url = fields.Field(api_name='providerURL')
-    """The URL of the home page of the service that provides this account."""
+    """**Deprecated.** The URL of the home page of the service that provides this
+    account."""
     url = fields.Field()
     """The URL of the user's profile or primary page on the remote site, if known."""
     user_id = fields.Field(api_name='userId')
@@ -340,6 +341,15 @@ class Asset(TypePadObject):
         category = fields.Field()
         """The category to remove"""
     remove_category = fields.ActionEndpoint(api_name='remove-category', post_type=_RemoveCategoryPost)
+
+    class _UpdatePublicationStatusPost(TypePadObject):
+        draft = fields.Field()
+        """A boolean indicating whether the asset is a draft"""
+        publication_date = fields.Field(api_name='publicationDate')
+        """The publication date of the asset"""
+        spam = fields.Field()
+        """A boolean indicating whether the asset is spam; Comment only"""
+    update_publication_status = fields.ActionEndpoint(api_name='update-publication-status', post_type=_UpdatePublicationStatusPost)
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/assets/%s.json' % self.url_id)
@@ -1475,6 +1485,13 @@ class Application(Entity):
     :attrtype:`list of ExternalFeedSubscription`
 
     """
+    groups = fields.Link(ListOf('Group'))
+    """Get a list of groups in which a client using a ``app_full`` access auth
+    token from this application can act.
+
+    :attrtype:`list of Group`
+
+    """
     name = fields.Field()
     """The name of the application as provided by its developer."""
     oauth_access_token_url = fields.Field(api_name='oauthAccessTokenUrl')
@@ -1510,7 +1527,7 @@ class Application(Entity):
     """The URL of a script to embed to enable the user flyouts functionality."""
 
     class _CreateExternalFeedSubscriptionPost(TypePadObject):
-        calllback_url = fields.Field(api_name='calllbackUrl')
+        callback_url = fields.Field(api_name='callbackUrl')
         """The URL which will receive notifications of new content in the subscribed
         feeds."""
         feed_idents = fields.List(fields.Field(), api_name='feedIdents')
@@ -1607,16 +1624,6 @@ class Comment(Asset):
     """A text comment posted in reply to some other asset."""
 
     _class_object_type = "Comment"
-
-    in_reply_to = fields.Object('AssetRef', api_name='inReplyTo')
-    """A reference to the asset that this comment is in reply to.
-
-    :attrtype:`AssetRef`
-
-    """
-
-
-class CommentPreview(Asset):
 
     in_reply_to = fields.Object('AssetRef', api_name='inReplyTo')
     """A reference to the asset that this comment is in reply to.
