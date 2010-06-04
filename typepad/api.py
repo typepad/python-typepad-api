@@ -1597,12 +1597,7 @@ class Application(Entity):
         TypePad."""
         return urljoin(typepad.client.endpoint, '/browser-upload.json')
 
-    @property
-    def user_flyouts_script(self):
-        import logging
-        logging.getLogger("typepad.api").warn(
-            '%s.user_flyouts_script is deprecated; use %s.user_flyouts_script_url instead' % (self.__class__.__name__, self.__class__.__name__))
-        return self.user_flyouts_script_url
+    user_flyouts_script = renamed_property(old='user_flyouts_script', new='user_flyouts_script_url')
 
 
 class Audio(Asset):
