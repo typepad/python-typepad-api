@@ -209,13 +209,13 @@ class Application(TypePadObject):
     create_external_feed_subscription = fields.ActionEndpoint(api_name='create-external-feed-subscription', post_type=_CreateExternalFeedSubscriptionPost, response_type=_CreateExternalFeedSubscriptionResponse)
 
     def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/%(endpoint_name)s/%%s.json' %% self.id)
+        return urljoin(typepad.client.endpoint, '/applications/%s.json' % self.id)
 
     @classmethod
     def get_by_id(cls, id, **kwargs):
         if id == '':
             raise ValueError("An id is required")
-        obj = cls.get('/%(endpoint_name)s/%%s.json' %% id, **kwargs)
+        obj = cls.get('/applications/%s.json' % id, **kwargs)
         obj.__dict__['id'] = id
         return obj
 
