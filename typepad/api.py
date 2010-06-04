@@ -114,6 +114,120 @@ class ApiKey(TypePadObject):
         return cls.get('/api-keys/%s.json' % api_key)
 
 
+class Application(TypePadObject):
+
+    """An application that can authenticate to the TypePad API using OAuth.
+
+    An application is identified by its OAuth consumer key, which in the case
+    of a hosted group is the same as the identifier for the group itself.
+
+    """
+
+    _class_object_type = "Application"
+
+    external_feed_subscriptions = fields.Link(ListOf('ExternalFeedSubscription'), api_name='external-feed-subscriptions')
+    """Get a list of the application's active external feed subscriptions.
+
+    :attrtype:`list of ExternalFeedSubscription`
+
+    """
+    groups = fields.Link(ListOf('Group'))
+    """Get a list of groups in which a client using a ``app_full`` access auth
+    token from this application can act.
+
+    :attrtype:`list of Group`
+
+    """
+    id = fields.Field()
+    """A string containing the canonical identifier that can be used to identify
+    this application in URLs."""
+    name = fields.Field()
+    """The name of the application as provided by its developer."""
+    oauth_access_token_url = fields.Field(api_name='oauthAccessTokenUrl')
+    """The URL of the OAuth access token endpoint for this application."""
+    oauth_authorization_url = fields.Field(api_name='oauthAuthorizationUrl')
+    """The URL to send the user's browser to for the user authorization step."""
+    oauth_identification_url = fields.Field(api_name='oauthIdentificationUrl')
+    """The URL to send the user's browser to in order to identify who is logged in
+    (that is, the "sign in" link)."""
+    oauth_request_token_url = fields.Field(api_name='oauthRequestTokenUrl')
+    """The URL of the OAuth request token endpoint for this application."""
+    object_type = fields.Field(api_name='objectType')
+    """The keyword identifying the type of object this is.
+
+    For an Application object, `object_type` will be ``Application``.
+
+    """
+    object_types = fields.List(fields.Field(), api_name='objectTypes')
+    """**Deprecated.** The object types for this object.
+
+    This set will contain the string ``tag:api.typepad.com,2009:Application`` for
+    an Application object.
+
+
+    :attrtype:`list`
+
+    """
+    session_sync_script_url = fields.Field(api_name='sessionSyncScriptUrl')
+    """The URL of the session sync script."""
+    signout_url = fields.Field(api_name='signoutUrl')
+    """The URL to send the user's browser to in order to sign them out of TypePad."""
+    user_flyouts_script_url = fields.Field(api_name='userFlyoutsScriptUrl')
+    """The URL of a script to embed to enable the user flyouts functionality."""
+
+    class _CreateExternalFeedSubscriptionPost(TypePadObject):
+        callback_url = fields.Field(api_name='callbackUrl')
+        """The URL which will receive notifications of new content in the subscribed
+        feeds."""
+        feed_idents = fields.List(fields.Field(), api_name='feedIdents')
+        """A list of identifiers of the initial set of feeds to be subscribed to.
+
+        :attrtype:`list`
+
+        """
+        filter_rules = fields.List(fields.Field(), api_name='filterRules')
+        """A list of rules for filtering notifications to this subscription; each rule
+        is a query string using the search API's syntax.
+
+        :attrtype:`list`
+
+        """
+        secret = fields.Field()
+        """An optional subscriber-provided opaque token that will be used to compute
+        an HMAC digest to be sent along with each item delivered to the callbackUrl."""
+        verify_token = fields.Field(api_name='verifyToken')
+        """A subscriber-provided opaque token that will be echoed back in the
+        verification request to assist the subscriber in identifying which
+        subscription request is being verified."""
+    class _CreateExternalFeedSubscriptionResponse(TypePadObject):
+        subscription = fields.Object('ExternalFeedSubscription')
+        """The subscription object that was created.
+
+        :attrtype:`ExternalFeedSubscription`
+
+        """
+    create_external_feed_subscription = fields.ActionEndpoint(api_name='create-external-feed-subscription', post_type=_CreateExternalFeedSubscriptionPost, response_type=_CreateExternalFeedSubscriptionResponse)
+
+    @classmethod
+    def get_by_api_key(cls, api_key, **kwargs):
+        """Returns an `Application` instance by the API key.
+
+        Asserts that the api_key parameter matches ^\w+$."""
+        assert re.match('^\w+$', api_key), "invalid api_key parameter given"
+        import logging
+        logging.getLogger("typepad.api").warn(
+            '%s.get_by_api_key is deprecated' % cls.__name__)
+        return cls.get('/applications/%s.json' % api_key, **kwargs)
+
+    @property
+    def browser_upload_endpoint(self):
+        """The endpoint to use for uploading file assets directly to
+        TypePad."""
+        return urljoin(typepad.client.endpoint, '/browser-upload.json')
+
+    user_flyouts_script = renamed_property(old='user_flyouts_script', new='user_flyouts_script_url')
+
+
 class Asset(TypePadObject):
 
     """An item of content generated by a user."""
@@ -1466,138 +1580,6 @@ class VideoLink(TypePadObject, _VideoResizer):
         logging.getLogger("typepad.api").warn(
             '%s.html is deprecated; use %s.embed_code instead' % (self.__class__.__name__, self.__class__.__name__))
         return self.embed_code
-
-
-class Application(Entity):
-
-    """An application that can authenticate to the TypePad API using OAuth.
-
-    An application is identified by its OAuth consumer key, which in the case
-    of a hosted group is the same as the identifier for the group itself.
-
-    """
-
-    _class_object_type = "Application"
-
-    external_feed_subscriptions = fields.Link(ListOf('ExternalFeedSubscription'), api_name='external-feed-subscriptions')
-    """Get a list of the application's active external feed subscriptions.
-
-    :attrtype:`list of ExternalFeedSubscription`
-
-    """
-    groups = fields.Link(ListOf('Group'))
-    """Get a list of groups in which a client using a ``app_full`` access auth
-    token from this application can act.
-
-    :attrtype:`list of Group`
-
-    """
-    name = fields.Field()
-    """The name of the application as provided by its developer."""
-    oauth_access_token_url = fields.Field(api_name='oauthAccessTokenUrl')
-    """The URL of the OAuth access token endpoint for this application."""
-    oauth_authorization_url = fields.Field(api_name='oauthAuthorizationUrl')
-    """The URL to send the user's browser to for the user authorization step."""
-    oauth_identification_url = fields.Field(api_name='oauthIdentificationUrl')
-    """The URL to send the user's browser to in order to identify who is logged in
-    (that is, the "sign in" link)."""
-    oauth_request_token_url = fields.Field(api_name='oauthRequestTokenUrl')
-    """The URL of the OAuth request token endpoint for this application."""
-    object_type = fields.Field(api_name='objectType')
-    """The keyword identifying the type of object this is.
-
-    For an Application object, `object_type` will be ``Application``.
-
-    """
-    object_types = fields.List(fields.Field(), api_name='objectTypes')
-    """**Deprecated.** The object types for this object.
-
-    This set will contain the string ``tag:api.typepad.com,2009:Application`` for
-    an Application object.
-
-
-    :attrtype:`list`
-
-    """
-    session_sync_script_url = fields.Field(api_name='sessionSyncScriptUrl')
-    """The URL of the session sync script."""
-    signout_url = fields.Field(api_name='signoutUrl')
-    """The URL to send the user's browser to in order to sign them out of TypePad."""
-    user_flyouts_script_url = fields.Field(api_name='userFlyoutsScriptUrl')
-    """The URL of a script to embed to enable the user flyouts functionality."""
-
-    class _CreateExternalFeedSubscriptionPost(TypePadObject):
-        callback_url = fields.Field(api_name='callbackUrl')
-        """The URL which will receive notifications of new content in the subscribed
-        feeds."""
-        feed_idents = fields.List(fields.Field(), api_name='feedIdents')
-        """A list of identifiers of the initial set of feeds to be subscribed to.
-
-        :attrtype:`list`
-
-        """
-        filter_rules = fields.List(fields.Field(), api_name='filterRules')
-        """A list of rules for filtering notifications to this subscription; each rule
-        is a query string using the search API's syntax.
-
-        :attrtype:`list`
-
-        """
-        secret = fields.Field()
-        """An optional subscriber-provided opaque token that will be used to compute
-        an HMAC digest to be sent along with each item delivered to the callbackUrl."""
-        verify_token = fields.Field(api_name='verifyToken')
-        """A subscriber-provided opaque token that will be echoed back in the
-        verification request to assist the subscriber in identifying which
-        subscription request is being verified."""
-    class _CreateExternalFeedSubscriptionResponse(TypePadObject):
-        subscription = fields.Object('ExternalFeedSubscription')
-        """The subscription object that was created.
-
-        :attrtype:`ExternalFeedSubscription`
-
-        """
-    create_external_feed_subscription = fields.ActionEndpoint(api_name='create-external-feed-subscription', post_type=_CreateExternalFeedSubscriptionPost, response_type=_CreateExternalFeedSubscriptionResponse)
-
-    def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/applications/%s.json' % self.url_id)
-
-    @property
-    def xid(self):
-        return self.url_id
-
-    @classmethod
-    def get_by_id(cls, id, **kwargs):
-        url_id = id.rsplit(':', 1)[-1]
-        return cls.get_by_url_id(url_id, **kwargs)
-
-    @classmethod
-    def get_by_url_id(cls, url_id, **kwargs):
-        if url_id == '':
-            raise ValueError("An url_id is required")
-        obj = cls.get('/applications/%s.json' % url_id, **kwargs)
-        obj.__dict__['url_id'] = url_id
-        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
-        return obj
-
-    @classmethod
-    def get_by_api_key(cls, api_key, **kwargs):
-        """Returns an `Application` instance by the API key.
-
-        Asserts that the api_key parameter matches ^\w+$."""
-        assert re.match('^\w+$', api_key), "invalid api_key parameter given"
-        import logging
-        logging.getLogger("typepad.api").warn(
-            '%s.get_by_api_key is deprecated' % cls.__name__)
-        return cls.get('/applications/%s.json' % api_key, **kwargs)
-
-    @property
-    def browser_upload_endpoint(self):
-        """The endpoint to use for uploading file assets directly to
-        TypePad."""
-        return urljoin(typepad.client.endpoint, '/browser-upload.json')
-
-    user_flyouts_script = renamed_property(old='user_flyouts_script', new='user_flyouts_script_url')
 
 
 class Audio(Asset):

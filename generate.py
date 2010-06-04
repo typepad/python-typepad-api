@@ -904,6 +904,12 @@ def generate_types(types_fn, nouns_fn):
             # Fix up Relationship to have a parentType.
             if name == 'Relationship':
                 info['parentType'] = 'Base'
+            # Application doesn't actually inherit anything from Entity, so fix its parentType.
+            if name == 'Application':
+                info['parentType'] = 'Base'
+                info['properties'] = [prop for prop in info['properties']
+                    if prop['name'] != 'urlId'
+                    and (prop['name'] != 'id' or 'URI' not in prop['docString'])]
 
             if 'parentType' not in info:
                 raise ValueError('Type info for %r has no parentType?' % name)
