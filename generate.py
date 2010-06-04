@@ -212,6 +212,17 @@ CLASS_EXTRAS = {
         return self.id.rsplit(':', 1)[-1]
 ''',
     'Application': '''
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '/%(endpoint_name)s/%%s.json' %% self.id)
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        if id == '':
+            raise ValueError("An id is required")
+        obj = cls.get('/%(endpoint_name)s/%%s.json' %% id, **kwargs)
+        obj.__dict__['id'] = id
+        return obj
+
     @classmethod
     def get_by_api_key(cls, api_key, **kwargs):
         """Returns an `Application` instance by the API key.
