@@ -414,6 +414,11 @@ class StreamObject(_PageFilterer, TypePadObject, remoteobjects.PageObject):
     estimated_total_results = fields.Field(api_name='estimatedTotalResults')
     total_results = fields.Field(api_name='totalResults')
 
+    def count(self):
+        """Returns the number of items in the overall list resource, of which
+        this `StreamObject` instance may be only a segment."""
+        return int(self.total_results)
+
     def next(self):
         if self.more_results_token is None:
             return
@@ -453,13 +458,6 @@ class ListObject(_PageFilterer, TypePadObject, remoteobjects.PageObject):
     total_results = fields.Field(api_name='totalResults')
     """The total number of items in the overall list resource (of which this
     `ListObject` instance may be only a segment)."""
-    start_index   = fields.Field(api_name='startIndex')
-    """The index in the overall list resource of the first item in this
-    `ListObject` instance.
-
-    The first item in the list has index 1.
-
-    """
     entries       = fields.List(fields.Field())
     """A list of items in this list resource."""
 
