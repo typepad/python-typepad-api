@@ -412,6 +412,7 @@ class StreamObject(_PageFilterer, TypePadObject, remoteobjects.PageObject):
 
     more_results_token = fields.Field(api_name='moreResultsToken')
     estimated_total_results = fields.Field(api_name='estimatedTotalResults')
+    total_results = fields.Field(api_name='totalResults')
 
     def next(self):
         if self.more_results_token is None:

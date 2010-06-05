@@ -1489,9 +1489,9 @@ class TestTypePad(unittest.TestCase):
         typepad.client.complete_batch()
 
         self.assertValidUser(user)
+        self.assertValidFilter(listset)
 
-        # FIXME: https://intranet.sixapart.com/bugs/default.asp?87911
-        events = [x for x in listset[0] if x.object]
+        events = listset[0]
         for event in events:
             self.assertValidEvent(event)
 
