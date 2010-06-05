@@ -112,7 +112,11 @@ class ActionEndpoint(remoteobjects.fields.Property):
 
             resp, content = typepad.client.request(**request)
 
-            # TODO: handle when there's no response_type
+            # If there's no response type, raise any errors but don't return anything.
+            if self.response_type is None:
+                typepad.tpobject.TypePadObject.raise_for_response(newurl, resp, content)
+                return
+
             resp_obj = self.response_type.get(newurl)
             resp_obj.update_from_response(newurl, resp, content)
             return resp_obj
