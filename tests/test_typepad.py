@@ -2174,8 +2174,8 @@ class TestTypePad(unittest.TestCase):
 
     def assertValidFilter(self, listset):
         (full, slice1, slice2, slice3, slice4) = listset
-        self.assert_(isinstance(full, typepad.ListObject),
-            'object %r is not a typepad.ListObject' % full)
+        self.assert_(isinstance(full, typepad.ListObject) or isinstance(full, typepad.StreamObject),
+            'object %r is not a typepad.ListObject or typepad.StreamObject' % full)
 
         self.assert_(len(full.entries) <= 50, 'API result exceeded 50 entries')
 
