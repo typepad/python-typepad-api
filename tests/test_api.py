@@ -361,6 +361,28 @@ class TestAsset(unittest.TestCase):
         ar = AssetRefKeeper.from_dict({'assetref': data}).assetref
         self.assert_(isinstance(ar, typepad.AssetRef))
 
+    def test_asset_ref(self):
+        asset = typepad.Asset(
+            id='tag:api.typepad.com,2009:6a00d83451ce6b69e20120a81fb3a4970c',
+            url_id='6a00d83451ce6b69e20120a81fb3a4970c',
+            author=typepad.User(
+                url_id='6p00d83451ce6b69e2',
+            ),
+            object_types=['tag:api.typepad.com,2009:Post'],
+            object_type='Post'
+        )
+
+        ref = asset.asset_ref
+
+        self.assert_(isinstance(ref, typepad.AssetRef))
+        self.assertEqual(ref.id, 'tag:api.typepad.com,2009:6a00d83451ce6b69e20120a81fb3a4970c')
+        self.assertEqual(ref.url_id, '6a00d83451ce6b69e20120a81fb3a4970c')
+        self.assert_(ref.author is not None)
+        self.assert_(isinstance(ref.author, typepad.User))
+        self.assertEqual(ref.author.url_id, '6p00d83451ce6b69e2')
+        self.assertEqual(ref.object_type, 'Post')
+        self.assertEqual(ref.object_types, ['tag:api.typepad.com,2009:Post'])
+
 
 class TestRelationship(unittest.TestCase):
 
