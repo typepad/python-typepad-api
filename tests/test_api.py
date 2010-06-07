@@ -305,7 +305,7 @@ class TestHttp(unittest.TestCase):
         self.assertNotEqual(e._etag, old_etag)
 
 
-class TestLocally(unittest.TestCase):
+class TestAsset(unittest.TestCase):
 
     def check_classy_assets(self, make_asset):
         data = {
@@ -360,6 +360,9 @@ class TestLocally(unittest.TestCase):
         self.assert_(isinstance(ar, typepad.AssetRef))
         ar = AssetRefKeeper.from_dict({'assetref': data}).assetref
         self.assert_(isinstance(ar, typepad.AssetRef))
+
+
+class TestRelationship(unittest.TestCase):
 
     def test_group_membership_with_timestamps(self):
         data = {
