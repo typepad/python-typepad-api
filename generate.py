@@ -372,12 +372,7 @@ CLASS_EXTRAS = {
         return find_by_name('User').get_by_url_id(self.url_id)
 ''',
     'VideoLink': '''
-    @property
-    def html(self):
-        import logging
-        logging.getLogger("typepad.api").warn(
-            '%s.html is deprecated; use %s.embed_code instead' % (self.__class__.__name__, self.__class__.__name__))
-        return self.embed_code
+    html = renamed_property(old='html', new='embed_code')
 ''',
 }
 

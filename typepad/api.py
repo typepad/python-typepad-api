@@ -1588,12 +1588,7 @@ class VideoLink(TypePadObject, _VideoResizer):
 
     """
 
-    @property
-    def html(self):
-        import logging
-        logging.getLogger("typepad.api").warn(
-            '%s.html is deprecated; use %s.embed_code instead' % (self.__class__.__name__, self.__class__.__name__))
-        return self.embed_code
+    html = renamed_property(old='html', new='embed_code')
 
 
 class Audio(Asset):
