@@ -182,7 +182,7 @@ requests = {
 }
 
 
-class TestAsset(unittest.TestCase):
+class TestHttp(unittest.TestCase):
 
     def http(self, key, credentials=None):
         try:
