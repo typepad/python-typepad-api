@@ -358,8 +358,11 @@ CLASS_EXTRAS = {
     @classmethod
     def get_by_url_id(cls, url_id, **kwargs):
         """Returns the `UserProfile` instance with the given URL identifier."""
+        if url_id == '':
+            raise ValueError("An url_id is required")
         prof = cls.get('/users/%s/profile.json' % url_id, **kwargs)
         prof.__dict__['url_id'] = url_id
+        prof.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return prof
 
     @property

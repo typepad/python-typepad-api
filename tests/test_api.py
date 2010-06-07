@@ -328,7 +328,8 @@ class TestUrlId(unittest.TestCase):
         obj = cls()
         obj.update_from_dict({'urlId': '6a00d83451ce6b69e20120a81fb3a4970c'})
         self.assert_(obj._location is not None)
-        self.assert_(obj._location.endswith('/6a00d83451ce6b69e20120a81fb3a4970c.json'))
+        # UserProfile's doesn't end in /urlId.json, so just check that it's in there somewhere.
+        self.assert_('6a00d83451ce6b69e20120a81fb3a4970c' in obj._location)
 
     def _check(cls):
         def check_for_class(self):
@@ -344,6 +345,7 @@ class TestUrlId(unittest.TestCase):
     test_relationship = _check(typepad.Relationship)
     test_group = _check(typepad.Group)
     test_user = _check(typepad.User)
+    test_userprofile = _check(typepad.UserProfile)
 
 
 class TestAsset(unittest.TestCase):
@@ -521,6 +523,24 @@ class TestRelationship(unittest.TestCase):
         r = typepad.Relationship.from_dict(data)
         self.assert_(isinstance(r.source, typepad.Group))
         self.assert_(isinstance(r.target, typepad.User))
+
+
+class TestUserAndUserProfile(unittest.TestCase):
+
+    def test_get_self(self):
+        me = typepad.User.get_self()
+        self.assert_(me._location.endswith('/users/@self.json'))
+
+    def test_related_profile(self):
+        my_profile = typepad.UserProfile.get_by_url_id('6p00d83451ce6b69e2')
+        me = my_profile.user
+        self.assert_(isinstance(me, typepad.User))
+        self.assertEqual(me.url_id, '6p00d83451ce6b69e2')
+
+        me = typepad.User.get_by_url_id('6p00d83451ce6b69e2')
+        my_profile = me.profile
+        self.assert_(isinstance(my_profile, typepad.UserProfile))
+        self.assertEqual(my_profile.url_id, '6p00d83451ce6b69e2')
 
 
 class TestBrowserUpload(unittest.TestCase):
