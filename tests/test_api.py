@@ -305,6 +305,41 @@ class TestHttp(unittest.TestCase):
         self.assertNotEqual(e._etag, old_etag)
 
 
+class TestUrlId(unittest.TestCase):
+
+    def check_url_id(self, cls):
+        works = (
+            lambda: cls.get_by_url_id('6a00d83451ce6b69e20120a81fb3a4970c'),
+            lambda: cls.get_by_id('tag:api.typepad.com,2009:6a00d83451ce6b69e20120a81fb3a4970c'),
+            lambda: cls.get_by_id('6a00d83451ce6b69e20120a81fb3a4970c'),
+        )
+
+        for work in works:
+            obj = work()
+            self.assert_('6a00d83451ce6b69e20120a81fb3a4970c' in obj._location)
+            self.assertEqual(obj.url_id, '6a00d83451ce6b69e20120a81fb3a4970c')  # doesn't deliver
+            self.assertEqual(obj.xid, '6a00d83451ce6b69e20120a81fb3a4970c')
+            self.assertEqual(obj.id, 'tag:api.typepad.com,2009:6a00d83451ce6b69e20120a81fb3a4970c')
+
+        self.assertRaises(ValueError, lambda: cls.get_by_url_id(''))
+        self.assertRaises(ValueError, lambda: cls.get_by_id(''))
+
+    def _check(cls):
+        def check_for_class(self):
+            self.check_url_id(cls)
+        check_for_class.__name__ = 'test_%s' % cls.__name__.lower()
+        return check_for_class
+
+    test_asset = _check(typepad.Asset)
+    test_blog = _check(typepad.Blog)
+    test_event = _check(typepad.Event)
+    test_externalfeedsubscription = _check(typepad.ExternalFeedSubscription)
+    test_favorite = _check(typepad.Favorite)
+    test_relationship = _check(typepad.Relationship)
+    test_group = _check(typepad.Group)
+    test_user = _check(typepad.User)
+
+
 class TestAsset(unittest.TestCase):
 
     def check_classy_assets(self, make_asset):
