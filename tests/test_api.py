@@ -324,6 +324,12 @@ class TestUrlId(unittest.TestCase):
         self.assertRaises(ValueError, lambda: cls.get_by_url_id(''))
         self.assertRaises(ValueError, lambda: cls.get_by_id(''))
 
+        # See if link generation with make_self_link() works.
+        obj = cls()
+        obj.update_from_dict({'urlId': '6a00d83451ce6b69e20120a81fb3a4970c'})
+        self.assert_(obj._location is not None)
+        self.assert_(obj._location.endswith('/6a00d83451ce6b69e20120a81fb3a4970c.json'))
+
     def _check(cls):
         def check_for_class(self):
             self.check_url_id(cls)
