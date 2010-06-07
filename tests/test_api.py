@@ -571,7 +571,7 @@ class TestRelationship(unittest.TestCase):
         self.assert_(not r.is_admin())
         self.assert_(r.is_blocked())
 
-    def test_rel_type_updaters(self):
+    def test_block(self):
         real_typepad_client = typepad.client
         typepad.client = mox.MockObject(httplib2.Http)
         try:
@@ -601,6 +601,42 @@ class TestRelationship(unittest.TestCase):
 
             r = typepad.Relationship.get('http://127.0.0.1:8000/relationships/6r00d83451ce6b69e20120a81fb3a4970c.json')
             r.block()
+
+            mox.Verify(typepad.client)
+
+        finally:
+            typepad.client = real_typepad_client
+
+    def test_leave(self):
+        real_typepad_client = typepad.client
+        typepad.client = mox.MockObject(httplib2.Http)
+        try:
+            resp = httplib2.Response({
+                'status':           200,
+                'etag':             '7',
+                'content-type':     'application/json',
+                'content-location': 'http://127.0.0.1:8000/relationships/6r00d83451ce6b69e20120a81fb3a4970c/status.json',
+            })
+            typepad.client.request(
+                uri='http://127.0.0.1:8000/relationships/6r00d83451ce6b69e20120a81fb3a4970c/status.json',
+                headers={'accept': 'application/json'},
+            ).AndReturn((resp, """{"types": ["tag:api.typepad.com,2009:Member"]}"""))
+            resp = httplib2.Response({
+                'status':           200,
+                'etag':             '9',
+                'content-type':     'application/json',
+                'content-location': 'http://127.0.0.1:8000/relationships/6r00d83451ce6b69e20120a81fb3a4970c/status.json',
+            })
+            typepad.client.request(
+                uri='http://127.0.0.1:8000/relationships/6r00d83451ce6b69e20120a81fb3a4970c/status.json',
+                method='PUT',
+                headers={'if-match': '7', 'accept': 'application/json', 'content-type': 'application/json'},
+                body=mox.Func(json_equals_func({"types": []})),
+            ).AndReturn((resp, """{"types": []}"""))
+            mox.Replay(typepad.client)
+
+            r = typepad.Relationship.get('http://127.0.0.1:8000/relationships/6r00d83451ce6b69e20120a81fb3a4970c.json')
+            r.leave()
 
             mox.Verify(typepad.client)
 
