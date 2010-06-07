@@ -479,7 +479,7 @@ class TestRelationship(unittest.TestCase):
         self.assertEquals(types[1], 'tag:api.typepad.com,2009:Member')
         self.assertEquals(created[types[1]], datetime(2009, 1, 3, 0, 0, 0))
 
-    def test_relationships(self):
+    def test_object_typing(self):
         data = {
             'source': {
                 'displayName': 'Nikola',
@@ -523,6 +523,52 @@ class TestRelationship(unittest.TestCase):
         r = typepad.Relationship.from_dict(data)
         self.assert_(isinstance(r.source, typepad.Group))
         self.assert_(isinstance(r.target, typepad.User))
+
+    def test_type_checking(self):
+        data = {
+            'source': {
+                'displayName': 'Nikola',
+                'objectType':  'User',
+            },
+            'target': {
+                'displayName': 'Theophila',
+                'objectType':  'User',
+            },
+            'status': {
+                'types': ['tag:api.typepad.com,2009:Contact'],
+            },
+        }
+
+        r = typepad.Relationship.from_dict(data)
+        self.assert_(isinstance(r.source, typepad.User))
+        self.assert_(isinstance(r.target, typepad.User))
+
+        self.assert_(not r.is_member())
+        self.assert_(not r.is_admin())
+        self.assert_(not r.is_blocked())
+
+        data['source']['objectType'] = 'Group'
+        data['status']['types'] = ['tag:api.typepad.com,2009:Member']
+        r = typepad.Relationship.from_dict(data)
+
+        self.assert_(r.is_member())
+        self.assert_(not r.is_admin())
+        self.assert_(not r.is_blocked())
+
+        data['status']['types'] = ['tag:api.typepad.com,2009:Member', 'tag:api.typepad.com,2009:Asfdasf',
+            'tag:api.typepad.com,2009:Admin']
+        r = typepad.Relationship.from_dict(data)
+
+        self.assert_(r.is_member())
+        self.assert_(r.is_admin())
+        self.assert_(not r.is_blocked())
+
+        data['status']['types'] = ['tag:api.typepad.com,2009:Blocked']
+        r = typepad.Relationship.from_dict(data)
+
+        self.assert_(not r.is_member())
+        self.assert_(not r.is_admin())
+        self.assert_(r.is_blocked())
 
 
 class TestUserAndUserProfile(unittest.TestCase):
