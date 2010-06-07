@@ -383,6 +383,26 @@ class TestAsset(unittest.TestCase):
         self.assertEqual(ref.object_type, 'Post')
         self.assertEqual(ref.object_types, ['tag:api.typepad.com,2009:Post'])
 
+    def test_stringification(self):
+        asset = typepad.Asset(
+            title='this is my title',
+            content='This is my content.',
+        )
+        self.assertEqual(str(asset), 'this is my title')
+        self.assertEqual(unicode(asset), 'this is my title')
+
+        asset = typepad.Asset(
+            content='This is my content.',
+        )
+        self.assertEqual(str(asset), 'This is my content.')
+        self.assertEqual(unicode(asset), 'This is my content.')
+
+        asset = typepad.Asset(
+            title=u'I\xc3\xb1t\xc3\xabrn\xc3\xa2ti\xc3\xb4n\xc3\xa0liz\xc3\xa6ti\xc3\xb8n',
+        )
+        self.assertRaises(UnicodeError, lambda: str(asset))
+        self.assertEqual(unicode(asset), u'I\xc3\xb1t\xc3\xabrn\xc3\xa2ti\xc3\xb4n\xc3\xa0liz\xc3\xa6ti\xc3\xb8n')
+
 
 class TestRelationship(unittest.TestCase):
 
