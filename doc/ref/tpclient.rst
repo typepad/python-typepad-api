@@ -1,5 +1,5 @@
-`typepad.oauthclient` – HTTP client for making OAuth requests
-=============================================================
+`typepad.tpclient` – HTTP client for making OAuth requests
+==========================================================
 
-.. automodule:: typepad.oauthclient
+.. automodule:: typepad.tpclient
    :members:

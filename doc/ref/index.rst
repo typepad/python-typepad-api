@@ -4,6 +4,6 @@ API reference
 .. toctree::
 
    api/index
-   oauthclient
+   tpclient
    tpobject
    fields
