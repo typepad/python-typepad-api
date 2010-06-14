@@ -27,41 +27,25 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import cgi
 from datetime import datetime
-try:
-    from email.feedparser import FeedParser
-    from email.header import Header
-except ImportError:
-    from email.Parser import FeedParser
-    from email.Header import Header
 import logging
-import os
 import random
 import re
-from StringIO import StringIO
 import sys
 import traceback
 import unittest
-from urlparse import urlparse
 
 import httplib2
 import mox
-from oauth.oauth import OAuthConsumer, OAuthToken
 import simplejson as json
 
 import typepad
 from tests import utils
 
 
-def json_equals(data, text):
-    otherdata = json.loads(text)
-    return bool(data == otherdata)
-
-
 def json_equals_func(data):
     def confirm_equals_data(text):
-        return json_equals(data, text)
+        return utils.json_equals(data, text)
     return confirm_equals_data
 
 
@@ -660,231 +644,6 @@ class TestUserAndUserProfile(unittest.TestCase):
         my_profile = me.profile
         self.assert_(isinstance(my_profile, typepad.UserProfile))
         self.assertEqual(my_profile.url_id, '6p00d83451ce6b69e2')
-
-
-class TestBrowserUpload(unittest.TestCase):
-
-    def setUp(self):
-        self.typepad_client = typepad.client
-
-    def tearDown(self):
-        typepad.client = self.typepad_client
-        del self.typepad_client
-
-        for x in ('headers', 'body'):
-            try:
-                delattr(self, x)
-            except AttributeError:
-                pass
-
-    def saver(self, fld):
-        def save_data(data):
-            setattr(self, fld, data)
-            return True
-        return save_data
-
-    def message_from_response(self, headers, body):
-        fp = FeedParser()
-        for header, value in headers.iteritems():
-            fp.feed("%s: %s\n" % (header, Header(value).encode()))
-        fp.feed("\n")
-        fp.feed(body)
-        response = fp.close()
-        return response
-
-    def test_basic(self):
-        request = {
-            'uri': mox.Func(self.saver('uri')),
-            'method': 'POST',
-            'headers': mox.Func(self.saver('headers')),
-            'body': mox.Func(self.saver('body')),
-        }
-        response = {
-            'status': 201,  # created
-        }
-
-        http = typepad.TypePadClient()
-        typepad.client = http
-        http.add_credentials(
-            OAuthConsumer('consumertoken', 'consumersecret'),
-            OAuthToken('tokentoken', 'tokensecret'),
-            domain='api.typepad.com',
-        )
-
-        mock = mox.Mox()
-        mock.StubOutWithMock(http, 'request')
-        http.request(**request).AndReturn((response, ''))
-        mock.ReplayAll()
-
-        asset = typepad.Photo()
-        asset.title = "Fake photo"
-        asset.content = "This is a made-up photo for testing automated browser style upload."
-
-        fileobj = StringIO('hi hello pretend file')
-        brupload = typepad.BrowserUploadEndpoint()
-        brupload.upload(asset, fileobj, "image/png",
-            post_type='photo')
-
-        mock.VerifyAll()
-
-        self.assert_(self.uri)
-        # We added credentials, so it should be a secure URL.
-        self.assert_(self.uri.startswith('https://api.typepad.com/browser-upload.json'))
-        uriparts = list(urlparse(self.uri))
-        querydict = cgi.parse_qs(uriparts[4])
-
-        # TODO: really verify the signature
-
-        # Verify the headers and body.
-        self.assert_(self.headers)
-        self.assert_(self.body)
-        responsemsg = self.message_from_response(self.headers, self.body)
-
-        content_type = responsemsg.get_content_type()
-        self.assert_(content_type)
-        self.assert_(not responsemsg.defects)
-
-        # Check that the unparsed body has its internal mime headers
-        # separated by full CRLFs, not just LFs.
-        self.assert_('\r\nContent-Type:' in self.body)
-        # Check that boundaries are separated by full CRLFs too.
-        boundary = responsemsg.get_param('boundary')
-        self.assert_(boundary + '\r\n' in self.body)
-
-        # Make sure we're only putting credentials in the query string, not
-        # the headers.
-        self.assert_('oauth_signature' in querydict)
-        self.assert_('authorization' not in responsemsg)
-        self.assert_('Authorization' not in responsemsg)
-
-        bodyparts = responsemsg.get_payload()
-        self.assertEquals(len(bodyparts), 3)
-        bodyparts = dict((part.get_param('name', header='content-disposition'),
-            part) for part in bodyparts)
-
-        self.assertEquals(bodyparts['post_type'].get_payload(), 'photo')
-        self.assert_('redirect_to' not in bodyparts)
-
-        asset_json = bodyparts['asset'].get_payload()
-        self.assert_(json_equals({
-            'title': 'Fake photo',
-            'content': 'This is a made-up photo for testing automated browser style upload.',
-            'objectType': 'Photo',
-        }, asset_json))
-
-        filepart = bodyparts['file']
-        self.assertEquals(filepart.get_payload(decode=False), 'hi hello pretend file')
-        filelength = filepart.get('content-length')
-        self.assertEquals(int(filelength), len('hi hello pretend file'))
-        filename = filepart.get_param('filename', header='content-disposition')
-        self.assert_(filename)
-
-    def test_redirect(self):
-        request = {
-            'uri': mox.Func(self.saver('uri')),
-            'method': 'POST',
-            'headers': mox.Func(self.saver('headers')),
-            'body': mox.Func(self.saver('body')),
-        }
-        response = {
-            'status': 302,
-            'location': 'http://client.example.com/hi',
-        }
-
-        http = typepad.TypePadClient()
-        typepad.client = http
-        http.add_credentials(
-            OAuthConsumer('consumertoken', 'consumersecret'),
-            OAuthToken('tokentoken', 'tokensecret'),
-            domain='api.typepad.com',
-        )
-
-        mock = mox.Mox()
-        mock.StubOutWithMock(http, 'request')
-        http.request(**request).AndReturn((response, ''))
-        mock.ReplayAll()
-
-        asset = typepad.Photo()
-        asset.title = "Fake photo"
-        asset.content = "This is a made-up photo for testing automated browser style upload."
-
-        fileobj = StringIO('hi hello pretend file')
-        brupload = typepad.BrowserUploadEndpoint()
-        brupload.upload(asset, fileobj, "image/png",
-            redirect_to='http://client.example.com/hi',
-            post_type='photo')
-
-        mock.VerifyAll()
-
-        # Verify the headers and body.
-        self.assert_(self.headers)
-        self.assert_(self.body)
-        response = self.message_from_response(self.headers, self.body)
-
-        bodyparts = response.get_payload()
-        self.assertEquals(len(bodyparts), 4)
-        bodyparts = dict((part.get_param('name', header='content-disposition'),
-            part) for part in bodyparts)
-
-        # Confirm that the redirect_to was sent.
-        self.assert_('redirect_to' in bodyparts)
-        self.assertEquals(bodyparts['redirect_to'].get_payload(),
-            'http://client.example.com/hi')
-
-    def test_real_file(self):
-        request = {
-            'uri': mox.Func(self.saver('uri')),
-            'method': 'POST',
-            'headers': mox.Func(self.saver('headers')),
-            'body': mox.Func(self.saver('body')),
-        }
-        response = {
-            'status': 201,
-        }
-
-        http = typepad.TypePadClient()
-        typepad.client = http
-        http.add_credentials(
-            OAuthConsumer('consumertoken', 'consumersecret'),
-            OAuthToken('tokentoken', 'tokensecret'),
-            domain='api.typepad.com',
-        )
-
-        mock = mox.Mox()
-        mock.StubOutWithMock(http, 'request')
-        http.request(**request).AndReturn((response, ''))
-        mock.ReplayAll()
-
-        asset = typepad.Photo()
-        asset.title = "One-by-one png"
-        asset.content = "This is a 1&times;1 transparent PNG."
-
-        fileobj = file(os.path.join(os.path.dirname(__file__), 'onebyone.png'))
-        brupload = typepad.BrowserUploadEndpoint()
-        brupload.upload(asset, fileobj, "image/png",
-            post_type='photo')
-
-        mock.VerifyAll()
-
-        response = self.message_from_response(self.headers, self.body)
-
-        (filepart,) = [part for part in response.get_payload()
-            if part.get_param('name', header='content-disposition') == 'file']
-
-        self.assertEquals(filepart.get_content_type(), 'image/png')
-
-        # If there's a transfer encoding, it has to be the identity encoding.
-        transenc = filepart.get('content-transfer-encoding')
-        self.assert_(transenc is None or transenc == 'identity')
-
-        # Check that the file content is equivalent without decoding.
-        fileobj.seek(0)
-        filecontent = fileobj.read()
-        fileobj.close()
-        self.assertEquals(filepart.get_payload(decode=False), filecontent)
-
-        filelength = filepart.get('content-length')
-        self.assertEquals(int(filelength), len(filecontent))
 
 
 if __name__ == '__main__':

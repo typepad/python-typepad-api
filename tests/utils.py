@@ -27,13 +27,14 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import httplib2
 import logging
 import os
 
+import httplib2
 import mox
 import nose
 import nose.tools
+import simplejson as json
 
 
 def todo(fn):
@@ -46,6 +47,11 @@ def todo(fn):
         else:
             raise AssertionError('test %s unexpectedly succeeded' % fn.__name__)
     return test_reverse
+
+
+def json_equals(data, text):
+    otherdata = json.loads(text)
+    return bool(data == otherdata)
 
 
 def mock_http(req, resp_or_content):
