@@ -39,7 +39,7 @@ import typepad
 
 __all__ = ('OAuthAuthentication', 'OAuthClient', 'OAuthHttp', 'log')
 
-log = logging.getLogger('typepad.oauthclient')
+log = logging.getLogger(__name__)
 
 
 class OAuthAuthentication(httplib2.Authentication):

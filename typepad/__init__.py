@@ -51,7 +51,7 @@ import httplib2
 
 import batchhttp.client
 from remoteobjects import RemoteObject, ListObject
-from typepad.oauthclient import *
+from typepad.tpclient import *
 
 class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
 
