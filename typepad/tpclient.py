@@ -29,10 +29,13 @@
 
 import cgi
 import httplib
-import httplib2
-import urlparse
-from oauth import oauth
 import logging
+import threading
+import urlparse
+
+import batchhttp.client
+import httplib2
+from oauth import oauth
 
 import typepad
 
@@ -256,3 +259,94 @@ class OAuthClient(oauth.OAuthClient):
                                                        self.token),))
         req.sign_request(sign_method, self.consumer, self.token)
         return req.to_url()
+
+
+class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
+
+    """An HTTP user agent for performing TypePad API requests.
+
+    A `TypePadClient` instance supports the same interface as `httplib2.Http`
+    instances, plus some special methods for performing OAuth authenticated
+    requests, and using TypePad's batch HTTP endpoint.
+
+    Each `TypePadClient` instance also has a `cookies` member, a dictionary
+    containing any additional HTTP cookies to send when making API requests.
+
+    """
+
+    endpoint = 'http://api.typepad.com'
+    """The URL against which to perform TypePad API requests."""
+
+    subrequest_limit = 20
+    """The number of subrequests permitted for a given batch."""
+
+    def __init__(self, *args, **kwargs):
+        self.cookies = dict()
+        kwargs['endpoint'] = self.endpoint
+        super(TypePadClient, self).__init__(*args, **kwargs)
+        self.follow_redirects = False
+
+    def request(self, uri, method="GET", body=None, headers=None, redirections=httplib2.DEFAULT_MAX_REDIRECTS, connection_type=None):
+        """Makes the given HTTP request, as specified.
+
+        If the instance's ``cookies`` dictionary contains any cookies, they
+        will be sent along with the request.
+
+        See `httplib2.Http.request()` for more information.
+
+        """
+        if self.cookies:
+            if headers is None:
+                headers = {}
+            else:
+                headers = dict(headers)
+            cookies = ['='.join((key, value)) for key, value in self.cookies.items()]
+            headers['cookie'] = '; '.join(cookies)
+        return super(TypePadClient, self).request(uri, method, body, headers, redirections, connection_type)
+
+    def signed_request(self, uri, method=None, body=None, headers=None):
+        """Performs the given request, after signing the URL with the user
+        agent's configured OAuth credentials.
+
+        If the given URL is not an absolute URL, it is taken as relative to
+        this instance's endpoint first.
+
+        """
+        host = urlparse.urlparse(uri)[1]
+        if not host:
+            uri = urlparse.urljoin(self.endpoint, uri)
+        return super(TypePadClient, self).signed_request(uri=uri,
+            method=method, body=body, headers=headers)
+
+
+class ThreadAwareTypePadClientProxy(object):
+
+    def __init__(self):
+        self._local = threading.local()
+
+    def _get_client(self):
+        if not hasattr(self._local, 'client'):
+            self.client = typepad.client_factory()
+        return self._local.client
+
+    def _set_client(self, new_client):
+        self._local.client = new_client
+
+    client = property(_get_client, _set_client)
+    """Property for accessing the real client instance.
+
+    Constructs a TypePadClient if the active thread doesn't have one."""
+
+    def __getattr__(self, name):
+        if name in ('_local', 'client'):
+            return super(ThreadAwareTypePadClientProxy,
+                self).__getattr__(name)
+        else:
+            return getattr(self.client, name)
+
+    def __setattr__(self, name, value):
+        if name in ('_local', 'client'):
+            super(ThreadAwareTypePadClientProxy, self).__setattr__(name,
+                value)
+        else:
+            setattr(self.client, name, value)
