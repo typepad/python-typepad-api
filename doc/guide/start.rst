@@ -1,6 +1,6 @@
-==============================
-Getting started with `typepad`
-==============================
+====================
+Some simple requests
+====================
 
 Let's look at some examples to see what you can do with the `typepad` library and the TypePad API.
 
@@ -16,7 +16,7 @@ First, if you'd like to follow along in your Python shell, you can install the `
 Then you can start the Python shell and make `typepad` available by importing it::
 
    $ python
-   Python 2.6.1 (r261:67515, Feb 11 2010, 00:51:29) 
+   Python 2.6.1 (r261:67515, Feb 11 2010, 00:51:29)
    [GCC 4.2.1 (Apple Inc. build 5646)] on darwin
    Type "help", "copyright", "credits" or "license" for more information.
    >>> import typepad

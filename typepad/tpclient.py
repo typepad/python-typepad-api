@@ -136,9 +136,10 @@ class OAuthHttp(httplib2.Http):
             auth = OAuthAuthentication(cred, domain, "%s://%s/" % ( self.default_scheme, domain ), {}, None, None, self)
             self.authorizations.append(auth)
 
-    def signed_request(self, uri, method=None, headers=None, body=None):
-        """Performs a request on the given URL with the given parameters, after
-        signing the URL with any OAuth credentials available for that URL.
+    def url_for_signed_request(self, uri, method=None, headers=None, body=None):
+        """Prepares to perform a request on the given URL with the given
+        parameters by signing the URL with any OAuth credentials available for
+        that URL.
 
         If no such credentials are available, a `ValueError` is raised.
 
@@ -158,9 +159,67 @@ class OAuthHttp(httplib2.Http):
 
         # use it to make a signed uri instead
         req = auth.signed_request(uri, method)
-        uri = req.to_url()
+        return req.to_url()
 
+    def signed_request(self, uri, method=None, headers=None, body=None):
+        """Performs a request on the given URL with the given parameters, after
+        signing the URL with any OAuth credentials available for that URL.
+
+        If no such credentials are available, a `ValueError` is raised.
+
+        """
+        uri = self.url_for_signed_request(uri, method=method, headers=headers, body=body)
         return self.request(uri=uri, method=method, headers=headers, body=body)
+
+    def interactive_authorize(self, consumer, app):
+        if not isinstance(consumer, oauth.OAuthConsumer):
+            consumer = oauth.OAuthConsumer(*consumer)
+        if not isinstance(app, typepad.Application):
+            app = typepad.Application.get_by_id(app)
+
+        # Set up an oauth client for our signed requestses.
+        oauth_client = OAuthClient(consumer, None)
+        oauth_client.request_token_url = app.oauth_request_token_url
+        oauth_client.access_token_url = app.oauth_access_token_url
+        oauth_client.authorization_url = app.oauth_authorization_url
+
+        # Get a request token for the viewer to interactively authorize.
+        request_token = oauth_client.fetch_request_token(None)
+        log.debug("Got request token %r", request_token)
+
+        # Ask the viewer to authorize it.
+        approve_url = oauth_client.authorize_token()
+        log.debug("Asking viewer to authorize token with URL %r", approve_url)
+        print """
+To join your application %r, follow this link and click "Allow":
+
+<%s>
+""" % (app.name, approve_url)
+        verifier = raw_input('Enter the verifier code TypePad gave you: ')
+
+        # Exchange the authorized request token for an access token.
+        access_token = oauth_client.fetch_access_token(verifier=verifier)
+
+        # Re-authorize ourselves using that access token, so we can make authenticated requests with it.
+        domain = urlparse.urlsplit(self.endpoint)[1]
+        self.add_credentials(consumer, access_token, domain=domain)
+
+        # Make sure the key works.
+        typepad.client.batch_request()
+        user = typepad.User.get_self()
+        typepad.client.complete_batch()
+
+        # Yay! Give the access token to the viewer for their reference.
+        print """
+Yay! This new access token authorizes this typepad.client to act as %s (%s). Here's the token:
+
+    Key:    %s
+    Secret: %s
+
+Pass this access token to typepad.client.add_credentials() to re-authorize as %s later.
+""" % (user.display_name, user.url_id, access_token.key, access_token.secret, user.display_name)
+
+        return access_token
 
 
 class OAuthClient(oauth.OAuthClient):
@@ -183,13 +242,16 @@ class OAuthClient(oauth.OAuthClient):
         self.token = oauth.OAuthToken.from_string(token_str)
 
     def fetch_request_token(self, callback):
+        if not callback:
+            callback = 'oob'
+
         h = typepad.client
         h.clear_credentials()
         req = oauth.OAuthRequest.from_consumer_and_token(
             self.consumer,
-            http_method = 'GET',
-            http_url = self.request_token_url,
-            callback = callback,
+            http_method='GET',
+            http_url=self.request_token_url,
+            callback=callback,
         )
 
         sign_method = oauth.OAuthSignatureMethod_HMAC_SHA1()
@@ -199,8 +261,10 @@ class OAuthClient(oauth.OAuthClient):
                                                        self.token),))
         req.sign_request(sign_method, self.consumer, self.token)
 
+        log.debug('Asking for request token from %r', req.to_url())
         resp, content = h.request(req.to_url(), method=req.get_normalized_http_method())
         if resp.status != 200:
+            log.debug(content)
             raise httplib.HTTPException('WHAT %d %s?!' % (resp.status, resp.reason))
         self.token = oauth.OAuthToken.from_string(content)
         return self.token
@@ -226,9 +290,11 @@ class OAuthClient(oauth.OAuthClient):
         self.token = oauth.OAuthToken.from_string(content)
         return self.token
 
-    def authorize_token(self, params):
+    def authorize_token(self, params=None):
         """Returns the URL at which an interactive user can authorize this
         instance's request token."""
+        if params is None:
+            params = {}
         req = oauth.OAuthRequest.from_token_and_callback(
             self.token,
             http_url=self.authorization_url,
