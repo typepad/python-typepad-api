@@ -304,6 +304,19 @@ class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
             headers['cookie'] = '; '.join(cookies)
         return super(TypePadClient, self).request(uri, method, body, headers, redirections, connection_type)
 
+    def add_credentials(self, name, password, domain=""):
+        endparts = urlparse.urlsplit(self.endpoint)
+        if isinstance(name, oauth.OAuthConsumer) and domain == endparts[1]:
+            # We're adding TypePad credentials, so upgrade to HTTPS.
+            self.endpoint = urlparse.urlunsplit(('https',) + endparts[1:])
+        super(TypePadClient, self).add_credentials(name, password, domain)
+
+    def clear_credentials(self):
+        super(TypePadClient, self).clear_credentials()
+        # We cleared our TypePad credentials too, so downgrade to HTTP.
+        endparts = urlparse.urlsplit(self.endpoint)
+        self.endpoint = urlparse.urlunsplit(('http',) + endparts[1:])
+
     def signed_request(self, uri, method=None, body=None, headers=None):
         """Performs the given request, after signing the URL with the user
         agent's configured OAuth credentials.
