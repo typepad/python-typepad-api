@@ -28,7 +28,6 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 """
-Tests drawn from https://intranet.sixapart.com/wiki/index.php/TPX:API_Endpoints_Implemented_for_Potion
 
     # TODO
     # - featured members (i don't think we have filters for them yet)
