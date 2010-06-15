@@ -43,7 +43,7 @@ Input test data should have this form:
             'backend_url': '...',
             'oauth_consumer_key': '...',
             'oauth_consumer_secret': '...',
-            'cookies': { 'micro_pool_id': '1' }
+            'cookies': { 'cookie_name': 'value' }
         },
         'admin': {
             'xid': '...',
