@@ -164,6 +164,16 @@ requests = {
         { 'content': """{"content": "Yay this is my post", "objectType": "Post", "title": "Omg hai"}""",
           'etag': 'xyz' },
     ),
+    'post_comment_preview': (
+        { 'uri': 'http://127.0.0.1:8000/assets/1/make-comment-preview.json',
+          'headers': {
+            'accept': 'application/json',
+            'content-type': 'application/json',
+          },
+          'body': mox.Func(json_equals_func({"content": "hi hello my comment hi"})),
+          'method': 'POST' },
+        """{"comment": {"content": "hi hello my comment hi"}}""",
+    ),
 }
 
 
@@ -288,6 +298,13 @@ class TestHttp(unittest.TestCase):
         mox.Verify(h)
         self.assertEquals(e.title, 'Omg hai')
         self.assertNotEqual(e._etag, old_etag)
+
+    def test_action_endpoint(self):
+        asset = typepad.Asset.get('http://127.0.0.1:8000/assets/1.json')
+
+        h = self.http('post_comment_preview')
+        preview = asset.make_comment_preview(content='hi hello my comment hi')
+        mox.Verify(h)
 
 
 class TestUrlId(unittest.TestCase):
