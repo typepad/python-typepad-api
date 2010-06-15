@@ -107,27 +107,27 @@ is through the test method name, as tests are run in alphabetic order.
 """
 
 
+import base64
+import cgi
 import httplib
 import logging
 import os
 from pprint import pprint
 import re
+from StringIO import StringIO
 import time
 import unittest
 from urllib import urlencode, unquote
 from urlparse import urlsplit, urlunsplit, urlparse
-import cgi
-import base64
-from StringIO import StringIO
 
 import httplib2
 import nose
 import nose.plugins.attrib
 import nose.tools
 from oauth import oauth
+from remoteobjects.http import HttpObject
 import simplejson as json
 
-from remoteobjects.http import HttpObject
 import typepad
 
 
