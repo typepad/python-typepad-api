@@ -148,7 +148,7 @@ def setUpModule():
     testdata['assets'] = []
     testdata['assets_created'] = []
     testdata['comments_created'] = []
-    if 'coookies' in testdata['configuration']:
+    if 'cookies' in testdata['configuration']:
         typepad.client.cookies.update(testdata['configuration']['cookies'])
 
 
