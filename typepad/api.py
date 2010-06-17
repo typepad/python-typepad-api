@@ -194,7 +194,8 @@ class Application(TypePadObject):
         """
         secret = fields.Field()
         """An optional subscriber-provided opaque token that will be used to compute
-        an HMAC digest to be sent along with each item delivered to the callbackUrl."""
+        an HMAC digest to be sent along with each item delivered to the
+        `callback_url`."""
         verify_token = fields.Field(api_name='verifyToken')
         """A subscriber-provided opaque token that will be echoed back in the
         verification request to assist the subscriber in identifying which
@@ -315,6 +316,15 @@ class Asset(TypePadObject):
     """A short, plain-text excerpt of the entry content.
 
     This is currently available only for `Post` assets.
+
+    """
+    extended_content = fields.Link('AssetExtendedContent', api_name='extended-content')
+    """Get the extended content for the asset, if any.
+
+    Currently supported only for `Post` assets that are posted within a blog.
+
+
+    :attrtype:`AssetExtendedContent`
 
     """
     favorite_count = fields.Field(api_name='favoriteCount')
@@ -521,6 +531,16 @@ class Asset(TypePadObject):
 
     def __str__(self):
         return self.__unicode__()
+
+
+class AssetExtendedContent(TypePadObject):
+
+    rendered_extended_content = fields.Field(api_name='renderedExtendedContent')
+    """The HTML rendered version of this asset's extended content, if it has any.
+
+    Otherwise, this property is omitted.
+
+    """
 
 
 class AssetRef(TypePadObject):
@@ -1104,15 +1124,22 @@ class ExternalFeedSubscription(TypePadObject):
         callback_url = fields.Field(api_name='callbackUrl')
         """The new callback URL to receive notifications of new content in this
         subscription's feeds."""
+        secret = fields.Field()
+        """An optional subscriber-provided opaque token that will be used to compute
+        an HMAC digest to be sent along with each item delivered to the
+        `callback_url`."""
         verify_token = fields.Field(api_name='verifyToken')
-        """A subscriber-provided opaque token that will be echoed back in the
-        verification request to assist the subscriber in identifying which
-        subscription request is being verified."""
+        """A subscriber-provided opaque token that will be echoed back in a
+        verification request to the `callback_url`.
+
+        Required, if the `callback_url` is being modified with this endpoint.
+
+        """
     update_notification_settings = fields.ActionEndpoint(api_name='update-notification-settings', post_type=_UpdateNotificationSettingsPost)
 
     class _UpdateUserPost(TypePadObject):
         post_as_user_id = fields.Field(api_name='postAsUserId')
-        """the urlId of the user who will own the assets and events posted into the
+        """The `url_id` of the user who will own the assets and events posted into the
         group's stream by this subscription.
 
         The user must be an administrator of the group.
