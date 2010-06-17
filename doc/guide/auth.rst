@@ -10,8 +10,8 @@ Joining a TypePad application
 
 The TypePad API thinks of different API clients as *applications*. When you build a web site or client program that uses TypePad resources, your program will identify itself to TypePad as an application. Other TypePad members can then *allow* your application to see and act on their TypePad content.
 
-Registering a TypePad application
----------------------------------
+Register a TypePad application
+------------------------------
 
 All authentication tokens in TypePad belong to applications, so first you'll need to register an application. You can do this in TypePad by going to `the Account → Developer page`_ and clicking the "API: Apply Here" button. As we'll be working with blogs, pick "Application (desktop, mobile, web)" for your application type. (The "Community" option is for community applications like Motion that use groups instead of blogs.)
 
@@ -25,8 +25,8 @@ Once you've registered your TypePad application, click "View & Edit Details" in 
    ('b658d74d5ef8653b', 'fHHGZ1iI')
    >>>
 
-Finding your application
-------------------------
+Find your application
+---------------------
 
 Now that you have an application, you can ask the API about it. In your application's details, just above the "API Key" is a field labeled "Application XID." This is your application's URL identifier. Back in the Python shell, use that URL identifier to load the `Application` object::
 
@@ -35,8 +35,8 @@ Now that you have an application, you can ask the API about it. In your applicat
    'My Test App'
    >>>
 
-Joining your application
-------------------------
+Allow your application to use your account
+------------------------------------------
 
 So that you can experiment with authenticated requests, we'll use the `interactive_authorize()` method of `typepad.client` to join your application. OAuth can seem complicated, but you can use this special interactive flow right in the Python shell so you can get right back to making requests. (It uses the *out of band* authentication mode, so if you're making a mobile app or some other sort of app that isn't a web site, this will look a lot like when your users sign in to your app too.)
 
