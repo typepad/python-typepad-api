@@ -76,4 +76,74 @@ The `interactive_authorize()` method already configured the `typepad.client` wit
 Making some requests
 ====================
 
-Now that you've set up your `typepad.client` with your access token, you're all ready to make some requests! Have fun!
+Now that you've set up your `typepad.client` with your access token, you're all ready to make some requests! Let's look at a few you can do.
+
+List all the user's blogs
+-------------------------
+
+Because we're authenticating to the API as a particular user, we can **ask who that user is** with the `get_self()` method on the `User` class::
+
+   >>> user = typepad.User.get_self()
+   >>> user.display_name
+   'markpasc'
+   >>>
+
+As before, we can also ask for a user's blogs. Now that we're authenticated, though, we'll also **see blogs they have chosen not to publicize**.
+
+::
+
+   >>> blogs = user.blogs
+   >>> len(blogs)
+   11
+   >>> [blog.title for blog in blogs][:6]
+   ['markpasc', 'Advent Calendar of 2009 Advent Calendars 2009', 'Best Endtimes Ever', 'Choon', 'dsblog: a Nintendo DS weblog', 'testblog']
+   >>>
+
+Post to a blog
+--------------
+
+Authenticated applications can also **post to a blog**::
+
+   >>> blog = blogs[5]
+   >>> blog.title
+   'testblog'
+   >>> post = typepad.Post(title='Test post', content='This is my test post. Is it not nifty?')
+   >>> post.url_id
+   >>> post.url_id is None
+   True
+   >>> blog.post_assets.post(post)
+   >>> post.url_id
+   '6a00d83451ce6b69e2013484883f6c970b'
+   >>> post.permalink_url
+   'http://markpasc.typepad.com/testblog/2010/06/test-post.html'
+   >>> post.published
+   datetime.datetime(2010, 6, 17, 21, 45, 7)
+   >>>
+
+You can also **edit existing posts**, such as the one we just posted::
+
+   >>> post.content += '\n\nIt is so nifty!'
+   >>> print post.content
+   This is my awesome test post. Is it not nifty?
+
+   It is so nifty!
+   >>> post.text_format = 'html_convert_linebreaks'
+   >>> post.put()
+   >>> print post.rendered_content
+   <p>This is my awesome test post. Is it not nifty?</p>
+
+   <p>It is so nifty!</p>
+   >>>
+
+
+Next steps
+==========
+
+Once you can make authenticated requests, there's a whole lot more you can do with the API. Try these other documents for ideas and further help:
+
+* :doc:`../ref/api/index`
+* `The TypePad API reference documentation`_
+* `Help from developer.typepad.com`_
+
+.. _The TypePad API reference documentation: http://www.typepad.com/services/apidocs
+.. _Help from developer.typepad.com: http://developer.typepad.com/help/

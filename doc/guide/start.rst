@@ -132,7 +132,8 @@ Further work
 
 These simple requests should you give you a bit of a feel for the TypePad API. When you're ready to move on, try:
 
-* :doc:`ref/api/index`
+* :doc:`auth`
+* :doc:`../ref/api/index`
 * `The TypePad API reference documentation`_
 * `Help from developer.typepad.com`_
 
