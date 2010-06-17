@@ -22,7 +22,7 @@
     <link rel="top" title="typepad v1.1.2 documentation" href="../index.html" />
     <link rel="up" title="API reference" href="index.html" />
     <link rel="next" title="typepad.fields – extra remoteobject fields" href="fields.html" />
-    <link rel="prev" title="typepad.oauthclient – HTTP client for making OAuth requests" href="oauthclient.html" /> 
+    <link rel="prev" title="typepad.tpclient – HTTP client for making OAuth requests" href="tpclient.html" /> 
   </head>
   <body>
     <div class="related">
@@ -38,7 +38,7 @@
           <a href="fields.html" title="typepad.fields – extra remoteobject fields"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="oauthclient.html" title="typepad.oauthclient – HTTP client for making OAuth requests"
+          <a href="tpclient.html" title="typepad.tpclient – HTTP client for making OAuth requests"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">API reference</a> &raquo;</li> 
@@ -92,24 +92,6 @@ this <cite>ListObject</cite> instance may be only a segment.</dd></dl>
 <dt id="typepad.tpobject.ListObject.entries">
 <tt class="descname">entries</tt><a class="headerlink" href="#typepad.tpobject.ListObject.entries" title="Permalink to this definition">¶</a></dt>
 <dd>A list of items in this list resource.</dd></dl>
-
-<dl class="method">
-<dt id="typepad.tpobject.ListObject.filter">
-<tt class="descname">filter</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.tpobject.ListObject.filter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a new <cite>ListObject</cite> instance representing the same endpoint
-as this <cite>ListObject</cite> instance with the additional filtering applied.</p>
-<p>This method filters the <cite>ListObject</cite> as does <cite>RemoteObject.filter()</cite>,
-but specially treats filters defined in the TypePad API. These special
-filters are not added in as query parameters but as path components.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.tpobject.ListObject.start_index">
-<tt class="descname">start_index</tt><a class="headerlink" href="#typepad.tpobject.ListObject.start_index" title="Permalink to this definition">¶</a></dt>
-<dd><p>The index in the overall list resource of the first item in this
-<cite>ListObject</cite> instance.</p>
-<p>The first item in the list has index 1.</p>
-</dd></dl>
 
 <dl class="attribute">
 <dt id="typepad.tpobject.ListObject.total_results">
@@ -254,8 +236,8 @@ classes created by <cite>TypePadObjectMetaclass</cite> are classified by their
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h4>Previous topic</h4>
-            <p class="topless"><a href="oauthclient.html"
-                                  title="previous chapter"><cite>typepad.oauthclient</cite> – HTTP client for making OAuth requests</a></p>
+            <p class="topless"><a href="tpclient.html"
+                                  title="previous chapter"><cite>typepad.tpclient</cite> – HTTP client for making OAuth requests</a></p>
             <h4>Next topic</h4>
             <p class="topless"><a href="fields.html"
                                   title="next chapter"><cite>typepad.fields</cite> – extra remoteobject fields</a></p>
@@ -294,7 +276,7 @@ classes created by <cite>TypePadObjectMetaclass</cite> are classified by their
           <a href="fields.html" title="typepad.fields – extra remoteobject fields"
              >next</a> |</li>
         <li class="right" >
-          <a href="oauthclient.html" title="typepad.oauthclient – HTTP client for making OAuth requests"
+          <a href="tpclient.html" title="typepad.tpclient – HTTP client for making OAuth requests"
              >previous</a> |</li>
         <li><a href="../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
           <li><a href="index.html" >API reference</a> &raquo;</li> 

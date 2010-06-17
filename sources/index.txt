@@ -14,7 +14,7 @@ Package contents
 .. toctree::
    :maxdepth: 2
 
-   guide
+   guide/index
    ref/index
 
 Indices and tables

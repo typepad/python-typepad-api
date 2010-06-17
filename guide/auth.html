@@ -1,0 +1,260 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Making authenticated requests &mdash; typepad v1.1.2 documentation</title>
+    <link rel="stylesheet" href="../static/nature.css" type="text/css" />
+    <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.1.2',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../static/jquery.js"></script>
+    <script type="text/javascript" src="../static/doctools.js"></script>
+    <link rel="top" title="typepad v1.1.2 documentation" href="../index.html" />
+    <link rel="up" title="Getting started with typepad" href="index.html" />
+    <link rel="next" title="API reference" href="../ref/index.html" />
+    <link rel="prev" title="Some simple requests" href="start.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="../ref/index.html" title="API reference"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="start.html" title="Some simple requests"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Getting started with <cite>typepad</cite></a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="making-authenticated-requests">
+<h1>Making authenticated requests<a class="headerlink" href="#making-authenticated-requests" title="Permalink to this headline">¶</a></h1>
+<p>So far, we&#8217;ve only made <em>unauthenticated</em> requests. As you can only read public content with unauthenticated requests, to build a more complex application you&#8217;ll have to make <em>authenticated</em> requests. Let&#8217;s look at how to do that.</p>
+<div class="section" id="joining-a-typepad-application">
+<h2>Joining a TypePad application<a class="headerlink" href="#joining-a-typepad-application" title="Permalink to this headline">¶</a></h2>
+<p>The TypePad API thinks of different API clients as <em>applications</em>. When you build a web site or client program that uses TypePad resources, your program will identify itself to TypePad as an application. Other TypePad members can then <em>allow</em> your application to see and act on their TypePad content.</p>
+<div class="section" id="register-a-typepad-application">
+<h3>Register a TypePad application<a class="headerlink" href="#register-a-typepad-application" title="Permalink to this headline">¶</a></h3>
+<p>All authentication tokens in TypePad belong to applications, so first you&#8217;ll need to register an application. You can do this in TypePad by going to <a class="reference external" href="http://www.typepad.com/account/access/developer">the Account → Developer page</a> and clicking the &#8220;API: Apply Here&#8221; button. As we&#8217;ll be working with blogs, pick &#8220;Application (desktop, mobile, web)&#8221; for your application type. (The &#8220;Community&#8221; option is for community applications like Motion that use groups instead of blogs.)</p>
+<p>Once you&#8217;ve registered your TypePad application, click &#8220;View &amp; Edit Details&#8221; in the application list. Here, under &#8220;API Key,&#8221; you&#8217;ll find the <em>consumer token</em> and an <em>anonymous access token</em> for your application. These are OAuth tokens, so each of these tokens have a <em>key</em> part and a <em>secret</em> part. We&#8217;ll use these tokens with the OAuth library to make requests for your application. Let&#8217;s make an <cite>OAuthConsumer</cite> instance with your application&#8217;s consumer token (that is, the &#8220;Consumer Key&#8221; and &#8220;Consumer Secret&#8221; parts of the &#8220;API Key&#8221;):</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">oauth.oauth</span> <span class="kn">import</span> <span class="n">OAuthConsumer</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">consumer</span> <span class="o">=</span> <span class="n">OAuthConsumer</span><span class="p">(</span><span class="s">&#39;b658d74d5ef8653b&#39;</span><span class="p">,</span> <span class="s">&#39;fHHGZ1iI&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">consumer</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="n">consumer</span><span class="o">.</span><span class="n">secret</span>
+<span class="go">(&#39;b658d74d5ef8653b&#39;, &#39;fHHGZ1iI&#39;)</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="find-your-application">
+<h3>Find your application<a class="headerlink" href="#find-your-application" title="Permalink to this headline">¶</a></h3>
+<p>Now that you have an application, you can ask the API about it. In your application&#8217;s details, just above the &#8220;API Key&#8221; is a field labeled &#8220;Application XID.&#8221; This is your application&#8217;s URL identifier. Back in the Python shell, use that URL identifier to load the <cite>Application</cite> object:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">app</span> <span class="o">=</span> <span class="n">typepad</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">get_by_id</span><span class="p">(</span><span class="s">&#39;6p0120a96c7944970b&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">app</span><span class="o">.</span><span class="n">name</span>
+<span class="go">&#39;My Test App&#39;</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="allow-your-application-to-use-your-account">
+<h3>Allow your application to use your account<a class="headerlink" href="#allow-your-application-to-use-your-account" title="Permalink to this headline">¶</a></h3>
+<p>So that you can experiment with authenticated requests, we&#8217;ll use the <cite>interactive_authorize()</cite> method of <cite>typepad.client</cite> to join your application. OAuth can seem complicated, but you can use this special interactive flow right in the Python shell so you can get right back to making requests. (It uses the <em>out of band</em> authentication mode, so if you&#8217;re making a mobile app or some other sort of app that isn&#8217;t a web site, this will look a lot like when your users sign in to your app too.)</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">access_token</span> <span class="o">=</span> <span class="n">typepad</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">interactive_authorize</span><span class="p">(</span><span class="n">consumer</span><span class="p">,</span> <span class="n">app</span><span class="p">)</span>
+
+<span class="go">To join your application &#39;my test app&#39;, follow this link and click &quot;Allow&quot;:</span>
+
+<span class="go">&lt;https://www.typepad.com/secure/services/api/6p0120a96c7944970b/oauth-approve?</span>
+<span class="go">oauth_token=df67...1c75&gt;</span>
+
+<span class="go">Enter the verifier code TypePad gave you:</span>
+</pre></div>
+</div>
+<p>Open the link in your browser. If you&#8217;re already signed in to TypePad, you&#8217;ll see the &#8220;Allow&#8221; button immediately; otherwise you&#8217;ll have to sign in first. Click &#8220;Allow,&#8221; and TypePad will give you back the verifier code to let you approve the application.</p>
+<div class="highlight-python"><pre>Enter the verifier code TypePad gave you: 74790350
+
+Yay! This new access token authorizes this typepad.client to act as markpasc
+(6p00d83451ce6b69e2). Here's the token:
+
+    Key:    BOGYsZiz2IB0kDzX
+    Secret: RgNYgELkbPaMsKkw
+
+Pass this access token to typepad.client.add_credentials() to re-authorize as
+markpasc later.
+
+&gt;&gt;&gt; access_token.key, access_token.secret
+('BOGYsZiz2IB0kDzX', 'RgNYgELkbPaMsKkw')
+&gt;&gt;&gt;</pre>
+</div>
+<p>The <cite>interactive_authorize()</cite> method already configured the <cite>typepad.client</cite> with this key, though, so you can immediately make authorized requests as that TypePad user.</p>
+</div>
+</div>
+<div class="section" id="making-some-requests">
+<h2>Making some requests<a class="headerlink" href="#making-some-requests" title="Permalink to this headline">¶</a></h2>
+<p>Now that you&#8217;ve set up your <cite>typepad.client</cite> with your access token, you&#8217;re all ready to make some requests! Let&#8217;s look at a few you can do.</p>
+<div class="section" id="list-all-the-user-s-blogs">
+<h3>List all the user&#8217;s blogs<a class="headerlink" href="#list-all-the-user-s-blogs" title="Permalink to this headline">¶</a></h3>
+<p>Because we&#8217;re authenticating to the API as a particular user, we can <strong>ask who that user is</strong> with the <cite>get_self()</cite> method on the <cite>User</cite> class:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">user</span> <span class="o">=</span> <span class="n">typepad</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">get_self</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">user</span><span class="o">.</span><span class="n">display_name</span>
+<span class="go">&#39;markpasc&#39;</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>As before, we can also ask for a user&#8217;s blogs. Now that we&#8217;re authenticated, though, we&#8217;ll also <strong>see blogs they have chosen not to publicize</strong>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">blogs</span> <span class="o">=</span> <span class="n">user</span><span class="o">.</span><span class="n">blogs</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">len</span><span class="p">(</span><span class="n">blogs</span><span class="p">)</span>
+<span class="go">11</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">blog</span><span class="o">.</span><span class="n">title</span> <span class="k">for</span> <span class="n">blog</span> <span class="ow">in</span> <span class="n">blogs</span><span class="p">][:</span><span class="mi">6</span><span class="p">]</span>
+<span class="go">[&#39;markpasc&#39;, &#39;Advent Calendar of 2009 Advent Calendars 2009&#39;, &#39;Best Endtimes Ever&#39;, &#39;Choon&#39;, &#39;dsblog: a Nintendo DS weblog&#39;, &#39;testblog&#39;]</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="post-to-a-blog">
+<h3>Post to a blog<a class="headerlink" href="#post-to-a-blog" title="Permalink to this headline">¶</a></h3>
+<p>Authenticated applications can also <strong>post to a blog</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">blog</span> <span class="o">=</span> <span class="n">blogs</span><span class="p">[</span><span class="mi">5</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blog</span><span class="o">.</span><span class="n">title</span>
+<span class="go">&#39;testblog&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span> <span class="o">=</span> <span class="n">typepad</span><span class="o">.</span><span class="n">Post</span><span class="p">(</span><span class="n">title</span><span class="o">=</span><span class="s">&#39;Test post&#39;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s">&#39;This is my test post. Is it not nifty?&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span><span class="o">.</span><span class="n">url_id</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span><span class="o">.</span><span class="n">url_id</span> <span class="ow">is</span> <span class="bp">None</span>
+<span class="go">True</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">blog</span><span class="o">.</span><span class="n">post_assets</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="n">post</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span><span class="o">.</span><span class="n">url_id</span>
+<span class="go">&#39;6a00d83451ce6b69e2013484883f6c970b&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span><span class="o">.</span><span class="n">permalink_url</span>
+<span class="go">&#39;http://markpasc.typepad.com/testblog/2010/06/test-post.html&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span><span class="o">.</span><span class="n">published</span>
+<span class="go">datetime.datetime(2010, 6, 17, 21, 45, 7)</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+<p>You can also <strong>edit existing posts</strong>, such as the one we just posted:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">post</span><span class="o">.</span><span class="n">content</span> <span class="o">+=</span> <span class="s">&#39;</span><span class="se">\n\n</span><span class="s">It is so nifty!&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">post</span><span class="o">.</span><span class="n">content</span>
+<span class="go">This is my awesome test post. Is it not nifty?</span>
+
+<span class="go">It is so nifty!</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span><span class="o">.</span><span class="n">text_format</span> <span class="o">=</span> <span class="s">&#39;html_convert_linebreaks&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">post</span><span class="o">.</span><span class="n">put</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">post</span><span class="o">.</span><span class="n">rendered_content</span>
+<span class="go">&lt;p&gt;This is my awesome test post. Is it not nifty?&lt;/p&gt;</span>
+
+<span class="go">&lt;p&gt;It is so nifty!&lt;/p&gt;</span>
+<span class="go">&gt;&gt;&gt;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="next-steps">
+<h2>Next steps<a class="headerlink" href="#next-steps" title="Permalink to this headline">¶</a></h2>
+<p>Once you can make authenticated requests, there&#8217;s a whole lot more you can do with the API. Try these other documents for ideas and further help:</p>
+<ul class="simple">
+<li><a class="reference external" href="../ref/api/index.html"><em>typepad.api – content objects</em></a></li>
+<li><a class="reference external" href="http://www.typepad.com/services/apidocs">The TypePad API reference documentation</a></li>
+<li><a class="reference external" href="http://developer.typepad.com/help/">Help from developer.typepad.com</a></li>
+</ul>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="../index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="#">Making authenticated requests</a><ul>
+<li><a class="reference external" href="#joining-a-typepad-application">Joining a TypePad application</a><ul>
+<li><a class="reference external" href="#register-a-typepad-application">Register a TypePad application</a></li>
+<li><a class="reference external" href="#find-your-application">Find your application</a></li>
+<li><a class="reference external" href="#allow-your-application-to-use-your-account">Allow your application to use your account</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#making-some-requests">Making some requests</a><ul>
+<li><a class="reference external" href="#list-all-the-user-s-blogs">List all the user&#8217;s blogs</a></li>
+<li><a class="reference external" href="#post-to-a-blog">Post to a blog</a></li>
+</ul>
+</li>
+<li><a class="reference external" href="#next-steps">Next steps</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="start.html"
+                                  title="previous chapter">Some simple requests</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="../ref/index.html"
+                                  title="next chapter">API reference</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="../sources/guide/auth.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="../search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="../ref/index.html" title="API reference"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="start.html" title="Some simple requests"
+             >previous</a> |</li>
+        <li><a href="../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Getting started with <cite>typepad</cite></a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009-2010, Six Apart Ltd..
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.5.
+    </div>
+  </body>
+</html>

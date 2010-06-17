@@ -5,7 +5,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Event – An action that a user or group did &mdash; typepad v1.1.2 documentation</title>
+    <title>ExternalFeedSubscription &mdash; typepad v1.1.2 documentation</title>
     <link rel="stylesheet" href="../../static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../../static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -21,8 +21,8 @@
     <script type="text/javascript" src="../../static/doctools.js"></script>
     <link rel="top" title="typepad v1.1.2 documentation" href="../../index.html" />
     <link rel="up" title="typepad.api – content objects" href="index.html" />
-    <link rel="next" title="ExternalFeedSubscription" href="externalfeedsubscription.html" />
-    <link rel="prev" title="Entity" href="entity.html" /> 
+    <link rel="next" title="Favorite – A favorite of some other asset" href="favorite.html" />
+    <link rel="prev" title="Event – An action that a user or group did" href="event.html" /> 
   </head>
   <body>
     <div class="related">
@@ -35,10 +35,10 @@
           <a href="../../modindex.html" title="Global Module Index"
              accesskey="M">modules</a> |</li>
         <li class="right" >
-          <a href="externalfeedsubscription.html" title="ExternalFeedSubscription"
+          <a href="favorite.html" title="Favorite – A favorite of some other asset"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="entity.html" title="Entity"
+          <a href="event.html" title="Event – An action that a user or group did"
              accesskey="P">previous</a> |</li>
         <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
           <li><a href="../index.html" >API reference</a> &raquo;</li>
@@ -51,57 +51,51 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="event-an-action-that-a-user-or-group-did">
-<h1><cite>Event</cite> – An action that a user or group did<a class="headerlink" href="#event-an-action-that-a-user-or-group-did" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="externalfeedsubscription">
+<h1><cite>ExternalFeedSubscription</cite><a class="headerlink" href="#externalfeedsubscription" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
-<dt id="typepad.api.Event">
-<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">Event</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.Event" title="Permalink to this definition">¶</a></dt>
-<dd><p>An action that a user or group did.</p>
-<p>An event has an <a title="typepad.api.Event.actor" class="reference internal" href="#typepad.api.Event.actor"><tt class="xref docutils literal"><span class="pre">actor</span></tt></a>, which is the user or group that did the action; a
-set of <a title="typepad.api.Event.verbs" class="reference internal" href="#typepad.api.Event.verbs"><tt class="xref docutils literal"><span class="pre">verbs</span></tt></a> that describe what kind of action occured; and an <a title="typepad.api.Event.object" class="reference internal" href="#typepad.api.Event.object"><tt class="xref docutils literal"><span class="pre">object</span></tt></a>
-that is the object that the action was done to. In the current TypePad API
-implementation, only assets, users and groups can be the object of an
-event.</p>
-<dl class="attribute">
-<dt id="typepad.api.Event.actor">
-<tt class="descname">actor</tt> &rarr; <cite>Entity</cite><a class="headerlink" href="#typepad.api.Event.actor" title="Permalink to this definition">¶</a></dt>
-<dd>The user who performed the action described by this event.</dd></dl>
+<dt id="typepad.api.ExternalFeedSubscription">
+<em class="property">class </em><tt class="descclassname">typepad.api.</tt><tt class="descname">ExternalFeedSubscription</tt><big>(</big><em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.ExternalFeedSubscription" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="attribute">
+<dt id="typepad.api.ExternalFeedSubscription.callback_status">
+<tt class="descname">callback_status</tt><a class="headerlink" href="#typepad.api.ExternalFeedSubscription.callback_status" title="Permalink to this definition">¶</a></dt>
+<dd>The HTTP status code that was returned by the last call to the
+subscription&#8217;s callback URL.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Event.id">
-<tt class="descname">id</tt><a class="headerlink" href="#typepad.api.Event.id" title="Permalink to this definition">¶</a></dt>
-<dd>A URI that serves as a globally unique identifier for the user.</dd></dl>
+<dt id="typepad.api.ExternalFeedSubscription.callback_url">
+<tt class="descname">callback_url</tt><a class="headerlink" href="#typepad.api.ExternalFeedSubscription.callback_url" title="Permalink to this definition">¶</a></dt>
+<dd>The URL to which to send notifications of new items in this subscription&#8217;s
+feeds.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Event.object">
-<tt class="descname">object</tt> &rarr; <cite>TypePadObject</cite><a class="headerlink" href="#typepad.api.Event.object" title="Permalink to this definition">¶</a></dt>
-<dd>The object to which the action described by this event was performed.</dd></dl>
+<dt id="typepad.api.ExternalFeedSubscription.feeds">
+<tt class="descname">feeds</tt> &rarr; <cite>list</cite><a class="headerlink" href="#typepad.api.ExternalFeedSubscription.feeds" title="Permalink to this definition">¶</a></dt>
+<dd>Get a list of strings containing the identifiers of the feeds to which this
+subscription is subscribed.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Event.published">
-<tt class="descname">published</tt> &rarr; <cite>datetime</cite><a class="headerlink" href="#typepad.api.Event.published" title="Permalink to this definition">¶</a></dt>
-<dd>The time at which the event was performed, as a W3CDTF timestamp.</dd></dl>
-
-<dl class="attribute">
-<dt id="typepad.api.Event.url_id">
-<tt class="descname">url_id</tt><a class="headerlink" href="#typepad.api.Event.url_id" title="Permalink to this definition">¶</a></dt>
-<dd><p>A string containing the canonical identifier that can be used to identify
-this object in URLs.</p>
-<p>This can be used to recognise where the same user is returned in response to
-different requests, and as a mapping key for an application&#8217;s local data
-store.</p>
+<dt id="typepad.api.ExternalFeedSubscription.filter_rules">
+<tt class="descname">filter_rules</tt> &rarr; <cite>list</cite><a class="headerlink" href="#typepad.api.ExternalFeedSubscription.filter_rules" title="Permalink to this definition">¶</a></dt>
+<dd><p>A list of rules for filtering notifications to this subscription.</p>
+<p>Each rule is a full-text search query string, like those used with the
+<tt class="docutils literal"><span class="pre">/assets</span></tt> endpoint. An item will be delivered to the <a title="typepad.api.ExternalFeedSubscription.callback_url" class="reference internal" href="#typepad.api.ExternalFeedSubscription.callback_url"><tt class="xref docutils literal"><span class="pre">callback_url</span></tt></a> if it
+matches any one of these query strings.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Event.verb">
-<tt class="descname">verb</tt><a class="headerlink" href="#typepad.api.Event.verb" title="Permalink to this definition">¶</a></dt>
-<dd>A keyword identifying the type of event this is.</dd></dl>
+<dt id="typepad.api.ExternalFeedSubscription.post_as_user_id">
+<tt class="descname">post_as_user_id</tt> &rarr; <cite>list</cite><a class="headerlink" href="#typepad.api.ExternalFeedSubscription.post_as_user_id" title="Permalink to this definition">¶</a></dt>
+<dd>For a Group-owned subscription, the urlId of the User who will own the
+items posted into the group by the subscription.</dd></dl>
 
 <dl class="attribute">
-<dt id="typepad.api.Event.verbs">
-<tt class="descname">verbs</tt> &rarr; <cite>list</cite><a class="headerlink" href="#typepad.api.Event.verbs" title="Permalink to this definition">¶</a></dt>
-<dd><p><strong>Deprecated.</strong> An array of verb identifier URIs.</p>
-<p>This set will contain one verb identifier URI.</p>
+<dt id="typepad.api.ExternalFeedSubscription.url_id">
+<tt class="descname">url_id</tt><a class="headerlink" href="#typepad.api.ExternalFeedSubscription.url_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>The canonical identifier that can be used to identify this object in URLs.</p>
+<p>This can be used to recognise where the same user is returned in response to
+different requests, and as a mapping key for an application&#8217;s local data
+store.</p>
 </dd></dl>
 
 </dd></dl>
@@ -115,14 +109,14 @@ store.</p>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h4>Previous topic</h4>
-            <p class="topless"><a href="entity.html"
-                                  title="previous chapter"><cite>Entity</cite></a></p>
+            <p class="topless"><a href="event.html"
+                                  title="previous chapter"><cite>Event</cite> – An action that a user or group did</a></p>
             <h4>Next topic</h4>
-            <p class="topless"><a href="externalfeedsubscription.html"
-                                  title="next chapter"><cite>ExternalFeedSubscription</cite></a></p>
+            <p class="topless"><a href="favorite.html"
+                                  title="next chapter"><cite>Favorite</cite> – A favorite of some other asset</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="../../sources/ref/api/event.txt"
+              <li><a href="../../sources/ref/api/externalfeedsubscription.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -152,10 +146,10 @@ store.</p>
           <a href="../../modindex.html" title="Global Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="externalfeedsubscription.html" title="ExternalFeedSubscription"
+          <a href="favorite.html" title="Favorite – A favorite of some other asset"
              >next</a> |</li>
         <li class="right" >
-          <a href="entity.html" title="Entity"
+          <a href="event.html" title="Event – An action that a user or group did"
              >previous</a> |</li>
         <li><a href="../../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
           <li><a href="../index.html" >API reference</a> &raquo;</li>
