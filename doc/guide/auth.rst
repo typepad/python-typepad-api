@@ -46,7 +46,8 @@ So that you can experiment with authenticated requests, we'll use the `interacti
 
    To join your application 'my test app', follow this link and click "Allow":
 
-   <https://www.typepad.com/secure/services/api/6p0120a96c7944970b/oauth-approve?oauth_token=df67...1c75>
+   <https://www.typepad.com/secure/services/api/6p0120a96c7944970b/oauth-approve?
+   oauth_token=df67...1c75>
 
    Enter the verifier code TypePad gave you: 
 
@@ -56,12 +57,14 @@ Open the link in your browser. If you're already signed in to TypePad, you'll se
 
    Enter the verifier code TypePad gave you: 74790350
 
-   Yay! This new access token authorizes this typepad.client to act as markpasc (6p00d83451ce6b69e2). Here's the token:
+   Yay! This new access token authorizes this typepad.client to act as markpasc
+   (6p00d83451ce6b69e2). Here's the token:
 
        Key:    BOGYsZiz2IB0kDzX
        Secret: RgNYgELkbPaMsKkw
 
-   Pass this access token to typepad.client.add_credentials() to re-authorize as markpasc later.
+   Pass this access token to typepad.client.add_credentials() to re-authorize as
+   markpasc later.
 
    >>> access_token.key, access_token.secret
    ('BOGYsZiz2IB0kDzX', 'RgNYgELkbPaMsKkw')
