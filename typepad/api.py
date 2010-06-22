@@ -514,7 +514,7 @@ class Asset(TypePadObject):
                         href='/assets/%s.json' % self.url_id,
                         type='application/json',
                         object_types=self.object_types,
-                        object_type=self.object_type)
+                        object_type=self.object_type or self._class_object_type)
 
     def __unicode__(self):
         return self.title or self.content
