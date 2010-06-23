@@ -348,6 +348,8 @@ class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
 
     def __init__(self, *args, **kwargs):
         self.cookies = dict()
+        self._consumer = None
+        self._token = None
         kwargs['endpoint'] = self.endpoint
         super(TypePadClient, self).__init__(*args, **kwargs)
         self.follow_redirects = False
@@ -372,6 +374,8 @@ class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
 
     def add_credentials(self, name, password, domain=""):
         endparts = urlparse.urlsplit(self.endpoint)
+        if domain == '':
+            domain = endparts[1]
         if isinstance(name, oauth.OAuthConsumer) and domain == endparts[1]:
             # We're adding TypePad credentials, so upgrade to HTTPS.
             self.endpoint = urlparse.urlunsplit(('https',) + endparts[1:])
@@ -396,6 +400,44 @@ class TypePadClient(batchhttp.client.BatchClient, OAuthHttp):
             uri = urlparse.urljoin(self.endpoint, uri)
         return super(TypePadClient, self).signed_request(uri=uri,
             method=method, body=body, headers=headers)
+
+    def _get_consumer(self):
+        return self._consumer
+
+    def _set_consumer(self, consumer):
+        if isinstance(consumer, tuple):
+            consumer = oauth.OAuthConsumer(consumer[0], consumer[1])
+        assert(consumer is None or isinstance(consumer, oauth.OAuthConsumer))
+        if self._consumer != consumer:
+            self._consumer = consumer
+            if consumer is None:
+                self.clear_credentials()
+            else:
+                self._reauthorize()
+
+    consumer = property(_get_consumer, _set_consumer)
+
+    def _get_token(self):
+        return self._token
+
+    def _set_token(self, token):
+        if isinstance(token, tuple):
+            token = oauth.OAuthToken(token[0], token[1])
+        assert(token is None or isinstance(token, oauth.OAuthToken))
+        if self._token != token:
+            self._token = token
+            # if token is None, forcibly clear credentials
+            if token is None:
+                self.clear_credentials()
+            else:
+                self._reauthorize()
+
+    token = property(_get_token, _set_token)
+
+    def _reauthorize(self):
+        if self._consumer is not None and self._token is not None:
+            self.clear_credentials()
+            self.add_credentials(self._consumer, self._token)
 
 
 class ThreadAwareTypePadClientProxy(object):

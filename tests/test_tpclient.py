@@ -49,29 +49,65 @@ class TestTypePadClient(unittest.TestCase):
         c.clear_credentials()
         self.assertScheme(c.endpoint, 'http')
 
+        c.clear_credentials()
         c.add_credentials('a', 'b')
         self.assertScheme(c.endpoint, 'http')
 
+        c.clear_credentials()
         c.add_credentials('a', 'b', domain='api.typepad.com')
         self.assertScheme(c.endpoint, 'http')
 
+        c.clear_credentials()
         c.add_credentials(OAuthConsumer('a', 'b'), OAuthToken('c', 'd'))
-        self.assertScheme(c.endpoint, 'http')
+        self.assertScheme(c.endpoint, 'https')
 
+        c.clear_credentials()
         c.add_credentials(OAuthConsumer('a', 'b'), OAuthToken('c', 'd'), domain='api.example.com')
         self.assertScheme(c.endpoint, 'http')
 
+        c.clear_credentials()
         c.add_credentials(OAuthConsumer('a', 'b'), OAuthToken('c', 'd'), domain='typepad.com')
         self.assertScheme(c.endpoint, 'http')
 
         # This time for sure!!
+        c.clear_credentials()
         c.add_credentials(OAuthConsumer('a', 'b'), OAuthToken('c', 'd'), domain='api.typepad.com')
         self.assertScheme(c.endpoint, 'https')
 
         # Try it again.
+        c.clear_credentials()
         c.add_credentials(OAuthConsumer('a', 'b'), OAuthToken('c', 'd'), domain='api.typepad.com')
         self.assertScheme(c.endpoint, 'https')
 
         # Check that clearing works.
+        c.clear_credentials()
+        self.assertScheme(c.endpoint, 'http')
+
+    def test_consumer_property(self):
+        c = typepad.tpclient.TypePadClient()
+        c.endpoint = 'http://api.typepad.com'
+
+        # make sure initial credentials are clear
+        self.assert_(len(c.authorizations) == 0)
+        self.assert_(len(c.credentials.credentials) == 0)
+
+        # we can specify consumer and token as OAuth objects
+        c.consumer = OAuthConsumer('x', 'y')
+        c.token = OAuthToken('z', 'q')
+        self.assert_(len(c.credentials.credentials) == 1)
+        self.assertScheme(c.endpoint, 'https')
+
+        # we can specify consumer and token as tuples of key/secrets
+        c.consumer = ('a', 'b')
+        c.token = ('a', 'b')
+        self.assert_(len(c.credentials.credentials) == 1)
+        self.assertScheme(c.endpoint, 'https')
+
+        # assigning "None" to either token or consumer will
+        # effectively clear credentials also
+        c.token = None
+        self.assert_(len(c.credentials.credentials) == 0)
+        self.assertScheme(c.endpoint, 'http')
+
         c.clear_credentials()
         self.assertScheme(c.endpoint, 'http')
