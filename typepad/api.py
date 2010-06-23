@@ -1168,7 +1168,7 @@ class Favorite(TypePadObject):
     :attrtype:`AssetRef`
 
     """
-    published = fields.Field()
+    published = fields.Datetime()
     """The time that the favorite was created, as a W3CDTF timestamp."""
     url_id = fields.Field(api_name='urlId')
     """A string containing the canonical identifier that can be used to identify

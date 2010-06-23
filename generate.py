@@ -107,6 +107,9 @@ PROPERTY_FIXUPS = {
         'published': {'type': 'datetime'},
         'verb': {'type': 'string'},
     },
+    'Favorite': {
+        'published': {'type': 'datetime'},
+    },
     'Relationship': {
         'created': {
             'name': 'created',
