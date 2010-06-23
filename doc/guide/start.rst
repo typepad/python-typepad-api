@@ -32,8 +32,8 @@ When making requests for users, you'll need to know an *identifier* for the user
 
 .. _editing your profile: http://www.typepad.com/profile/edit
 
-Retrieving a user's profile
----------------------------
+Retrieve a user's profile
+-------------------------
 
 Once you have an URL identifier or preferred username, you can **get a user object** this way::
 
@@ -42,8 +42,8 @@ Once you have an URL identifier or preferred username, you can **get a user obje
    'markpasc'
    >>>
 
-Retrieving a user's profile events
-----------------------------------
+Retrieve a user's profile events
+--------------------------------
 
 In addition to the `User` object data, you can request several property endpoints for that user directly from the object. Here, let's **get that user's events**, the things they did on TypePad recently that shows on their profile::
 
@@ -85,8 +85,8 @@ Working with blogs
 
 TypePad is mostly about blogs, so let's see what we can do with them.
 
-Listing a user's blogs
-----------------------
+List a user's blogs
+-------------------
 
 You can also **list what blogs a user has**. (Without authentication, you'll only see the account's public, shared blogs, but that's okay for now.)
 
@@ -100,8 +100,8 @@ You can also **list what blogs a user has**. (Without authentication, you'll onl
    ['markpasc', 'Advent Calendar of 2009 Advent Calendars 2009', 'Best Endtimes Ever']
    >>>
 
-Seeing the posts in a blog
---------------------------
+See the posts in a blog
+-----------------------
 
 Let's pick one blog to look at::
 
@@ -132,7 +132,8 @@ Further work
 
 These simple requests should you give you a bit of a feel for the TypePad API. When you're ready to move on, try:
 
-* :doc:`ref/api/index`
+* :doc:`auth`
+* :doc:`../ref/api/index`
 * `The TypePad API reference documentation`_
 * `Help from developer.typepad.com`_
 

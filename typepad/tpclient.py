@@ -172,6 +172,14 @@ class OAuthHttp(httplib2.Http):
         return self.request(uri=uri, method=method, headers=headers, body=body)
 
     def interactive_authorize(self, consumer, app):
+        from textwrap import fill
+
+        # Suppress batchhttp.client's no-log-handler warning.
+        class NullHandler(logging.Handler):
+            def emit(self, record):
+                pass
+        logging.getLogger().addHandler(NullHandler())
+
         if not isinstance(consumer, oauth.OAuthConsumer):
             consumer = oauth.OAuthConsumer(*consumer)
         if not isinstance(app, typepad.Application):
@@ -190,12 +198,17 @@ class OAuthHttp(httplib2.Http):
         # Ask the viewer to authorize it.
         approve_url = oauth_client.authorize_token()
         log.debug("Asking viewer to authorize token with URL %r", approve_url)
-        print """
-To join your application %r, follow this link and click "Allow":
+        print fill("""To join your application %r, follow this link and click "Allow":"""
+            % app.name, width=78)
+        print
+        print "<%s>" % approve_url
+        print
 
-<%s>
-""" % (app.name, approve_url)
-        verifier = raw_input('Enter the verifier code TypePad gave you: ')
+        try:
+            verifier = raw_input('Enter the verifier code TypePad gave you: ')
+        except KeyboardInterrupt:
+            print
+            return
 
         # Exchange the authorized request token for an access token.
         access_token = oauth_client.fetch_access_token(verifier=verifier)
@@ -210,14 +223,16 @@ To join your application %r, follow this link and click "Allow":
         typepad.client.complete_batch()
 
         # Yay! Give the access token to the viewer for their reference.
+        print
+        print fill("""Yay! This new access token authorizes this typepad.client to act as %s (%s). Here's the token:"""
+            % (user.display_name, user.url_id), width=78)
         print """
-Yay! This new access token authorizes this typepad.client to act as %s (%s). Here's the token:
-
     Key:    %s
     Secret: %s
-
-Pass this access token to typepad.client.add_credentials() to re-authorize as %s later.
-""" % (user.display_name, user.url_id, access_token.key, access_token.secret, user.display_name)
+""" % (access_token.key, access_token.secret)
+        print fill("""Pass this access token to typepad.client.add_credentials() to re-authorize as %s later."""
+            % user.display_name, width=78)
+        print
 
         return access_token
 
