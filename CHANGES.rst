@@ -5,7 +5,10 @@ typepad Changelog
 ------------
 
 * Now thread-safe.
-* Changed default typepad.client.endpoint to https://api.typepad.com
+* The client endpoint now adapts to a http or https scheme automatically depending on whether it has been assigned credentials for requests.
+* The typepad.api module is now generated (using 'generate.py') from the TypePad reflection APIs (this makes the library easier to maintain when API changes are released for TypePad). This made for some significant changes to the library (some classes were renamed in the process and many additional methods and endpoints are now supported).
+* Support for the TypePad blog APIs.
+* Support for the TypePad feed subscription APIs.
 
 
 1.1.2 (2010-04-20)
