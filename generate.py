@@ -8,6 +8,7 @@ from os.path import join
 import re
 import sys
 import textwrap
+import urllib2
 
 import argparse
 
@@ -897,11 +898,18 @@ class ObjectType(lazy):
             body, '' if squash else '\n')
 
 
-def generate_types(types_fn, nouns_fn):
-    with open(types_fn) as f:
-        types = json.load(f)
-    with open(nouns_fn) as f:
-        nouns = json.load(f)
+def generate_types(types_fn=None, nouns_fn=None):
+    if types_fn is None:
+        types = json.load(urllib2.urlopen('http://api.typepad.com/object-types.json'))
+    else:
+        with open(types_fn) as f:
+            types = json.load(f)
+
+    if nouns_fn is None:
+        nouns = json.load(urllib2.urlopen('http://api.typepad.com/nouns.json'))
+    else:
+        with open(nouns_fn) as f:
+            nouns = json.load(f)
 
     objtypes = set()
     objtypes_by_name = dict()
@@ -1042,8 +1050,8 @@ def main(argv=None):
 
     parser = argparse.ArgumentParser(
         description='generate a TypePad client library from json endpoints')
-    parser.add_argument('--types', metavar='file', help='parse file for object type info')
-    parser.add_argument('--nouns', metavar='file', help='parse file for noun endpoint info')
+    parser.add_argument('--types', metavar='file', help='parse file for object type info', default=None)
+    parser.add_argument('--nouns', metavar='file', help='parse file for noun endpoint info', default=None)
     parser.add_argument('-v', action=Add, nargs=0, dest='verbose', default=2, help='be more verbose')
     parser.add_argument('-q', action=Subt, nargs=0, dest='verbose', help='be less verbose')
     parser.add_argument('outfile', help='file to write library to')
