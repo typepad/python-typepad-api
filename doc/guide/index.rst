@@ -1,0 +1,6 @@
+Using `typepad`
+===============
+
+.. toctree::
+
+   feedsub

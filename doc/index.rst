@@ -15,6 +15,7 @@ Package contents
    :maxdepth: 2
 
    tut/index
+   guide/index
    ref/index
 
 Indices and tables
