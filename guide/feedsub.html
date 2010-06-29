@@ -52,8 +52,8 @@
             
   <div class="section" id="the-feed-subscription-api">
 <h1>The feed subscription API<a class="headerlink" href="#the-feed-subscription-api" title="Permalink to this headline">¶</a></h1>
-<p>TypePad provides a feed subscription API that lets you subscribe to TypePad and web feed content. Once your application is subscribed to a feed, TypePad will push new items that appear in that feed to an endpoint on your application.</p>
-<p>The feed subscription API is only available using authenticated requests. Use your TypePad application&#8217;s and anonymous access token to subscribe to feeds and modify subscriptions. For more on authentication, see <a class="reference external" href="../tut/auth.html"><em>Making authenticated requests</em></a>.</p>
+<p>TypePad provides a feed subscription API that lets you subscribe to TypePad and web feed content. Once your application is subscribed to a feed, TypePad will discover new items in the feed automatically and push the content to you.</p>
+<p>The feed subscription API is only available using authenticated requests. Use your TypePad application&#8217;s consumer token and anonymous access token to subscribe to feeds and modify subscriptions. For more on authentication, see <a class="reference external" href="../tut/auth.html"><em>Making authenticated requests</em></a>.</p>
 <div class="section" id="feeds-and-filters">
 <h2>Feeds and filters<a class="headerlink" href="#feeds-and-filters" title="Permalink to this headline">¶</a></h2>
 <p>The feed subscription API allows you to create <em>subscriptions</em> to feeds. These subscriptions are represented by <tt class="xref docutils literal"><span class="pre">ExternalFeedSubscription</span></tt> instances. Subscriptions can deliver feed content either to a <cite>Group</cite> or to your web application as a web hook.</p>
@@ -124,7 +124,6 @@
 <tt class="descclassname">typepad.Application.</tt><tt class="descname">external_feed_subscriptions</tt><a class="headerlink" href="#typepad.Application.external_feed_subscriptions" title="Permalink to this definition">¶</a></dt>
 <dd>A list of <cite>ExternalFeedSubscription</cite> instances representing the <cite>Application</cite> instance&#8217;s subscriptions.</dd></dl>
 
-<p>These subscriptions can be modified in the same ways as <cite>Group</cite> subscriptions, described above.</p>
 </div>
 <div class="section" id="modifying-subscriptions">
 <h2>Modifying subscriptions<a class="headerlink" href="#modifying-subscriptions" title="Permalink to this headline">¶</a></h2>
@@ -177,6 +176,14 @@
 <dd><p>Changes the callback URL or secure secret used to deliver this subscription&#8217;s new feed items to your web application.</p>
 <p>Specify your application&#8217;s callback URL for the <tt class="docutils literal"><span class="pre">callback_url</span></tt> parameter. If <tt class="docutils literal"><span class="pre">callback_url</span></tt> is different from the subscription&#8217;s existing callback URL (that is, you&#8217;re asking to change the callback URL), TypePad will send the new URL a subscription verification request; in that case, a verification token to use in that request is required in the <tt class="docutils literal"><span class="pre">verify_token</span></tt> parameter.</p>
 <p>If you specify a <tt class="docutils literal"><span class="pre">secret</span></tt>, TypePad will use that secret to deliver future content per PubSubHubbub&#8217;s Authenticated Content Distribution protocol. If no secret is provided, future content delivery will not be authenticated.</p>
+</dd></dl>
+
+<p>To stop receiving content from a subscription in your <cite>Group</cite> or callback URL, delete the subscription.</p>
+<dl class="method">
+<dt id="typepad.ExternalFeedSubscription.delete">
+<tt class="descclassname">typepad.ExternalFeedSubscription.</tt><tt class="descname">delete</tt><big>(</big><big>)</big><a class="headerlink" href="#typepad.ExternalFeedSubscription.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Deletes a subscription.</p>
+<p>Once a subscription is deleted, items in its feeds will no longer be added to the subscribed <cite>Group</cite> or pushed to the subscribed callback URL.</p>
 </dd></dl>
 
 </div>

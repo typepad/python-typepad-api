@@ -2,9 +2,9 @@
 The feed subscription API
 =========================
 
-TypePad provides a feed subscription API that lets you subscribe to TypePad and web feed content. Once your application is subscribed to a feed, TypePad will push new items that appear in that feed to an endpoint on your application.
+TypePad provides a feed subscription API that lets you subscribe to TypePad and web feed content. Once your application is subscribed to a feed, TypePad will discover new items in the feed automatically and push the content to you.
 
-The feed subscription API is only available using authenticated requests. Use your TypePad application's and anonymous access token to subscribe to feeds and modify subscriptions. For more on authentication, see :doc:`../tut/auth`.
+The feed subscription API is only available using authenticated requests. Use your TypePad application's consumer token and anonymous access token to subscribe to feeds and modify subscriptions. For more on authentication, see :doc:`../tut/auth`.
 
 
 Feeds and filters
@@ -91,8 +91,6 @@ As with `Group` instances, `Application` instances also provide lists of their e
 
    A list of `ExternalFeedSubscription` instances representing the `Application` instance's subscriptions.
 
-These subscriptions can be modified in the same ways as `Group` subscriptions, described above.
-
 .. _the TypePad endpoint documentation: http://www.typepad.com/services/apidocs/endpoints/applications/%253Cid%253E/create-external-feed-subscription
 
 
@@ -148,3 +146,11 @@ You can also change the way a subscription is delivered. For a `Group` subscript
    Specify your application's callback URL for the ``callback_url`` parameter. If ``callback_url`` is different from the subscription's existing callback URL (that is, you're asking to change the callback URL), TypePad will send the new URL a subscription verification request; in that case, a verification token to use in that request is required in the ``verify_token`` parameter.
 
    If you specify a ``secret``, TypePad will use that secret to deliver future content per PubSubHubbub's Authenticated Content Distribution protocol. If no secret is provided, future content delivery will not be authenticated.
+
+To stop receiving content from a subscription in your `Group` or callback URL, delete the subscription.
+
+.. method:: typepad.ExternalFeedSubscription.delete()
+
+   Deletes a subscription.
+
+   Once a subscription is deleted, items in its feeds will no longer be added to the subscribed `Group` or pushed to the subscribed callback URL.
