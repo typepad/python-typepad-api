@@ -4,6 +4,8 @@ The feed subscription API
 
 TypePad provides a feed subscription API that lets you subscribe to TypePad and web feed content. Once your application is subscribed to a feed, TypePad will push new items that appear in that feed to an endpoint on your application.
 
+The feed subscription API is only available using authenticated requests. Use your TypePad application's and anonymous access token to subscribe to feeds and modify subscriptions. For more on authentication, see :doc:`../tut/auth`.
+
 Subscribing a `Group`
 =====================
 
@@ -15,7 +17,7 @@ To add a subscription to a group, use the `Group.create_external_feed_subscripti
 
    Creates a new feed subscription for the group.
 
-   The subscription is subscribed to the feeds named in ``feed_idents``, a list of feed URLs. The items discovered in these feeds are filtered by ``filter_rules``, a list of search queries, before being posted to the group. Items that are not filtered out are posted to the group as the `User` identified by ``post_as_user_id``, a TypePad user URL identifier.
+   The subscription is subscribed to the feeds named in ``feed_idents``, a list of feed URLs. The items discovered in these feeds are filtered by ``filter_rules``, a list of search queries, before being posted to the group: if the subscription has filter rules, only items that match all of the rules are delivered. Items that are not filtered out are posted to the group as the `User` identified by ``post_as_user_id``, a TypePad user URL identifier.
 
    The return value is an object the ``subscription`` attribute of which is the `ExternalFeedSubscription` for the new subscription.
 
@@ -25,10 +27,6 @@ Once your `Group` has some subscriptions, you can also retrieve those subscripti
 
    A list of `ExternalFeedSubscription` instances representing the group's subscriptions.
 
-Modifying subscriptions
-=======================
-
-You can modify an existing `ExternalFeedSubscription` instance in several ways, whether it was newly created or pulled from the list endpoint.
 
 Subscribing an `Application`
 ============================
@@ -60,3 +58,57 @@ As with `Group` instances, `Application` instances also provide lists of their e
 These subscriptions can be modified in the same ways as `Group` subscriptions, described above.
 
 .. _the TypePad endpoint documentation: http://www.typepad.com/services/apidocs/endpoints/applications/%253Cid%253E/create-external-feed-subscription
+
+
+Modifying subscriptions
+=======================
+
+You can modify an existing `ExternalFeedSubscription` instance in several ways, whether it was newly created or pulled from the list endpoint.
+
+If you have only the ID of an `ExternalFeedSubscription`, load the instance with the `get_by_url_id()` method.
+
+.. automethod:: typepad.api.ExternalFeedSubscription.get_by_url_id
+
+   Returns the `ExternalFeedSubscription` identified by ``url_id``.
+
+For any `ExternalFeedSubscription` instance, you can list its feeds using its `feeds` endpoint, as well as change its feeds using the `add_feeds()` and `remove_feeds()` methods.
+
+.. attribute:: typepad.ExternalFeedSubscription.feeds
+
+   A list of the feed URLs (as strings) to which the `ExternalFeedSubscription` is subscribed.
+
+.. method:: typepad.ExternalFeedSubscription.add_feeds(feed_idents)
+
+   Adds the specified feed identifiers to the `ExternalFeedSubscription`.
+
+   For ``feed_idents``, specify a list of feed URLs to add to the subscription. Feed identifiers that are already part of the subscription are ignored. This method returns no value.
+
+.. method:: typepad.ExternalFeedSubscription.remove_feeds(feed_idents)
+
+   Removes the specified feed identifiers from the `ExternalFeedSubscription`.
+
+   For ``feed_idents``, specify a list of feed URLs to remove from the subscription. Feed identifiers that are not part of the subscription are ignored. This method returns no value.
+
+In addition to changing the subscribed feeds, you can also change the filters using the `update_filters()` method.
+
+.. method:: typepad.ExternalFeedSubscription.update_filters(filter_rules)
+
+   Changes the subscription's filters to those specified.
+
+   For ``filter_rules``, specify a list of strings containing search queries by which to filter. The subscription's existing filters will be replaced by the filters you specify. To remove all the filters from a subscription, pass an empty list for ``filter_rules``. This method returns no value.
+
+You can also change the way a subscription is delivered. For a `Group` subscription, use the `ExternalFeedSubscription` instance's `update_user()` method; for an `Application` subscription, the `update_notification_settings()` method.
+
+.. method:: typepad.ExternalFeedSubscription.update_user(post_as_user_id)
+
+   Changes a `Group` subscription to deliver feed items to the group as posted by the identified user.
+
+   Specify the new author's TypePad URL identifier as ``post_as_user_id``.
+
+.. method:: typepad.ExternalFeedSubscription.update_notification_settings(callback_url, secret=None, verify_token=None)
+
+   Changes the callback URL or secure secret used to deliver this subscription's new feed items to your web application.
+
+   Specify your application's callback URL for the ``callback_url`` parameter. If ``callback_url`` is different from the subscription's existing callback URL (that is, you're asking to change the callback URL), TypePad will send the new URL a subscription verification request; in that case, a verification token to use in that request is required in the ``verify_token`` parameter.
+
+   If you specify a ``secret``, TypePad will use that secret to deliver future content per PubSubHubbub's Authenticated Content Distribution protocol. If no secret is provided, future content delivery will not be authenticated.
