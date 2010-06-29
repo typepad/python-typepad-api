@@ -146,3 +146,11 @@ You can also change the way a subscription is delivered. For a `Group` subscript
    Specify your application's callback URL for the ``callback_url`` parameter. If ``callback_url`` is different from the subscription's existing callback URL (that is, you're asking to change the callback URL), TypePad will send the new URL a subscription verification request; in that case, a verification token to use in that request is required in the ``verify_token`` parameter.
 
    If you specify a ``secret``, TypePad will use that secret to deliver future content per PubSubHubbub's Authenticated Content Distribution protocol. If no secret is provided, future content delivery will not be authenticated.
+
+To stop receiving content from a subscription in your `Group` or callback URL, delete the subscription.
+
+.. method:: typepad.ExternalFeedSubscription.delete()
+
+   Deletes a subscription.
+
+   Once a subscription is deleted, items in its feeds will no longer be added to the subscribed `Group` or pushed to the subscribed callback URL.
