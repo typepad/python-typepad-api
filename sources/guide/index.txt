@@ -1,7 +1,6 @@
-Getting started with `typepad`
-==============================
+Using `typepad`
+===============
 
 .. toctree::
 
-   start
-   auth
+   feedsub

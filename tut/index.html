@@ -5,7 +5,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Using typepad &mdash; typepad v1.1.2 documentation</title>
+    <title>Getting started with typepad &mdash; typepad v1.1.2 documentation</title>
     <link rel="stylesheet" href="../static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
     <script type="text/javascript">
@@ -20,8 +20,8 @@
     <script type="text/javascript" src="../static/jquery.js"></script>
     <script type="text/javascript" src="../static/doctools.js"></script>
     <link rel="top" title="typepad v1.1.2 documentation" href="../index.html" />
-    <link rel="next" title="The feed subscription API" href="feedsub.html" />
-    <link rel="prev" title="Making authenticated requests" href="../tut/auth.html" /> 
+    <link rel="next" title="Some simple requests" href="start.html" />
+    <link rel="prev" title="typepad" href="../index.html" /> 
   </head>
   <body>
     <div class="related">
@@ -34,10 +34,10 @@
           <a href="../modindex.html" title="Global Module Index"
              accesskey="M">modules</a> |</li>
         <li class="right" >
-          <a href="feedsub.html" title="The feed subscription API"
+          <a href="start.html" title="Some simple requests"
              accesskey="N">next</a> |</li>
         <li class="right" >
-          <a href="../tut/auth.html" title="Making authenticated requests"
+          <a href="../index.html" title="typepad"
              accesskey="P">previous</a> |</li>
         <li><a href="../index.html">typepad v1.1.2 documentation</a> &raquo;</li> 
       </ul>
@@ -48,14 +48,37 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="using-typepad">
-<h1>Using <cite>typepad</cite><a class="headerlink" href="#using-typepad" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="getting-started-with-typepad">
+<h1>Getting started with <cite>typepad</cite><a class="headerlink" href="#getting-started-with-typepad" title="Permalink to this headline">¶</a></h1>
 <ul>
-<li class="toctree-l1"><a class="reference external" href="feedsub.html">The feed subscription API</a><ul>
-<li class="toctree-l2"><a class="reference external" href="feedsub.html#feeds-and-filters">Feeds and filters</a></li>
-<li class="toctree-l2"><a class="reference external" href="feedsub.html#subscribing-a-group">Subscribing a <cite>Group</cite></a></li>
-<li class="toctree-l2"><a class="reference external" href="feedsub.html#subscribing-an-application">Subscribing an <cite>Application</cite></a></li>
-<li class="toctree-l2"><a class="reference external" href="feedsub.html#modifying-subscriptions">Modifying subscriptions</a></li>
+<li class="toctree-l1"><a class="reference external" href="start.html">Some simple requests</a><ul>
+<li class="toctree-l2"><a class="reference external" href="start.html#setting-up-the-typepad-library">Setting up the <cite>typepad</cite> library</a></li>
+<li class="toctree-l2"><a class="reference external" href="start.html#looking-at-users">Looking at users</a><ul>
+<li class="toctree-l3"><a class="reference external" href="start.html#retrieve-a-user-s-profile">Retrieve a user&#8217;s profile</a></li>
+<li class="toctree-l3"><a class="reference external" href="start.html#retrieve-a-user-s-profile-events">Retrieve a user&#8217;s profile events</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="start.html#working-with-blogs">Working with blogs</a><ul>
+<li class="toctree-l3"><a class="reference external" href="start.html#list-a-user-s-blogs">List a user&#8217;s blogs</a></li>
+<li class="toctree-l3"><a class="reference external" href="start.html#see-the-posts-in-a-blog">See the posts in a blog</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="start.html#further-work">Further work</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="auth.html">Making authenticated requests</a><ul>
+<li class="toctree-l2"><a class="reference external" href="auth.html#joining-a-typepad-application">Joining a TypePad application</a><ul>
+<li class="toctree-l3"><a class="reference external" href="auth.html#register-a-typepad-application">Register a TypePad application</a></li>
+<li class="toctree-l3"><a class="reference external" href="auth.html#find-your-application">Find your application</a></li>
+<li class="toctree-l3"><a class="reference external" href="auth.html#allow-your-application-to-use-your-account">Allow your application to use your account</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="auth.html#making-some-requests">Making some requests</a><ul>
+<li class="toctree-l3"><a class="reference external" href="auth.html#list-all-the-user-s-blogs">List all the user&#8217;s blogs</a></li>
+<li class="toctree-l3"><a class="reference external" href="auth.html#post-to-a-blog">Post to a blog</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference external" href="auth.html#next-steps">Next steps</a></li>
 </ul>
 </li>
 </ul>
@@ -68,14 +91,14 @@
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
             <h4>Previous topic</h4>
-            <p class="topless"><a href="../tut/auth.html"
-                                  title="previous chapter">Making authenticated requests</a></p>
+            <p class="topless"><a href="../index.html"
+                                  title="previous chapter">typepad</a></p>
             <h4>Next topic</h4>
-            <p class="topless"><a href="feedsub.html"
-                                  title="next chapter">The feed subscription API</a></p>
+            <p class="topless"><a href="start.html"
+                                  title="next chapter">Some simple requests</a></p>
             <h3>This Page</h3>
             <ul class="this-page-menu">
-              <li><a href="../sources/guide/index.txt"
+              <li><a href="../sources/tut/index.txt"
                      rel="nofollow">Show Source</a></li>
             </ul>
           <div id="searchbox" style="display: none">
@@ -105,10 +128,10 @@
           <a href="../modindex.html" title="Global Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="feedsub.html" title="The feed subscription API"
+          <a href="start.html" title="Some simple requests"
              >next</a> |</li>
         <li class="right" >
-          <a href="../tut/auth.html" title="Making authenticated requests"
+          <a href="../index.html" title="typepad"
              >previous</a> |</li>
         <li><a href="../index.html">typepad v1.1.2 documentation</a> &raquo;</li> 
       </ul>
