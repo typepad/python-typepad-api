@@ -45,7 +45,7 @@ To add a subscription to a group, use the `Group.create_external_feed_subscripti
 
    Creates a new feed subscription for the group.
 
-   The subscription is subscribed to the feeds named in ``feed_idents``, a list of feed URLs. The items discovered in these feeds are filtered by ``filter_rules``, a list of search queries, before being posted to the group: if the subscription has filter rules, only items that match all of the rules are delivered. Items that are not filtered out are posted to the group as the `User` identified by ``post_as_user_id``, a TypePad user URL identifier.
+   The subscription is subscribed to the feeds named in ``feed_idents``, a list of feed URLs. The items discovered in these feeds are filtered by ``filter_rules``, a list of search queries, before being posted to the group. Items that match *any* of the filter rules are posted to the group as the `User` identified by ``post_as_user_id``, a TypePad user URL identifier.
 
    The return value is an object the ``subscription`` attribute of which is the `ExternalFeedSubscription` for the new subscription.
 
