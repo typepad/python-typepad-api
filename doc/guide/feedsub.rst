@@ -6,6 +6,34 @@ TypePad provides a feed subscription API that lets you subscribe to TypePad and 
 
 The feed subscription API is only available using authenticated requests. Use your TypePad application's and anonymous access token to subscribe to feeds and modify subscriptions. For more on authentication, see :doc:`../tut/auth`.
 
+
+Feeds and filters
+=================
+
+The feed subscription API allows you to create *subscriptions* to feeds. These subscriptions are represented by :class:`ExternalFeedSubscription` instances. Subscriptions can deliver feed content either to a `Group` or to your web application as a web hook.
+
+Each subscription has one or more *feeds* that provide the subscription's content. For instance, when creating a subscription about the Python programming language, you might subscribe to feeds from Planet Python, Stack Overflow questions tagged ``python``, and Repopular's feed of recently mentioned GitHub projects in Python. As TypePad discovers new items in any of these feeds, those items would then be posted in your group or be pushed to your web hook callback URL.
+
+Feeds are identified by the web URLs of their feed documents. These are some feeds:
+
+* ``http://feeds.feedburner.com/AskMetafilter``
+* ``http://markpasc.typepad.com/blog/atom.xml``
+* ``http://twitter.com/statuses/user_timeline/5553562.rss``
+
+Sometimes you can't find a specific feed for the content you'd like to subscribe to. To pull specific content out of a general feed, each subscription also has zero or more *filter rules*. These filters are search queries with the same syntax as TypePad full-text asset search queries. If a subscription has some filter rules, feed items that match *any* of the filters are delivered. If an item matches none of the filters, TypePad will discard that item. (If you want to require items contain *all* of a set of keywords, specify them as one filter rule.)
+
+These are some filters:
+
+* ``nintendo``
+* ``python -snake``
+* ``"cheese pizza"``
+* ``title:awesome``
+
+See `the asset search API endpoint documentation`_ for what syntax is available in filter rules.
+
+.. _the asset search API endpoint documentation: http://www.typepad.com/services/apidocs/endpoints/assets#full-text_search
+
+
 Subscribing a `Group`
 =====================
 
