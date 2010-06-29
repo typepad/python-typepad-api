@@ -49,6 +49,14 @@ To add a subscription to a group, use the `Group.create_external_feed_subscripti
 
    The return value is an object the ``subscription`` attribute of which is the `ExternalFeedSubscription` for the new subscription.
 
+In the bicycle shop example, you would provide the feed for your Twitter stream as a single URL in ``feed_idents``, an empty list for ``filter_rules``, and your own TypePad account's URL identifier for ``post_as_user_id``::
+
+   group = typepad.Group.get_by_url_id(SHOP_GROUP_ID)
+   group.create_external_feed_subscription(
+      feed_idents=['http://twitter.com/statuses/user_timeline/5553562.rss'],
+      filter_rules=[],
+      post_as_user_id=MY_USER_ID)
+
 Once your `Group` has some subscriptions, you can also retrieve those subscriptions as the group's `external_feed_subscriptions` list.
 
 .. attribute:: typepad.Group.external_feed_subscriptions
