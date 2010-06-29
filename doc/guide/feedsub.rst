@@ -91,8 +91,6 @@ As with `Group` instances, `Application` instances also provide lists of their e
 
    A list of `ExternalFeedSubscription` instances representing the `Application` instance's subscriptions.
 
-These subscriptions can be modified in the same ways as `Group` subscriptions, described above.
-
 .. _the TypePad endpoint documentation: http://www.typepad.com/services/apidocs/endpoints/applications/%253Cid%253E/create-external-feed-subscription
 
 
