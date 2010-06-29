@@ -4,7 +4,7 @@ The feed subscription API
 
 TypePad provides a feed subscription API that lets you subscribe to TypePad and web feed content. Once your application is subscribed to a feed, TypePad will discover new items in the feed automatically and push the content to you.
 
-The feed subscription API is only available using authenticated requests. Use your TypePad application's and anonymous access token to subscribe to feeds and modify subscriptions. For more on authentication, see :doc:`../tut/auth`.
+The feed subscription API is only available using authenticated requests. Use your TypePad application's consumer token and anonymous access token to subscribe to feeds and modify subscriptions. For more on authentication, see :doc:`../tut/auth`.
 
 
 Feeds and filters
