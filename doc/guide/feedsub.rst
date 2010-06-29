@@ -47,7 +47,9 @@ To create a new subscription, use the `Application.create_external_feed_subscrip
 
    This method will return an object with a ``subscription`` attribute containing an `ExternalFeedSubscription` instance representing the new subscription.
 
-TypePad will attempt to verify your callback URL *during* your call to this method; your web application must be available to respond to TypePad while this call occurs. For more on the format of the verification and content requests, and a reference to Authentication Content Distribution, see the `TypePad endpoint documentation`_.
+.. note::
+
+   TypePad will attempt to verify your callback URL *during* your call to this method; your web application must be available to respond to TypePad while this call occurs. For more on the format of the verification and content requests, and a reference to Authentication Content Distribution, see `the TypePad endpoint documentation`_.
 
 As with `Group` instances, `Application` instances also provide lists of their existing subscriptions in their `external_feed_subscriptions` endpoints.
 
@@ -57,4 +59,4 @@ As with `Group` instances, `Application` instances also provide lists of their e
 
 These subscriptions can be modified in the same ways as `Group` subscriptions, described above.
 
-.. _TypePad endpoint documentation: http://www.typepad.com/services/apidocs/endpoints/applications/%253Cid%253E/create-external-feed-subscription
+.. _the TypePad endpoint documentation: http://www.typepad.com/services/apidocs/endpoints/applications/%253Cid%253E/create-external-feed-subscription
