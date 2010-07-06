@@ -74,7 +74,18 @@ class TestObjects(unittest.TestCase):
         self.assert_(x is y, "two ListOf's the same thing are not only "
                              "equivalent but the same instance")
 
-    def test_imagelink(self):
+    def test_videolink_by_width(self):
+        v = typepad.VideoLink(embed_code="\n<object width=\"500\" height=\"395\">\n    <param name=\"movie\" value=\"http://www.youtube.com/v/deadbeef\" />\n    <param name=\"quality\" value=\"high\" />\n    <param name=\"wmode\" value=\"transparent\" />\n    <param name=\"allowscriptaccess\" value=\"never\" />\n    <param name=\"allowFullScreen\" value=\"true\" />\n    <embed type=\"application/x-shockwave-flash\"\n        width=\"500\" height=\"395\"\n        src=\"http://www.youtube.com/v/deadbeef\"\n        quality=\"high\" wmode=\"transparent\" allowscriptaccess=\"never\" allowfullscreen=\"true\"\n    />\n</object>\n")
+        sv = v.by_width(400)
+        self.assertEquals(sv.width, 400)
+        self.assertEquals(sv.height, 316)
+        self.assert_(re.search('\swidth="400"', sv.embed_code))
+        self.assert_(re.search('\sheight="316"', sv.embed_code))
+
+
+class TestImageLink(unittest.TestCase):
+
+    def test_basic(self):
         l = typepad.ImageLink(url_template='http://example.com/blah-{spec}')
         self.assertEquals(l.at_size('16si'), 'http://example.com/blah-16si')
         self.assertEquals(l.at_size('pi'), 'http://example.com/blah-pi')
@@ -85,7 +96,7 @@ class TestObjects(unittest.TestCase):
         self.assertRaises(ValueError, lambda: l.at_size('77'))
         self.assertRaises(ValueError, lambda: l.at_size('220wi'))
 
-    def test_imagelink_exhaustive(self):
+    def test_exhaustive(self):
         def prove(l):
             for size in typepad.ImageLink._WI:
                 i = l.by_width(size)
@@ -138,7 +149,7 @@ class TestObjects(unittest.TestCase):
             url_template='http://example.com/blah-{spec}',
             height=5, width=5))
 
-    def test_imagelink_inscribe(self):
+    def test_inscribe(self):
         l = typepad.ImageLink(url='http://example.com/blah',
             url_template='http://example.com/blah-{spec}',
             height=5000, width=5000)
@@ -148,7 +159,7 @@ class TestObjects(unittest.TestCase):
         self.assertEquals(l.inscribe(4999).url, 'http://example.com/blah-1024pi')
         self.assertEquals(l.inscribe(4999).width, 1024)
 
-    def test_imagelink_by_width(self):
+    def test_by_width(self):
         l = typepad.ImageLink(url='http://example.com/blah',
             url_template='http://example.com/blah-{spec}',
             height=5000, width=5000)
@@ -171,14 +182,6 @@ class TestObjects(unittest.TestCase):
         self.assertEquals(l.by_width(5001).url, 'http://example.com/blah-1024wi')
 
         self.assertEquals(l.by_width(None).url, 'http://example.com/blah-1024wi')
-
-    def test_videolink_by_width(self):
-        v = typepad.VideoLink(embed_code="\n<object width=\"500\" height=\"395\">\n    <param name=\"movie\" value=\"http://www.youtube.com/v/deadbeef\" />\n    <param name=\"quality\" value=\"high\" />\n    <param name=\"wmode\" value=\"transparent\" />\n    <param name=\"allowscriptaccess\" value=\"never\" />\n    <param name=\"allowFullScreen\" value=\"true\" />\n    <embed type=\"application/x-shockwave-flash\"\n        width=\"500\" height=\"395\"\n        src=\"http://www.youtube.com/v/deadbeef\"\n        quality=\"high\" wmode=\"transparent\" allowscriptaccess=\"never\" allowfullscreen=\"true\"\n    />\n</object>\n")
-        sv = v.by_width(400)
-        self.assertEquals(sv.width, 400)
-        self.assertEquals(sv.height, 316)
-        self.assert_(re.search('\swidth="400"', sv.embed_code))
-        self.assert_(re.search('\sheight="316"', sv.embed_code))
 
 
 class TestBrowserUpload(unittest.TestCase):
