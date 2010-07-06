@@ -44,6 +44,7 @@ import traceback
 import unittest
 from urlparse import urlparse
 
+import httplib2
 import mox
 from oauth.oauth import OAuthConsumer, OAuthToken
 import simplejson as json
@@ -180,7 +181,7 @@ class TestImageLink(unittest.TestCase):
         self.assertEquals(l.by_width(None).url, 'http://example.com/blah-1024wi')
 
 
-class TestBrowserUpload(unittest.TestCase):
+class ClientTestCase(unittest.TestCase):
 
     def setUp(self):
         self.typepad_client = typepad.client
@@ -200,6 +201,117 @@ class TestBrowserUpload(unittest.TestCase):
             setattr(self, fld, data)
             return True
         return save_data
+
+
+class TestActionEndpoint(ClientTestCase):
+
+    def test_responseless(self):
+        request = {
+            'uri': mox.Func(self.saver('uri')),
+            'method': 'POST',
+            'headers': mox.Func(self.saver('headers')),
+            'body': mox.Func(self.saver('body')),
+        }
+        response = {
+            'status': 204,  # no content
+        }
+
+        http = typepad.TypePadClient()
+        typepad.client = http
+        http.add_credentials(
+            OAuthConsumer('consumertoken', 'consumersecret'),
+            OAuthToken('tokentoken', 'tokensecret'),
+            domain='api.typepad.com',
+        )
+
+        mock = mox.Mox()
+        mock.StubOutWithMock(http, 'request')
+        http.request(**request).AndReturn((httplib2.Response(response), ''))
+        mock.ReplayAll()
+
+        class Moose(typepad.TypePadObject):
+
+            class Snert(typepad.TypePadObject):
+                volume = typepad.fields.Field()
+            snert = typepad.fields.ActionEndpoint(api_name='snert', post_type=Snert)
+
+        moose = Moose()
+        moose._location = 'https://api.typepad.com/meese/7.json'
+
+        ret = moose.snert(volume=10)
+        self.assert_(ret is None)
+
+        mock.VerifyAll()
+
+        self.assert_(self.uri)
+        self.assertEquals(self.uri, 'https://api.typepad.com/meese/7/snert.json')
+        self.assert_(self.headers)
+        self.assert_(self.body)
+
+        self.assert_(utils.json_equals({
+            'volume': 10
+        }, self.body))
+
+    def test_responseful(self):
+        request = {
+            'uri': mox.Func(self.saver('uri')),
+            'method': 'POST',
+            'headers': mox.Func(self.saver('headers')),
+            'body': mox.Func(self.saver('body')),
+        }
+        response = {
+            'status': 200,
+            'content-type': 'application/json',
+        }
+        response_content = '{"blahdeblah": true, "anotherthing": "2010-07-06T16:17:05Z"}'
+
+        http = typepad.TypePadClient()
+        typepad.client = http
+        http.add_credentials(
+            OAuthConsumer('consumertoken', 'consumersecret'),
+            OAuthToken('tokentoken', 'tokensecret'),
+            domain='api.typepad.com',
+        )
+
+        mock = mox.Mox()
+        mock.StubOutWithMock(http, 'request')
+        http.request(**request).AndReturn((httplib2.Response(response), response_content))
+        mock.ReplayAll()
+
+        class Moose(typepad.TypePadObject):
+
+            class Snert(typepad.TypePadObject):
+                volume = typepad.fields.Field()
+                target = typepad.fields.Object('User')
+            class SnertResponse(typepad.TypePadObject):
+                blahdeblah = typepad.fields.Field()
+                anotherthing = typepad.fields.Datetime()
+            snert = typepad.fields.ActionEndpoint(api_name='snert', post_type=Snert, response_type=SnertResponse)
+
+        moose = Moose()
+        moose._location = 'https://api.typepad.com/meese/7.json'
+
+        ret = moose.snert(volume=10, target=typepad.User(display_name='fred'))
+        self.assert_(ret is not None)
+        self.assert_(isinstance(ret, Moose.SnertResponse))
+
+        mock.VerifyAll()
+
+        self.assert_(self.uri)
+        self.assertEquals(self.uri, 'https://api.typepad.com/meese/7/snert.json')
+        self.assert_(self.headers)
+        self.assert_(self.body)
+
+        self.assert_(utils.json_equals({
+            'volume': 10,
+            'target': {
+                'displayName': 'fred',
+                'objectType': 'User',
+            },
+        }, self.body))
+
+
+class TestBrowserUpload(ClientTestCase):
 
     def message_from_response(self, headers, body):
         fp = FeedParser()
