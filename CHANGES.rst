@@ -1,8 +1,8 @@
 typepad Changelog
 =================
 
-(unreleased)
-------------
+2.0 (tbd)
+---------
 
 * Now thread-safe.
 * The client endpoint now adapts to a http or https scheme automatically depending on whether it has been assigned credentials for requests.

@@ -39,7 +39,7 @@ except Exception:
 
 setup(
     name='typepad',
-    version='1.1.2',
+    version='2.0',
     description='TypePad API SDK',
     author='Six Apart',
     author_email='python@sixapart.com',
