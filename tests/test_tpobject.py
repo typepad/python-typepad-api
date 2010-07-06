@@ -59,10 +59,6 @@ class TestObjects(unittest.TestCase):
     def test_relative_urls(self):
         raise NotImplementedError()
 
-    @utils.todo
-    def test_batch_enforcement(self):
-        raise NotImplementedError()
-
     def test_listof(self):
         x = typepad.ListOf('User')
         self.assert_(isinstance(x, type))
