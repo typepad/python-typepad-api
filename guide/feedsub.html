@@ -5,13 +5,13 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>The feed subscription API &mdash; typepad v1.1.2 documentation</title>
+    <title>The feed subscription API &mdash; typepad v2.0 documentation</title>
     <link rel="stylesheet" href="../static/nature.css" type="text/css" />
     <link rel="stylesheet" href="../static/pygments.css" type="text/css" />
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.1.2',
+        VERSION:     '2.0',
         COLLAPSE_MODINDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -19,7 +19,7 @@
     </script>
     <script type="text/javascript" src="../static/jquery.js"></script>
     <script type="text/javascript" src="../static/doctools.js"></script>
-    <link rel="top" title="typepad v1.1.2 documentation" href="../index.html" />
+    <link rel="top" title="typepad v2.0 documentation" href="../index.html" />
     <link rel="up" title="Using typepad" href="index.html" />
     <link rel="next" title="API reference" href="../ref/index.html" />
     <link rel="prev" title="Using typepad" href="index.html" /> 
@@ -40,7 +40,7 @@
         <li class="right" >
           <a href="index.html" title="Using typepad"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+        <li><a href="../index.html">typepad v2.0 documentation</a> &raquo;</li>
           <li><a href="index.html" accesskey="U">Using <cite>typepad</cite></a> &raquo;</li> 
       </ul>
     </div>  
@@ -52,20 +52,20 @@
             
   <div class="section" id="the-feed-subscription-api">
 <h1>The feed subscription API<a class="headerlink" href="#the-feed-subscription-api" title="Permalink to this headline">¶</a></h1>
-<p>TypePad provides a feed subscription API that lets you subscribe to TypePad and web feed content. Once your application is subscribed to a feed, TypePad will discover new items in the feed automatically and push the content to you.</p>
-<p>The feed subscription API is only available using authenticated requests. Use your TypePad application&#8217;s consumer token and anonymous access token to subscribe to feeds and modify subscriptions. For more on authentication, see <a class="reference external" href="../tut/auth.html"><em>Making authenticated requests</em></a>.</p>
+<p>TypePad provides a feed subscription API that lets you subscribe to TypePad and web feed content. Once you subscribe your application to a feed, TypePad will discover new items in the feed automatically and push the content to your group or application.</p>
+<p>The feed subscription API is only available using authenticated requests. Use your TypePad application&#8217;s anonymous access token to subscribe to feeds and modify subscriptions. For more on authentication, see <a class="reference external" href="../tut/auth.html"><em>Making authenticated requests</em></a>.</p>
 <div class="section" id="feeds-and-filters">
 <h2>Feeds and filters<a class="headerlink" href="#feeds-and-filters" title="Permalink to this headline">¶</a></h2>
 <p>The feed subscription API allows you to create <em>subscriptions</em> to feeds. These subscriptions are represented by <tt class="xref docutils literal"><span class="pre">ExternalFeedSubscription</span></tt> instances. Subscriptions can deliver feed content either to a <cite>Group</cite> or to your web application as a web hook.</p>
 <p>Each subscription has one or more <em>feeds</em> that provide the subscription&#8217;s content. For instance, when creating a subscription about the Python programming language, you might subscribe to feeds from Planet Python, Stack Overflow questions tagged <tt class="docutils literal"><span class="pre">python</span></tt>, and Repopular&#8217;s feed of recently mentioned GitHub projects in Python. As TypePad discovers new items in any of these feeds, those items would then be posted in your group or be pushed to your web hook callback URL.</p>
-<p>Feeds are identified by the web URLs of their feed documents. These are some feeds:</p>
+<p>Feeds are identified by the web URLs of their feed documents. These are some feed identifiers:</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">http://feeds.feedburner.com/AskMetafilter</span></tt></li>
 <li><tt class="docutils literal"><span class="pre">http://markpasc.typepad.com/blog/atom.xml</span></tt></li>
 <li><tt class="docutils literal"><span class="pre">http://twitter.com/statuses/user_timeline/5553562.rss</span></tt></li>
 </ul>
-<p>Sometimes you can&#8217;t find a specific feed for the content you&#8217;d like to subscribe to. To pull specific content out of a general feed, each subscription also has zero or more <em>filter rules</em>. These filters are search queries with the same syntax as TypePad full-text asset search queries. If a subscription has some filter rules, feed items that match <em>any</em> of the filters are delivered. If an item matches none of the filters, TypePad will discard that item. (If you want to require items contain <em>all</em> of a set of keywords, specify them as one filter rule.)</p>
-<p>These are some filters:</p>
+<p>Sometimes you can&#8217;t find a specific feed for the content you&#8217;d like to subscribe to. To pull specific content out of a general feed, each subscription also has zero or more <em>filter rules</em>. These filters are search queries with the same syntax as <a class="reference external" href="http://www.typepad.com/services/apidocs/endpoints/assets#full-text_search">TypePad full-text asset search queries</a>. If a subscription has some filter rules, feed items that match <em>any</em> of the filters are delivered. If an item matches none of the filters, TypePad will discard that item. (If you want to require items contain <em>all</em> of a set of keywords, specify one filter rule with all of those keywords.)</p>
+<p>These are some examples of filters:</p>
 <ul class="simple">
 <li><tt class="docutils literal"><span class="pre">nintendo</span></tt></li>
 <li><tt class="docutils literal"><span class="pre">python</span> <span class="pre">-snake</span></tt></li>
@@ -74,9 +74,9 @@
 </ul>
 <p>See <a class="reference external" href="http://www.typepad.com/services/apidocs/endpoints/assets#full-text_search">the asset search API endpoint documentation</a> for what syntax is available in filter rules.</p>
 </div>
-<div class="section" id="subscribing-a-group">
-<h2>Subscribing a <cite>Group</cite><a class="headerlink" href="#subscribing-a-group" title="Permalink to this headline">¶</a></h2>
-<p>A good use of the feed subscription API is to automatically post from third-party web sites into a TypePad <cite>Group</cite>. For instance, if you run a bicycle shop and provide a <cite>Group</cite> powered web site for your fans and customers, you can use the feed subscription API to automatically post all your Twitter tweets to the group where your fans can comment on them.</p>
+<div class="section" id="subscribing-a-group-to-feeds">
+<h2>Subscribing a <cite>Group</cite> to feeds<a class="headerlink" href="#subscribing-a-group-to-feeds" title="Permalink to this headline">¶</a></h2>
+<p>A good use of the feed subscription API is to automatically collect feed items from third-party web sites into a TypePad <cite>Group</cite>. For instance, if you run a bicycle shop and provide a <cite>Group</cite> powered web site for your fans and customers, you can use the feed subscription API to automatically post all your Twitter tweets to the group where your fans can comment on them and save them as favorites.</p>
 <p>To add a subscription to a group, use the <cite>Group.create_external_feed_subscription()</cite> method.</p>
 <dl class="function">
 <dt id="typepad.Group.create_external_feed_subscription">
@@ -87,11 +87,12 @@
 </dd></dl>
 
 <p>In the bicycle shop example, you would provide the feed for your Twitter stream as a single URL in <tt class="docutils literal"><span class="pre">feed_idents</span></tt>, an empty list for <tt class="docutils literal"><span class="pre">filter_rules</span></tt>, and your own TypePad account&#8217;s URL identifier for <tt class="docutils literal"><span class="pre">post_as_user_id</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">group</span> <span class="o">=</span> <span class="n">typepad</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">get_by_url_id</span><span class="p">(</span><span class="n">SHOP_GROUP_ID</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">user</span> <span class="o">=</span> <span class="n">typepad</span><span class="o">.</span><span class="n">User</span><span class="o">.</span><span class="n">get_by_url_id</span><span class="p">(</span><span class="n">MY_USER_ID</span><span class="p">)</span>
+<span class="n">group</span> <span class="o">=</span> <span class="n">typepad</span><span class="o">.</span><span class="n">Group</span><span class="o">.</span><span class="n">get_by_url_id</span><span class="p">(</span><span class="n">SHOP_GROUP_ID</span><span class="p">)</span>
 <span class="n">group</span><span class="o">.</span><span class="n">create_external_feed_subscription</span><span class="p">(</span>
-   <span class="n">feed_idents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;http://twitter.com/statuses/user_timeline/5553562.rss&#39;</span><span class="p">],</span>
-   <span class="n">filter_rules</span><span class="o">=</span><span class="p">[],</span>
-   <span class="n">post_as_user_id</span><span class="o">=</span><span class="n">MY_USER_ID</span><span class="p">)</span>
+    <span class="n">feed_idents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;http://twitter.com/statuses/user_timeline/5553562.rss&#39;</span><span class="p">],</span>
+    <span class="n">filter_rules</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">post_as_user_id</span><span class="o">=</span><span class="n">user</span><span class="o">.</span><span class="n">url_id</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Once your <cite>Group</cite> has some subscriptions, you can also retrieve those subscriptions as the group&#8217;s <cite>external_feed_subscriptions</cite> list.</p>
@@ -101,56 +102,112 @@
 <dd>A list of <cite>ExternalFeedSubscription</cite> instances representing the group&#8217;s subscriptions.</dd></dl>
 
 </div>
-<div class="section" id="subscribing-an-application">
-<h2>Subscribing an <cite>Application</cite><a class="headerlink" href="#subscribing-an-application" title="Permalink to this headline">¶</a></h2>
-<p>In addition to subscribing feed items directly into groups, you can also subscribe to feed content to have it pushed by TypePad to your web application. Once subscribed, TypePad will send HTTP requests to your web app when new feed content is available. (This does mean your web application must be visible to TypePad over the public Internet to use this API.) While subscription occurs through the TypePad API, subscriptions are verified and content is pushed using the PubSubHubbub protocol.</p>
+<div class="section" id="subscribing-an-application-to-feeds">
+<h2>Subscribing an <cite>Application</cite> to feeds<a class="headerlink" href="#subscribing-an-application-to-feeds" title="Permalink to this headline">¶</a></h2>
+<p>In addition to collecting feed items into groups, TypePad can also push feed content directly to your web application. Once subscribed, TypePad will send HTTP requests to your web app when new feed content is available. (This does mean your web application must be available to TypePad over the public Internet to use this API.) While subscription occurs through the TypePad API, subscriptions are verified and content is pushed using <a class="reference external" href="http://pubsubhubbub.googlecode.com/svn/trunk/pubsubhubbub-core-0.3.html">the PubSubHubbub protocol</a>.</p>
+<p>Like <cite>Group</cite> instances, <cite>Application</cite> instances provide lists of their existing subscriptions in their <cite>external_feed_subscriptions</cite> endpoints. Once subscribed, your subscription will show up in this list.</p>
+<dl class="attribute">
+<dt id="typepad.Application.external_feed_subscriptions">
+<tt class="descclassname">typepad.Application.</tt><tt class="descname">external_feed_subscriptions</tt><a class="headerlink" href="#typepad.Application.external_feed_subscriptions" title="Permalink to this definition">¶</a></dt>
+<dd>A list of <cite>ExternalFeedSubscription</cite> instances representing the <cite>Application</cite> instance&#8217;s subscriptions.</dd></dl>
+
 <p>To create a new subscription, use the <cite>Application.create_external_feed_subscription()</cite> method.</p>
 <dl class="function">
 <dt id="typepad.Application.create_external_feed_subscription">
 <tt class="descclassname">typepad.Application.</tt><tt class="descname">create_external_feed_subscription</tt><big>(</big><em>callback_url</em>, <em>feed_idents</em>, <em>filter_rules</em>, <em>verify_token</em>, <em>secret=None</em><big>)</big><a class="headerlink" href="#typepad.Application.create_external_feed_subscription" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates and immediately verifies a new feed subscription for the application.</p>
 <p>The subscription is subscribed to the feeds named in <tt class="docutils literal"><span class="pre">feed_idents</span></tt>, a list of feed URLs. The items discovered in these feeds are filtered by <tt class="docutils literal"><span class="pre">filter_rules</span></tt>, a list of search queries, before being posted to the group. Items that are not filtered out are posted in HTTP <tt class="docutils literal"><span class="pre">POST</span></tt> requests to <tt class="docutils literal"><span class="pre">callback_url</span></tt>, your application&#8217;s feed subscription callback URL, according to the PubSubHubbub protocol.</p>
-<p>If <tt class="docutils literal"><span class="pre">secret</span></tt> is provided, its string value will be stored as a special signing token, and new content will be posted to your callback URL using PubSubHubbub&#8217;s Authenticated Content Distribution protocol.</p>
-<p>This method will return an object with a <tt class="docutils literal"><span class="pre">subscription</span></tt> attribute containing an <cite>ExternalFeedSubscription</cite> instance representing the new subscription.</p>
+<p>If <tt class="docutils literal"><span class="pre">secret</span></tt> (a string) is provided, TypePad will use it to sign the content pushes it sends to your callback URL according to <a class="reference external" href="http://pubsubhubbub.googlecode.com/svn/trunk/pubsubhubbub-core-0.3.html#authednotify">PubSubHubbub&#8217;s Authenticated Content Distribution protocol</a>.</p>
+<p>This method returns an object with a <tt class="docutils literal"><span class="pre">subscription</span></tt> attribute containing an <cite>ExternalFeedSubscription</cite> instance representing the new subscription.</p>
 </dd></dl>
 
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last">TypePad will attempt to verify your callback URL <em>during</em> your call to this method; your web application must be available to respond to TypePad while this call occurs. For more on the format of the verification and content requests, and a reference to Authentication Content Distribution, see <a class="reference external" href="http://www.typepad.com/services/apidocs/endpoints/applications/%253Cid%253E/create-external-feed-subscription">the TypePad endpoint documentation</a>.</p>
+<p class="last">TypePad will attempt to verify your callback URL <em>during</em> your call to this method. Your web application must be available to respond to TypePad while this call occurs.</p>
 </div>
-<p>As with <cite>Group</cite> instances, <cite>Application</cite> instances also provide lists of their existing subscriptions in their <cite>external_feed_subscriptions</cite> endpoints.</p>
-<dl class="attribute">
-<dt id="typepad.Application.external_feed_subscriptions">
-<tt class="descclassname">typepad.Application.</tt><tt class="descname">external_feed_subscriptions</tt><a class="headerlink" href="#typepad.Application.external_feed_subscriptions" title="Permalink to this definition">¶</a></dt>
-<dd>A list of <cite>ExternalFeedSubscription</cite> instances representing the <cite>Application</cite> instance&#8217;s subscriptions.</dd></dl>
+<div class="section" id="verifying-the-subscription">
+<h3>Verifying the subscription<a class="headerlink" href="#verifying-the-subscription" title="Permalink to this headline">¶</a></h3>
+<p>During the <cite>create_external_feed_subscription()</cite> call, TypePad will send a <em>subscription verification request</em> to your callback URL. For example, you may create a subscription like this:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">app</span> <span class="o">=</span> <span class="n">typepad</span><span class="o">.</span><span class="n">Application</span><span class="o">.</span><span class="n">get_by_url_id</span><span class="p">(</span><span class="n">MY_APP_ID</span><span class="p">)</span>
+<span class="n">app</span><span class="o">.</span><span class="n">create_external_feed_subscription</span><span class="p">(</span>
+    <span class="n">callback_url</span><span class="o">=</span><span class="s">&#39;http://myapp.example.com/feed-sub&#39;</span><span class="p">,</span>
+    <span class="n">feed_idents</span><span class="o">=</span><span class="p">[</span><span class="s">&#39;http://twitter.com/statuses/user_timeline/5553562.rss&#39;</span><span class="p">],</span>
+    <span class="n">filter_rules</span><span class="o">=</span><span class="p">[],</span>
+    <span class="n">verify_token</span><span class="o">=</span><span class="s">&#39;3FQui9KU6&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As <a class="reference external" href="http://pubsubhubbub.googlecode.com/svn/trunk/pubsubhubbub-core-0.3.html#authednotify">described in the PubSubHubbub specification</a>, TypePad verifies the subscription using a <tt class="docutils literal"><span class="pre">GET</span></tt> request. A verification request may look like:</p>
+<div class="highlight-python"><pre>GET /feed-sub?hub.mode=subscribe&amp;hub.challenge=4mg4zMm8J&amp;hub.verify_token=3FQui9KU6 HTTP/1.1
+Host: myapp.example.com</pre>
+</div>
+<p>Your app would then need to verify the request is correct by checking the <tt class="docutils literal"><span class="pre">hub.verify_token</span></tt> and any other housekeeping you need to do, then send back the <tt class="docutils literal"><span class="pre">hub.challenge</span></tt> parameter in a 200 OK response:</p>
+<div class="highlight-python"><pre>200 OK
+Content-Type: text/plain
+Content-Length: 10
 
+4mg4zMm8J</pre>
+</div>
+</div>
+<div class="section" id="receiving-new-feed-content">
+<h3>Receiving new feed content<a class="headerlink" href="#receiving-new-feed-content" title="Permalink to this headline">¶</a></h3>
+<p>Once subscribed, TypePad will send <em>content distribution requests</em> to your callback URL. These requests are Atom feeds containing the new items. (Even when you subscribe to RSS feeds, the feed items are normalized into Atom entries.)</p>
+<div class="highlight-python"><pre>POST /feed-sub
+Host: myapp.example.com
+Content-Type: application/atom+xml
+Content-Length: 1188
+
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;feed xmlns="http://www.w3.org/2005/Atom"&gt;
+    &lt;id&gt;tag:firehoser.superfeedr.com,2010-06-06:feeds.example.com/ExampleFeed&lt;/id&gt;
+    &lt;updated&gt;2010-07-06T22:27:19Z&lt;/updated&gt;
+    &lt;title&gt;Example Feed&lt;/title&gt;
+    &lt;link rel="self" href="http://feeds.example.com/ExampleFeed"/&gt;
+    &lt;entry xmlns:geo="http://www.georss.org/georss" xmlns:as="http://activitystrea.ms/spec/1.0/" xmlns:sf="http://superfeedr.com/xmpp-pubsub-ext" xml:lang="en-us"&gt;
+        &lt;id&gt;tag:feeds.example.com,2010:site.555746&lt;/id&gt;
+        &lt;published&gt;2010-07-06T23:26:42+00:00&lt;/published&gt;
+        &lt;title&gt;Example entry&lt;/title&gt;
+        &lt;summary type="html"&gt;This is the summary for the example entry.&amp;lt;br /&amp;gt;&lt;/summary&gt;
+        &lt;link title="Example entry" type="application/rss+xml" rel="replies" href="http://example.com/555746/Example-entry/rss"/&gt;
+        &lt;link title="Example entry" type="text/html" rel="alternate" href="http://example.com/555746/Example-entry"/&gt;
+        &lt;category term="example"/&gt;
+        &lt;category term="entry"/&gt;
+        &lt;category term="feeds"/&gt;
+        &lt;category term="xml"/&gt;
+        &lt;author&gt;
+            &lt;name&gt;Some Author&lt;/name&gt;
+        &lt;/author&gt;
+    &lt;/entry&gt;
+&lt;/feed&gt;</pre>
+</div>
+<p>Per the PubSubHubbub protocol, return any 2xx code response to acknowledge receipt of the new content. For more on the format of the verification and content requests, see <a class="reference external" href="http://www.typepad.com/services/apidocs/endpoints/applications/%253Cid%253E/create-external-feed-subscription">the TypePad endpoint documentation</a>.</p>
+</div>
 </div>
 <div class="section" id="modifying-subscriptions">
 <h2>Modifying subscriptions<a class="headerlink" href="#modifying-subscriptions" title="Permalink to this headline">¶</a></h2>
-<p>You can modify an existing <cite>ExternalFeedSubscription</cite> instance in several ways, whether it was newly created or pulled from the list endpoint.</p>
+<p>You can modify an existing subscription in several ways, whether it was newly created or pulled from a list endpoint.</p>
 <p>If you have only the ID of an <cite>ExternalFeedSubscription</cite>, load the instance with the <cite>get_by_url_id()</cite> method.</p>
 <dl class="classmethod">
 <dt id="typepad.api.ExternalFeedSubscription.get_by_url_id">
 <em class="property">classmethod </em><tt class="descclassname">ExternalFeedSubscription.</tt><tt class="descname">get_by_url_id</tt><big>(</big><em>url_id</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#typepad.api.ExternalFeedSubscription.get_by_url_id" title="Permalink to this definition">¶</a></dt>
-<dd>Returns the <cite>ExternalFeedSubscription</cite> identified by <tt class="docutils literal"><span class="pre">url_id</span></tt>.</dd></dl>
+<dd>Returns the subscription identified by <tt class="docutils literal"><span class="pre">url_id</span></tt>.</dd></dl>
 
 <p>For any <cite>ExternalFeedSubscription</cite> instance, you can list its feeds using its <cite>feeds</cite> endpoint, as well as change its feeds using the <cite>add_feeds()</cite> and <cite>remove_feeds()</cite> methods.</p>
 <dl class="attribute">
 <dt id="typepad.ExternalFeedSubscription.feeds">
 <tt class="descclassname">typepad.ExternalFeedSubscription.</tt><tt class="descname">feeds</tt><a class="headerlink" href="#typepad.ExternalFeedSubscription.feeds" title="Permalink to this definition">¶</a></dt>
-<dd>A list of the feed URLs (as strings) to which the <cite>ExternalFeedSubscription</cite> is subscribed.</dd></dl>
+<dd>A list of the feed URLs (as strings) to which the subscription is subscribed.</dd></dl>
 
 <dl class="method">
 <dt id="typepad.ExternalFeedSubscription.add_feeds">
 <tt class="descclassname">typepad.ExternalFeedSubscription.</tt><tt class="descname">add_feeds</tt><big>(</big><em>feed_idents</em><big>)</big><a class="headerlink" href="#typepad.ExternalFeedSubscription.add_feeds" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds the specified feed identifiers to the <cite>ExternalFeedSubscription</cite>.</p>
+<dd><p>Adds the specified feed identifiers to the subscription.</p>
 <p>For <tt class="docutils literal"><span class="pre">feed_idents</span></tt>, specify a list of feed URLs to add to the subscription. Feed identifiers that are already part of the subscription are ignored. This method returns no value.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="typepad.ExternalFeedSubscription.remove_feeds">
 <tt class="descclassname">typepad.ExternalFeedSubscription.</tt><tt class="descname">remove_feeds</tt><big>(</big><em>feed_idents</em><big>)</big><a class="headerlink" href="#typepad.ExternalFeedSubscription.remove_feeds" title="Permalink to this definition">¶</a></dt>
-<dd><p>Removes the specified feed identifiers from the <cite>ExternalFeedSubscription</cite>.</p>
+<dd><p>Removes the specified feed identifiers from the subscription.</p>
 <p>For <tt class="docutils literal"><span class="pre">feed_idents</span></tt>, specify a list of feed URLs to remove from the subscription. Feed identifiers that are not part of the subscription are ignored. This method returns no value.</p>
 </dd></dl>
 
@@ -159,7 +216,7 @@
 <dt id="typepad.ExternalFeedSubscription.update_filters">
 <tt class="descclassname">typepad.ExternalFeedSubscription.</tt><tt class="descname">update_filters</tt><big>(</big><em>filter_rules</em><big>)</big><a class="headerlink" href="#typepad.ExternalFeedSubscription.update_filters" title="Permalink to this definition">¶</a></dt>
 <dd><p>Changes the subscription&#8217;s filters to those specified.</p>
-<p>For <tt class="docutils literal"><span class="pre">filter_rules</span></tt>, specify a list of strings containing search queries by which to filter. The subscription&#8217;s existing filters will be replaced by the filters you specify. To remove all the filters from a subscription, pass an empty list for <tt class="docutils literal"><span class="pre">filter_rules</span></tt>. This method returns no value.</p>
+<p>For <tt class="docutils literal"><span class="pre">filter_rules</span></tt>, specify a list of strings containing search queries by which to filter. The subscription&#8217;s existing filters will be <em>replaced</em> by the filters you specify. To remove all the filters from a subscription, pass an empty list for <tt class="docutils literal"><span class="pre">filter_rules</span></tt>. This method returns no value.</p>
 </dd></dl>
 
 <p>You can also change the way a subscription is delivered. For a <cite>Group</cite> subscription, use the <cite>ExternalFeedSubscription</cite> instance&#8217;s <cite>update_user()</cite> method; for an <cite>Application</cite> subscription, the <cite>update_notification_settings()</cite> method.</p>
@@ -174,8 +231,8 @@
 <dt id="typepad.ExternalFeedSubscription.update_notification_settings">
 <tt class="descclassname">typepad.ExternalFeedSubscription.</tt><tt class="descname">update_notification_settings</tt><big>(</big><em>callback_url</em>, <em>secret=None</em>, <em>verify_token=None</em><big>)</big><a class="headerlink" href="#typepad.ExternalFeedSubscription.update_notification_settings" title="Permalink to this definition">¶</a></dt>
 <dd><p>Changes the callback URL or secure secret used to deliver this subscription&#8217;s new feed items to your web application.</p>
-<p>Specify your application&#8217;s callback URL for the <tt class="docutils literal"><span class="pre">callback_url</span></tt> parameter. If <tt class="docutils literal"><span class="pre">callback_url</span></tt> is different from the subscription&#8217;s existing callback URL (that is, you&#8217;re asking to change the callback URL), TypePad will send the new URL a subscription verification request; in that case, a verification token to use in that request is required in the <tt class="docutils literal"><span class="pre">verify_token</span></tt> parameter.</p>
-<p>If you specify a <tt class="docutils literal"><span class="pre">secret</span></tt>, TypePad will use that secret to deliver future content per PubSubHubbub&#8217;s Authenticated Content Distribution protocol. If no secret is provided, future content delivery will not be authenticated.</p>
+<p>Specify your application&#8217;s callback URL for the <tt class="docutils literal"><span class="pre">callback_url</span></tt> parameter. If you&#8217;re asking to change the callback URL (that is, <tt class="docutils literal"><span class="pre">callback_url</span></tt> is different from the subscription&#8217;s existing callback URL), TypePad will send the new URL a subscription verification request; in that case, you must provide a verification token as the <tt class="docutils literal"><span class="pre">verify_token</span></tt> parameter.</p>
+<p>If you specify a <tt class="docutils literal"><span class="pre">secret</span></tt>, TypePad will use that secret to deliver future content per PubSubHubbub&#8217;s Authenticated Content Distribution protocol. If no secret is provided, future content delivery will not be authenticated. To preserve an existing secret, you must provide it as the <tt class="docutils literal"><span class="pre">secret</span></tt> parameter.</p>
 </dd></dl>
 
 <p>To stop receiving content from a subscription in your <cite>Group</cite> or callback URL, delete the subscription.</p>
@@ -199,8 +256,12 @@
             <ul>
 <li><a class="reference external" href="#">The feed subscription API</a><ul>
 <li><a class="reference external" href="#feeds-and-filters">Feeds and filters</a></li>
-<li><a class="reference external" href="#subscribing-a-group">Subscribing a <cite>Group</cite></a></li>
-<li><a class="reference external" href="#subscribing-an-application">Subscribing an <cite>Application</cite></a></li>
+<li><a class="reference external" href="#subscribing-a-group-to-feeds">Subscribing a <cite>Group</cite> to feeds</a></li>
+<li><a class="reference external" href="#subscribing-an-application-to-feeds">Subscribing an <cite>Application</cite> to feeds</a><ul>
+<li><a class="reference external" href="#verifying-the-subscription">Verifying the subscription</a></li>
+<li><a class="reference external" href="#receiving-new-feed-content">Receiving new feed content</a></li>
+</ul>
+</li>
 <li><a class="reference external" href="#modifying-subscriptions">Modifying subscriptions</a></li>
 </ul>
 </li>
@@ -249,7 +310,7 @@
         <li class="right" >
           <a href="index.html" title="Using typepad"
              >previous</a> |</li>
-        <li><a href="../index.html">typepad v1.1.2 documentation</a> &raquo;</li>
+        <li><a href="../index.html">typepad v2.0 documentation</a> &raquo;</li>
           <li><a href="index.html" >Using <cite>typepad</cite></a> &raquo;</li> 
       </ul>
     </div>
