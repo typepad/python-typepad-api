@@ -44,6 +44,7 @@ import traceback
 import unittest
 from urlparse import urlparse
 
+import httplib2
 import mox
 from oauth.oauth import OAuthConsumer, OAuthToken
 import simplejson as json
@@ -59,10 +60,6 @@ class TestObjects(unittest.TestCase):
     def test_relative_urls(self):
         raise NotImplementedError()
 
-    @utils.todo
-    def test_batch_enforcement(self):
-        raise NotImplementedError()
-
     def test_listof(self):
         x = typepad.ListOf('User')
         self.assert_(isinstance(x, type))
@@ -74,7 +71,18 @@ class TestObjects(unittest.TestCase):
         self.assert_(x is y, "two ListOf's the same thing are not only "
                              "equivalent but the same instance")
 
-    def test_imagelink(self):
+    def test_videolink_by_width(self):
+        v = typepad.VideoLink(embed_code="\n<object width=\"500\" height=\"395\">\n    <param name=\"movie\" value=\"http://www.youtube.com/v/deadbeef\" />\n    <param name=\"quality\" value=\"high\" />\n    <param name=\"wmode\" value=\"transparent\" />\n    <param name=\"allowscriptaccess\" value=\"never\" />\n    <param name=\"allowFullScreen\" value=\"true\" />\n    <embed type=\"application/x-shockwave-flash\"\n        width=\"500\" height=\"395\"\n        src=\"http://www.youtube.com/v/deadbeef\"\n        quality=\"high\" wmode=\"transparent\" allowscriptaccess=\"never\" allowfullscreen=\"true\"\n    />\n</object>\n")
+        sv = v.by_width(400)
+        self.assertEquals(sv.width, 400)
+        self.assertEquals(sv.height, 316)
+        self.assert_(re.search('\swidth="400"', sv.embed_code))
+        self.assert_(re.search('\sheight="316"', sv.embed_code))
+
+
+class TestImageLink(unittest.TestCase):
+
+    def test_basic(self):
         l = typepad.ImageLink(url_template='http://example.com/blah-{spec}')
         self.assertEquals(l.at_size('16si'), 'http://example.com/blah-16si')
         self.assertEquals(l.at_size('pi'), 'http://example.com/blah-pi')
@@ -85,7 +93,7 @@ class TestObjects(unittest.TestCase):
         self.assertRaises(ValueError, lambda: l.at_size('77'))
         self.assertRaises(ValueError, lambda: l.at_size('220wi'))
 
-    def test_imagelink_exhaustive(self):
+    def test_exhaustive(self):
         def prove(l):
             for size in typepad.ImageLink._WI:
                 i = l.by_width(size)
@@ -138,7 +146,7 @@ class TestObjects(unittest.TestCase):
             url_template='http://example.com/blah-{spec}',
             height=5, width=5))
 
-    def test_imagelink_inscribe(self):
+    def test_inscribe(self):
         l = typepad.ImageLink(url='http://example.com/blah',
             url_template='http://example.com/blah-{spec}',
             height=5000, width=5000)
@@ -148,7 +156,7 @@ class TestObjects(unittest.TestCase):
         self.assertEquals(l.inscribe(4999).url, 'http://example.com/blah-1024pi')
         self.assertEquals(l.inscribe(4999).width, 1024)
 
-    def test_imagelink_by_width(self):
+    def test_by_width(self):
         l = typepad.ImageLink(url='http://example.com/blah',
             url_template='http://example.com/blah-{spec}',
             height=5000, width=5000)
@@ -172,16 +180,8 @@ class TestObjects(unittest.TestCase):
 
         self.assertEquals(l.by_width(None).url, 'http://example.com/blah-1024wi')
 
-    def test_videolink_by_width(self):
-        v = typepad.VideoLink(embed_code="\n<object width=\"500\" height=\"395\">\n    <param name=\"movie\" value=\"http://www.youtube.com/v/deadbeef\" />\n    <param name=\"quality\" value=\"high\" />\n    <param name=\"wmode\" value=\"transparent\" />\n    <param name=\"allowscriptaccess\" value=\"never\" />\n    <param name=\"allowFullScreen\" value=\"true\" />\n    <embed type=\"application/x-shockwave-flash\"\n        width=\"500\" height=\"395\"\n        src=\"http://www.youtube.com/v/deadbeef\"\n        quality=\"high\" wmode=\"transparent\" allowscriptaccess=\"never\" allowfullscreen=\"true\"\n    />\n</object>\n")
-        sv = v.by_width(400)
-        self.assertEquals(sv.width, 400)
-        self.assertEquals(sv.height, 316)
-        self.assert_(re.search('\swidth="400"', sv.embed_code))
-        self.assert_(re.search('\sheight="316"', sv.embed_code))
 
-
-class TestBrowserUpload(unittest.TestCase):
+class ClientTestCase(unittest.TestCase):
 
     def setUp(self):
         self.typepad_client = typepad.client
@@ -201,6 +201,117 @@ class TestBrowserUpload(unittest.TestCase):
             setattr(self, fld, data)
             return True
         return save_data
+
+
+class TestActionEndpoint(ClientTestCase):
+
+    def test_responseless(self):
+        request = {
+            'uri': mox.Func(self.saver('uri')),
+            'method': 'POST',
+            'headers': mox.Func(self.saver('headers')),
+            'body': mox.Func(self.saver('body')),
+        }
+        response = {
+            'status': 204,  # no content
+        }
+
+        http = typepad.TypePadClient()
+        typepad.client = http
+        http.add_credentials(
+            OAuthConsumer('consumertoken', 'consumersecret'),
+            OAuthToken('tokentoken', 'tokensecret'),
+            domain='api.typepad.com',
+        )
+
+        mock = mox.Mox()
+        mock.StubOutWithMock(http, 'request')
+        http.request(**request).AndReturn((httplib2.Response(response), ''))
+        mock.ReplayAll()
+
+        class Moose(typepad.TypePadObject):
+
+            class Snert(typepad.TypePadObject):
+                volume = typepad.fields.Field()
+            snert = typepad.fields.ActionEndpoint(api_name='snert', post_type=Snert)
+
+        moose = Moose()
+        moose._location = 'https://api.typepad.com/meese/7.json'
+
+        ret = moose.snert(volume=10)
+        self.assert_(ret is None)
+
+        mock.VerifyAll()
+
+        self.assert_(self.uri)
+        self.assertEquals(self.uri, 'https://api.typepad.com/meese/7/snert.json')
+        self.assert_(self.headers)
+        self.assert_(self.body)
+
+        self.assert_(utils.json_equals({
+            'volume': 10
+        }, self.body))
+
+    def test_responseful(self):
+        request = {
+            'uri': mox.Func(self.saver('uri')),
+            'method': 'POST',
+            'headers': mox.Func(self.saver('headers')),
+            'body': mox.Func(self.saver('body')),
+        }
+        response = {
+            'status': 200,
+            'content-type': 'application/json',
+        }
+        response_content = '{"blahdeblah": true, "anotherthing": "2010-07-06T16:17:05Z"}'
+
+        http = typepad.TypePadClient()
+        typepad.client = http
+        http.add_credentials(
+            OAuthConsumer('consumertoken', 'consumersecret'),
+            OAuthToken('tokentoken', 'tokensecret'),
+            domain='api.typepad.com',
+        )
+
+        mock = mox.Mox()
+        mock.StubOutWithMock(http, 'request')
+        http.request(**request).AndReturn((httplib2.Response(response), response_content))
+        mock.ReplayAll()
+
+        class Moose(typepad.TypePadObject):
+
+            class Snert(typepad.TypePadObject):
+                volume = typepad.fields.Field()
+                target = typepad.fields.Object('User')
+            class SnertResponse(typepad.TypePadObject):
+                blahdeblah = typepad.fields.Field()
+                anotherthing = typepad.fields.Datetime()
+            snert = typepad.fields.ActionEndpoint(api_name='snert', post_type=Snert, response_type=SnertResponse)
+
+        moose = Moose()
+        moose._location = 'https://api.typepad.com/meese/7.json'
+
+        ret = moose.snert(volume=10, target=typepad.User(display_name='fred'))
+        self.assert_(ret is not None)
+        self.assert_(isinstance(ret, Moose.SnertResponse))
+
+        mock.VerifyAll()
+
+        self.assert_(self.uri)
+        self.assertEquals(self.uri, 'https://api.typepad.com/meese/7/snert.json')
+        self.assert_(self.headers)
+        self.assert_(self.body)
+
+        self.assert_(utils.json_equals({
+            'volume': 10,
+            'target': {
+                'displayName': 'fred',
+                'objectType': 'User',
+            },
+        }, self.body))
+
+
+class TestBrowserUpload(ClientTestCase):
 
     def message_from_response(self, headers, body):
         fp = FeedParser()
