@@ -524,7 +524,7 @@ class Asset(TypePadObject):
                         href='/assets/%s.json' % self.url_id,
                         type='application/json',
                         object_types=self.object_types,
-                        object_type=self.object_type or self._class_object_type)
+                        object_type=self.object_type)
 
     def __unicode__(self):
         return self.title or self.content
@@ -658,6 +658,28 @@ class AuthToken(TypePadObject):
         return cls.get('/auth-tokens/%s:%s.json' % (api_key, auth_token))
 
     target = renamed_property(old='target', new='target_object')
+
+
+class Badge(TypePadObject):
+
+    description = fields.Field()
+    """A human-readable description of what a user must do to win this badge."""
+    display_name = fields.Field(api_name='displayName')
+    """A human-readable name for this badge."""
+    id = fields.Field()
+    """The canonical identifier that can be used to identify this badge in URLs.
+
+    This can be used to recognise where the same badge is returned in response to
+    different requests, and as a mapping key for an application's local data
+    store.
+
+    """
+    image_link = fields.Object('ImageLink', api_name='imageLink')
+    """A link to the image that depicts this badge to users.
+
+    :attrtype:`ImageLink`
+
+    """
 
 
 class Blog(TypePadObject):
@@ -1196,7 +1218,11 @@ class Favorite(TypePadObject):
 
     """
     published = fields.Datetime()
-    """The time that the favorite was created, as a W3CDTF timestamp."""
+    """The time that the favorite was created, as a W3CDTF timestamp.
+
+    :attrtype:`datetime`
+
+    """
     url_id = fields.Field(api_name='urlId')
     """A string containing the canonical identifier that can be used to identify
     this favorite in URLs.
@@ -1480,6 +1506,18 @@ class RelationshipStatus(TypePadObject):
     """
 
 
+class UserBadge(TypePadObject):
+
+    badge = fields.Object('Badge')
+    """The badge that was won.
+
+    :attrtype:`Badge`
+
+    """
+    earned_time = fields.Field(api_name='earnedTime')
+    """The time that the user earned the badge given in `badge`."""
+
+
 class UserProfile(TypePadObject):
 
     """Additional profile information about a TypePad user.
@@ -1729,6 +1767,16 @@ class Group(Entity):
 
     """
 
+    class _AddMemberPost(TypePadObject):
+        user_id = fields.Field(api_name='userId')
+        """The urlId of the user who is being added."""
+    add_member = fields.ActionEndpoint(api_name='add-member', post_type=_AddMemberPost)
+
+    class _BlockUserPost(TypePadObject):
+        user_id = fields.Field(api_name='userId')
+        """The urlId of the user who is being blocked."""
+    block_user = fields.ActionEndpoint(api_name='block-user', post_type=_BlockUserPost)
+
     class _CreateExternalFeedSubscriptionPost(TypePadObject):
         feed_idents = fields.List(fields.Field(), api_name='feedIdents')
         """A list of identifiers of the initial set of feeds to be subscribed to.
@@ -1758,6 +1806,16 @@ class Group(Entity):
 
         """
     create_external_feed_subscription = fields.ActionEndpoint(api_name='create-external-feed-subscription', post_type=_CreateExternalFeedSubscriptionPost, response_type=_CreateExternalFeedSubscriptionResponse)
+
+    class _RemoveMemberPost(TypePadObject):
+        user_id = fields.Field(api_name='userId')
+        """The urlId of the user who is being removed."""
+    remove_member = fields.ActionEndpoint(api_name='remove-member', post_type=_RemoveMemberPost)
+
+    class _UnblockUserPost(TypePadObject):
+        user_id = fields.Field(api_name='userId')
+        """The urlId of the user who is being unblocked."""
+    unblock_user = fields.ActionEndpoint(api_name='unblock-user', post_type=_UnblockUserPost)
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/groups/%s.json' % self.url_id)
@@ -1895,6 +1953,12 @@ class User(Entity):
     """A link to an image representing this user.
 
     :attrtype:`ImageLink`
+
+    """
+    badges = fields.Link(ListOf('UserBadge'))
+    """Get a list of badges that the selected user has won.
+
+    :attrtype:`list of UserBadge`
 
     """
     blogs = fields.Link(ListOf('Blog'))
