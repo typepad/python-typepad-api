@@ -2064,7 +2064,9 @@ class TestTypePad(unittest.TestCase):
             pass
         elif event_type in ('AddedFavorite', 'NewAsset'):
             self.assertValidAsset(event.object)
-        elif event_type in ('JoinedGroup', 'AddedNeighbor'):
+        elif event_type == 'JoinedGroup':
+            self.assertValidGroup(event.object)
+        elif event_type == 'AddedNeighbor':
             self.assertValidUser(event.object)
         else:
             self.fail("Event type %s is not recognized" % event_type)
