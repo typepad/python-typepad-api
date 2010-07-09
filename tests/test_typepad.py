@@ -1895,9 +1895,6 @@ class TestTypePad(unittest.TestCase):
     def setUp(self):
         """Configures the test class prior to each test method.
         """
-
-        if not os.getenv('TEST_TYPEPAD'):
-            raise nose.SkipTest('no TypePad tests without TEST_TYPEPAD=1')
         if not os.getenv('TEST_TYPEPAD_JSON'):
             raise nose.SkipTest('no TypePad tests without TEST_TYPEPAD_JSON')
 
