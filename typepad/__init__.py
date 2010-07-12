@@ -50,7 +50,7 @@ from remoteobjects import RemoteObject, ListObject
 from typepad.tpclient import TypePadClient, OAuthClient, ThreadAwareTypePadClientProxy
 
 
-client_factory = lambda: TypePadClient()
+client_factory = lambda: TypePadClient(timeout=None)
 """Python callable that will prep and assign a typepad.client instance."""
 
 client = ThreadAwareTypePadClientProxy()
