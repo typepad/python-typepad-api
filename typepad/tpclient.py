@@ -171,7 +171,7 @@ class OAuthHttp(httplib2.Http):
         uri = self.url_for_signed_request(uri, method=method, headers=headers, body=body)
         return self.request(uri=uri, method=method, headers=headers, body=body)
 
-    def interactive_authorize(self, consumer, app, access=None):
+    def interactive_authorize(self, consumer, app, **kwargs):
         from textwrap import fill
 
         # Suppress batchhttp.client's no-log-handler warning.
@@ -196,11 +196,7 @@ class OAuthHttp(httplib2.Http):
         log.debug("Got request token %r", request_token)
 
         # Ask the viewer to authorize it.
-        if access is None:
-            params = None
-        else:
-            params = { 'access': access }
-        approve_url = oauth_client.authorize_token(params=params)
+        approve_url = oauth_client.authorize_token(params=kwargs)
         log.debug("Asking viewer to authorize token with URL %r", approve_url)
         print fill("""To join your application %r, follow this link and click "Allow":"""
             % app.name, width=78)
