@@ -109,8 +109,8 @@ is through the test method name, as tests are run in alphabetic order.
 
 import base64
 import cgi
+from copy import deepcopy
 import httplib
-import logging
 import os
 from pprint import pprint
 import re
@@ -132,9 +132,10 @@ import typepad
 
 
 def load_test_data():
-    filename = os.getenv('TEST_TYPEPAD_JSON')
-    if filename is None:
-        raise nose.SkipTest('no test data provided')
+    filename = os.getenv('TEST_TYPEPAD_JSON', os.getenv('TEST_TYPEPAD'))
+    if not filename:
+        raise nose.SkipTest('no TypePad tests without TEST_TYPEPAD_JSON')
+
     f = open(filename, 'r')
     s = f.read()
     f.close()
@@ -144,10 +145,15 @@ def load_test_data():
 def setUpModule():
     global testdata
     testdata = load_test_data()
+
+    if 'configuration' not in testdata:
+        raise ValueError('cannot run tests without configuration in test data')
+
     typepad.client.endpoint = testdata['configuration']['backend_url']
     testdata['assets'] = []
     testdata['assets_created'] = []
     testdata['comments_created'] = []
+
     if 'cookies' in testdata['configuration']:
         typepad.client.cookies.update(testdata['configuration']['cookies'])
 
@@ -169,18 +175,63 @@ def attr(*args, **kwargs):
             if m is not None:
                 verb = m.groups()[0]
                 kwargs['method'] = verb
+
         @nose.tools.make_decorator(fn)
         @nose.plugins.attrib.attr(*args, **kwargs)
         def test_user(self, *args, **kwargs):
             if user is not None:
                 self.credentials_for(user)
-            fn(self, *args, **kwargs)
-            self.clear_credentials()
+            try:
+                return fn(self, *args, **kwargs)
+            finally:
+                self.clear_credentials()
         return test_user
+
+    # This is called immediately, so don't need to carry name over.
     return wrap
 
 
 class TestTypePad(unittest.TestCase):
+
+    """Superclass for live TypePad API integration tests.
+
+    This class provides support for using the `attr()` decorator to pick as
+    which test user a test runs.
+
+    """
+
+    def credentials_for(self, ident):
+        """Configures the test client to use the credentials keyed on
+        ``ident`` in the test data."""
+        if ident not in self.testdata:
+            raise nose.SkipTest('no credentials for %s tests' % ident)
+        consumer = oauth.OAuthConsumer(
+            self.testdata['configuration']['oauth_consumer_key'],
+            self.testdata['configuration']['oauth_consumer_secret'],
+        )
+        token = oauth.OAuthToken(
+            self.testdata[ident]['oauth_key'],
+            self.testdata[ident]['oauth_secret'],
+        )
+        backend = urlparse(self.testdata['configuration']['backend_url'])
+        typepad.client.clear_credentials()
+        typepad.client.add_credentials(consumer, token, domain=backend[1])
+
+    def clear_credentials(self):
+        """Clears the test client's credentials."""
+        typepad.client.clear_credentials()
+
+    @classmethod
+    def setUpClass(cls):
+        global testdata
+        cls.testdata = deepcopy(testdata)
+
+    def setUp(self):
+        # force this on; other tests may have disabled it
+        typepad.TypePadObject.batch_requests = True
+
+
+class TestGroup(TestTypePad):
 
     @attr(user='member')
     def test_0_setup_test_data(self):
@@ -1893,19 +1944,7 @@ class TestTypePad(unittest.TestCase):
     ### Supporting functions for this test suite
 
     def setUp(self):
-        """Configures the test class prior to each test method.
-        """
-        if not os.getenv('TEST_TYPEPAD_JSON'):
-            raise nose.SkipTest('no TypePad tests without TEST_TYPEPAD_JSON')
-
-        # force this on; other tests may have disabled it
-        typepad.TypePadObject.batch_requests = True
-
-        global testdata
-        if 'configuration' not in testdata:
-            raise nose.SkipTest('cannot run tests without configuration in test data')
-
-        self.testdata = testdata
+        super(TestGroup, self).setUp()
 
         if not len(self.testdata['assets']):
             self.load_test_assets()
@@ -1925,26 +1964,6 @@ class TestTypePad(unittest.TestCase):
             # FIXME: https://intranet.sixapart.com/bugs/default.asp?88008
             if event.object and len(event.object.groups) > 0:
                 self.testdata['assets'].append(event.object.url_id)
-
-        self.clear_credentials()
-
-    def credentials_for(self, ident):
-        if ident not in self.testdata:
-            raise nose.SkipTest('no credentials for %s tests' % ident)
-        consumer = oauth.OAuthConsumer(
-            self.testdata['configuration']['oauth_consumer_key'],
-            self.testdata['configuration']['oauth_consumer_secret'],
-        )
-        token = oauth.OAuthToken(
-            self.testdata[ident]['oauth_key'],
-            self.testdata[ident]['oauth_secret'],
-        )
-        backend = urlparse(self.testdata['configuration']['backend_url'])
-        typepad.client.clear_credentials()
-        typepad.client.add_credentials(consumer, token, domain=backend[1])
-
-    def clear_credentials(self):
-        typepad.client.clear_credentials()
 
     def assertValidAsset(self, asset):
         """Checks given asset for properties that should be present on all assets.
@@ -2221,6 +2240,7 @@ class TestTypePad(unittest.TestCase):
         link.title = ''
         link.content = 'Test link post'
         return link
+
 
 if __name__ == '__main__':
     from tests import utils
