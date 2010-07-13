@@ -221,6 +221,18 @@ class TestTypePad(unittest.TestCase):
         """Clears the test client's credentials."""
         typepad.client.clear_credentials()
 
+    def assertForbidden(self, *args, **kwargs):
+        self.assertRaises(HttpObject.Forbidden, *args, **kwargs)
+
+    def assertUnauthorized(self, *args, **kwargs):
+        self.assertRaises(HttpObject.Unauthorized, *args, **kwargs)
+
+    def assertNotFound(self, *args, **kwargs):
+        self.assertRaises(HttpObject.NotFound, *args, **kwargs)
+
+    def assertRequestError(self, *args, **kwargs):
+        self.assertRaises(HttpObject.RequestError, *args, **kwargs)
+
     @classmethod
     def setUpClass(cls):
         global testdata
@@ -2206,15 +2218,6 @@ class TestGroup(TestTypePad):
         self.assertEquals(len(slice4.entries), 0, 'Slice %r had %d entries (expected 0)'
             % (slice4, len(slice4.entries)))
 
-    def assertForbidden(self, *args, **kwargs):
-        self.assertRaises(HttpObject.Forbidden, *args, **kwargs)
-
-    def assertUnauthorized(self, *args, **kwargs):
-        self.assertRaises(HttpObject.Unauthorized, *args, **kwargs)
-
-    def assertNotFound(self, *args, **kwargs):
-        self.assertRaises(HttpObject.NotFound, *args, **kwargs)
-
     def post_asset(self):
         """Creates a Post asset instance for testing purposes."""
 
@@ -2244,15 +2247,75 @@ class TestGroup(TestTypePad):
 
 class TestBlog(TestTypePad):
 
+    def setUp(self):
+        super(TestBlog, self).setUp()
+
+        if not hasattr(self, 'blogger'):
+            self.credentials_for('blogger')
+            try:
+                typepad.client.batch_request()
+                try:
+                    self.blogger = typepad.User.get_self()
+                    self.blogs = self.blogger.blogs
+                finally:
+                    typepad.client.complete_batch()
+
+                try:
+                    self.blog = self.blogs[0]
+                except (IndexError, AttributeError):
+                    self.blog = None
+            finally:
+                self.clear_credentials()
+
     @attr(user='blogger')
     def test_blog(self):
-        typepad.client.batch_request()
-        blogger = typepad.User.get_self()
-        blogs = blogger.blogs
-        typepad.client.complete_batch()
+        self.assertEquals(self.blogger.url_id, self.testdata['blogger']['xid'])
+        self.assertEquals(1, len(self.blogs))
 
-        self.assertEquals(blogger.url_id, self.testdata['blogger']['xid'])
-        self.assertEquals(1, len(blogs))
+        blog = self.blogs[0]
+        self.assert_(isinstance(blog, typepad.Blog))
+        self.assertEquals(blog.object_type, 'Blog')
+        self.assert_(blog.url_id)
+        self.assert_(blog.title)
+        self.assert_(blog.home_url)
+        self.assert_(isinstance(blog.owner, typepad.User))
+        self.assertEquals(blog.owner.url_id, self.blogger.url_id)
+        try:
+            blog.description
+        except Exception:
+            self.fail('blog has no description field')
+
+    @attr(user='blogger')
+    def test_categories(self):
+        cats = self.blog.categories
+        self.assertEquals(len(cats), 13)
+        cat_labels = sorted(cats)
+        self.assertEquals(cat_labels, ["Books", "Current Affairs", "Film", "Food and Drink", "Games", "Music",
+            "Religion", "Science", "Sports", "Television", "Travel", "Web/Tech", "Weblogs"])
+
+        # Can add a category.
+        ret = self.blog.add_category(category="Asfdasf")
+        self.assert_(ret is None)
+        cats = self.blog.categories
+        self.assertEquals(len(cats), 14)
+        self.assert_("Asfdasf" in cats)
+
+        # Adding an existing category does nothing.
+        ret = self.blog.add_category(category="Asfdasf")
+        self.assert_(ret is None)
+        cats = self.blog.categories
+        self.assertEquals(len(cats), 14)
+        self.assert_("Asfdasf" in cats)
+
+        # Can remove a category.
+        ret = self.blog.remove_category(category="Asfdasf")
+        self.assert_(ret is None)
+        cats = self.blog.categories
+        self.assertEquals(len(cats), 13)
+        self.assert_("Asfdasf" not in cats)
+
+        # Removing a category that doesn't exist is a Bad Request.
+        self.assertRequestError(lambda: self.blog.remove_category(category="Asfdasf"))
 
 
 if __name__ == '__main__':
