@@ -2242,6 +2242,19 @@ class TestGroup(TestTypePad):
         return link
 
 
+class TestBlog(TestTypePad):
+
+    @attr(user='blogger')
+    def test_blog(self):
+        typepad.client.batch_request()
+        blogger = typepad.User.get_self()
+        blogs = blogger.blogs
+        typepad.client.complete_batch()
+
+        self.assertEquals(blogger.url_id, self.testdata['blogger']['xid'])
+        self.assertEquals(1, len(blogs))
+
+
 if __name__ == '__main__':
     from tests import utils
     utils.log()
