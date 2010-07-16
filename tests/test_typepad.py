@@ -110,6 +110,7 @@ is through the test method name, as tests are run in alphabetic order.
 import base64
 import cgi
 from copy import deepcopy
+from datetime import datetime
 import httplib
 import os
 from pprint import pprint
@@ -2316,6 +2317,62 @@ class TestBlog(TestTypePad):
 
         # Removing a category that doesn't exist is a Bad Request.
         self.assertRequestError(lambda: self.blog.remove_category(category="Asfdasf"))
+
+    @attr(user='blogger')
+    def test_comment_settings(self):
+        settings = self.blog.commenting_settings
+        self.assert_(isinstance(settings, typepad.BlogCommentingSettings))
+
+        # These are all boolean flags, so they should all be present, whatever their value.
+        self.assert_(isinstance(settings.signin_allowed, bool))
+        self.assert_(isinstance(settings.signin_required, bool))
+        self.assert_(isinstance(settings.email_address_required, bool))
+        self.assert_(isinstance(settings.captcha_required, bool))
+        self.assert_(isinstance(settings.moderation_enabled, bool))
+        self.assert_(isinstance(settings.html_allowed, bool))
+        self.assert_(isinstance(settings.urls_auto_linked, bool))
+
+    @attr(user='blogger')
+    def test_new_post(self):
+        posts = self.blog.post_assets
+
+        newpost = typepad.Post(
+            title='Hi a test post',
+            content='This is my test post. Is it not nifty?',
+            filename='asfdasf',
+            categories=['Weblogs'],
+        )
+        self.assert_(newpost.url_id is None)
+
+        posts.post(newpost)
+
+        try:
+            self.assert_(newpost.url_id is not None)
+            self.assert_(newpost.permalink_url)
+            self.assert_('asfdasf' in newpost.permalink_url)
+            self.assert_(isinstance(newpost.published, datetime))
+            self.assertEquals(newpost.text_format, 'html')
+            self.assert_(newpost.rendered_content is not None)
+
+            self.assertEquals(newpost.author.url_id, self.blogger.url_id)
+            self.assertEquals(newpost.container.object_type, 'Blog')
+            self.assert_(not newpost.publication_status.draft)
+
+            # It's not a draft post, so it should be available in all the "published" endpoints.
+            has_newpost = lambda x: self.assert_([post for post in x if post.url_id == newpost.url_id])
+
+            has_newpost(self.blog.post_assets.filter(recent=True))
+            has_newpost(self.blog.post_assets.filter(published=True, recent=True))
+            #has_newpost(self.blog.post_assets.filter(by_category='Weblogs'))
+            #yearmonth = newpost.published.strftime('%Y-%m')
+            #has_newpost(self.blog.post_assets.filter(by_month=yearmonth))
+
+        finally:
+            newpost.delete()
+
+    @attr(user='blogger')
+    def test_basic_comment(self):
+        pass
 
 
 if __name__ == '__main__':
