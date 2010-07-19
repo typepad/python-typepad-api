@@ -2415,6 +2415,11 @@ class TestBlog(TestTypePad):
                 self.clear_credentials()
 
     @attr(user='blogger')
+    def test_crosspost_accounts(self):
+        # The blog isn't configured to crosspost, but make sure we can request the endpoint.
+        self.assertEquals(len(self.blog.crosspost_accounts), 0)
+
+    @attr(user='blogger')
     def test_new_post(self):
         posts = self.blog.post_assets
 
