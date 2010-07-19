@@ -2375,6 +2375,11 @@ class TestBlog(TestTypePad):
             newpost.delete()
 
     @attr(user='blogger')
+    def test_post_by_email(self):
+        self.assertRaises(self.blog.post_by_email_settings.BadResponse,
+            lambda: self.blog.post_by_email_settings.filter(by_user=self.blogger.url_id).deliver())
+
+    @attr(user='blogger')
     def test_basic_comment(self):
         pass
 
