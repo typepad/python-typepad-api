@@ -2363,9 +2363,13 @@ class TestBlog(TestTypePad):
 
             has_newpost(self.blog.post_assets.filter(recent=True))
             has_newpost(self.blog.post_assets.filter(published=True, recent=True))
-            #has_newpost(self.blog.post_assets.filter(by_category='Weblogs'))
-            #yearmonth = newpost.published.strftime('%Y-%m')
-            #has_newpost(self.blog.post_assets.filter(by_month=yearmonth))
+
+            self.assertRaises(self.blog.post_assets.RequestError,
+                lambda: self.blog.post_assets.filter(by_category='Weblogs').deliver())
+
+            yearmonth = newpost.published.strftime('%Y-%m')
+            self.assertRaises(self.blog.post_assets.RequestError,
+                lambda: self.blog.post_assets.filter(by_month=yearmonth).deliver())
 
         finally:
             newpost.delete()
