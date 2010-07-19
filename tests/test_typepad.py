@@ -2466,6 +2466,33 @@ class TestBlog(TestTypePad):
         self.assertRaises(self.blog.post_by_email_settings.BadResponse,
             lambda: self.blog.post_by_email_settings.filter(by_user=self.blogger.url_id).deliver())
 
+    def test_stats(self):
+        # No one views this blog so there shouldn't be any stats, but we can check we can request the endpoint.
+        unauth_blog = typepad.Blog.get_by_url_id(self.blog.url_id)
+        self.assertRaises(unauth_blog.stats.Forbidden,
+            lambda: unauth_blog.stats.deliver())
+
+        self.credentials_for('group')  # anonymous
+        try:
+            self.assertRaises(self.blog.stats.Forbidden,
+                lambda: self.blog.stats.deliver())
+        finally:
+            self.clear_credentials()
+
+        self.credentials_for('blogger')
+        try:
+            stats = self.blog.stats
+            stats.deliver()
+
+            # It might be empty, but let's assert it's the right shape anyhow.
+            self.assert_(isinstance(stats.total_page_views, int))
+            self.assert_(isinstance(stats.daily_page_views, dict))
+            all = lambda s: reduce(lambda x,y: x and y, s)
+            self.assert_(all(isinstance(k, basestring) for k in stats.daily_page_views.keys()))
+            self.assert_(all(isinstance(v, int) for v in stats.daily_page_views.values()))
+        finally:
+            self.clear_credentials()
+
 
 if __name__ == '__main__':
     from tests import utils
