@@ -2336,6 +2336,84 @@ class TestBlog(TestTypePad):
         self.assert_(isinstance(settings.html_allowed, bool))
         self.assert_(isinstance(settings.urls_auto_linked, bool))
 
+    def test_comments_basic(self):
+        self.credentials_for('blogger')
+        testpost = typepad.Post(title='Post for comments test', content='')
+        try:
+            self.blog.post_assets.post(testpost)
+        finally:
+            self.clear_credentials()
+
+        try:
+            self.credentials_for('group')  # anonymous
+            comment = typepad.Comment(content='hi a test comment')
+            self.assert_(comment.url_id is None)
+
+            # Anonymous comments require name and email fields we don't support yet.
+            try:
+                self.assertRaises(testpost.comments.RequestError,
+                    lambda: testpost.comments.post(comment))
+            finally:
+                self.clear_credentials()
+
+            self.credentials_for('blogger')
+            try:
+                testpost.comments.post(comment)
+            finally:
+                self.clear_credentials()
+            self.assert_(comment.url_id is not None)
+
+            try:
+                # Can't get private comments when unauthenticated.
+                unauth_blog = typepad.Blog.get_by_url_id(self.blog.url_id)  # gimme a http: url
+                self.assertRaises(unauth_blog.comments.BadResponse,  # 405
+                    lambda: unauth_blog.comments.deliver())
+                self.assertRaises(unauth_blog.comments.Unauthorized,
+                    lambda: unauth_blog.comments.filter(published=True).deliver())
+                new_comments = unauth_blog.comments.filter(published=True, recent=True)
+                self.assert_(len(new_comments) > 0)
+                self.assertEquals(new_comments[0].url_id, comment.url_id)
+
+                # Can't get private comments for a blog when anonymously authorized.
+                self.credentials_for('group')  # anonymous
+                try:
+                    self.assertRaises(self.blog.comments.BadResponse,  # 405
+                        lambda: self.blog.comments.deliver())
+                    self.assertRaises(self.blog.comments.Unauthorized,
+                        lambda: self.blog.comments.filter(published=True).deliver())
+                    new_comments = self.blog.comments.filter(published=True, recent=True)
+                    self.assert_(len(new_comments) > 0)
+                    self.assertEquals(new_comments[0].url_id, comment.url_id)
+                finally:
+                    self.clear_credentials()
+
+                # Yay, the author can get all the comment sets.
+                self.credentials_for('blogger')
+                try:
+                    self.assertRaises(self.blog.comments.BadResponse,  # 405
+                        lambda: self.blog.comments.deliver())
+                    publ_comments = self.blog.comments.filter(published=True)
+                    self.assert_(len(publ_comments) > 0)
+                    self.assertEquals(publ_comments[0].url_id, comment.url_id)
+                    new_comments = self.blog.comments.filter(published=True, recent=True)
+                    self.assert_(len(new_comments) > 0)
+                    self.assertEquals(new_comments[0].url_id, comment.url_id)
+                finally:
+                    self.clear_credentials()
+            finally:
+                self.credentials_for('blogger')
+                try:
+                    comment.delete()
+                finally:
+                    self.clear_credentials()
+
+        finally:
+            self.credentials_for('blogger')
+            try:
+                testpost.delete()
+            finally:
+                self.clear_credentials()
+
     @attr(user='blogger')
     def test_new_post(self):
         posts = self.blog.post_assets
@@ -2382,10 +2460,6 @@ class TestBlog(TestTypePad):
     def test_post_by_email(self):
         self.assertRaises(self.blog.post_by_email_settings.BadResponse,
             lambda: self.blog.post_by_email_settings.filter(by_user=self.blogger.url_id).deliver())
-
-    @attr(user='blogger')
-    def test_basic_comment(self):
-        pass
 
 
 if __name__ == '__main__':
