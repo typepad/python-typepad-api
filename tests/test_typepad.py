@@ -2286,6 +2286,10 @@ class TestBlog(TestTypePad):
         except Exception:
             self.fail('blog has no description field')
 
+        # Can't update a blog through the API.
+        blog.title = 'moose'
+        self.assertRaises(blog.BadResponse, lambda: blog.put())
+
     @attr(user='blogger')
     def test_categories(self):
         cats = self.blog.categories
