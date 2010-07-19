@@ -132,6 +132,15 @@ import simplejson as json
 import typepad
 
 
+TEST_IMAGE_CONTENT = "\n".join(
+    """iVBORw0KGgoAAAANSUhEUgAAACAAAAAWCAYAAAChWZ5EAAAAqUlEQVRIx8XTsQ2AIBCFYcM+OoOV"""
+    """lQu4gxM4jQswAyUrsAI1A6BXaKIiiLkHxSV0338EGu99U2nEPn1NvK0VcOI1Ai546YAHXjIgiJcK"""
+    """eMVLBERxdEASRwYQ3qVwVMBnHBEQxK21ozFmQge8bq61nqWUKzIgiDvnBtpcKbVQAJ3vNwHdnDCC"""
+    """78MZEH1w6Bv4/NoRbyDrq3F/Qzb8TwArnhvAjucECG74mA3T52uZi1CUIgAAAABJRU5ErkJggg=="""
+)
+
+
+
 def load_test_data():
     filename = os.getenv('TEST_TYPEPAD_JSON', os.getenv('TEST_TYPEPAD'))
     if not filename:
@@ -888,13 +897,7 @@ class TestGroup(TestTypePad):
             'content': 'This is a test upload',
             'objectType': 'Photo',
         }
-        content = "\n".join(
-            """iVBORw0KGgoAAAANSUhEUgAAACAAAAAWCAYAAAChWZ5EAAAAqUlEQVRIx8XTsQ2AIBCFYcM+OoOV"""
-            """lQu4gxM4jQswAyUrsAI1A6BXaKIiiLkHxSV0338EGu99U2nEPn1NvK0VcOI1Ai546YAHXjIgiJcK"""
-            """eMVLBERxdEASRwYQ3qVwVMBnHBEQxK21ozFmQge8bq61nqWUKzIgiDvnBtpcKbVQAJ3vNwHdnDCC"""
-            """78MZEH1w6Bv4/NoRbyDrq3F/Qzb8TwArnhvAjucECG74mA3T52uZi1CUIgAAAABJRU5ErkJggg=="""
-        )
-        self.upload_asset('member', asset, content)
+        self.upload_asset('member', asset, TEST_IMAGE_CONTENT)
 
     @attr(user='member')
     def test_5_POST_browser_upload__audio__by_member(self):
@@ -2418,6 +2421,25 @@ class TestBlog(TestTypePad):
     def test_crosspost_accounts(self):
         # The blog isn't configured to crosspost, but make sure we can request the endpoint.
         self.assertEquals(len(self.blog.crosspost_accounts), 0)
+
+    @attr(user='blogger')
+    def test_media_assets(self):
+        # Can't GET the assets.
+        self.assertRaises(self.blog.media_assets.BadResponse,  # 405
+            lambda: self.blog.media_assets.deliver())
+
+        # Try posting an image there.
+        req = self.blog.media_assets.get_request(method='POST',
+            headers={'content-type': 'image/png'})
+        req['body'] = base64.decodestring(TEST_IMAGE_CONTENT)
+
+        resp, cont = typepad.client.request(**req)
+        media_asset = typepad.Asset()
+        media_asset.update_from_response(req['uri'], resp, cont)
+        try:
+            self.assert_(isinstance(media_asset, typepad.Photo))
+        finally:
+            media_asset.delete()
 
     @attr(user='blogger')
     def test_new_post(self):
