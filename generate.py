@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+from __future__ import with_statement
+
 
 import codecs
 from cStringIO import StringIO
-import json
+import simplejson as json
 import logging
 from os.path import join
 import re
@@ -105,7 +107,7 @@ PROPERTY_FIXUPS = {
         'published': {'type': 'datetime'},
     },
     'Event': {
-        'published': {'type': 'datetime'},
+        'published': {'type': 'datetime', 'name': 'published'}, # can revert this change
         'verb': {'type': 'string'},
     },
     'Favorite': {
@@ -406,12 +408,10 @@ class Field(lazy):
         self.kwargs = dict()
         super(Field, self).__init__(data)
 
-    @property
-    def type(self):
+    def get_type(self):
         return self.__dict__['type']
 
-    @type.setter
-    def type(self, val):
+    def set_type(self, val):
         self.__dict__['type'] = val
 
         mo = re.match(r'(\w+)<([^>]+)>', val)
@@ -439,6 +439,8 @@ class Field(lazy):
             if val == 'Base':
                 val = 'TypePadObject'
             self.args.append(val)
+
+    type = property(get_type, set_type)
 
     @property
     def docstring_type(self):
@@ -478,12 +480,10 @@ class Field(lazy):
 
 class ObjectRef(Field):
 
-    @property
-    def type(self):
+    def get_type(self):
         return self.__dict__['type']
 
-    @type.setter
-    def type(self, val):
+    def set_type(self, val):
         self.__dict__['type'] = val
 
         mo = re.match(r'(\w+)<([^>]+)>', val)
@@ -498,6 +498,8 @@ class ObjectRef(Field):
             raise ValueError('Unknown container type %r' % container)
 
         self.field_type = val
+    
+    type = property(get_type, set_type)
 
     @property
     def docstring_type(self):
@@ -543,28 +545,28 @@ class Property(lazy):
         self.field = Field()
         super(Property, self).__init__(data)
 
-    @property
-    def name(self):
+    def get_name(self):
         return self.__dict__['name']
 
-    @name.setter
-    def name(self, name):
+    def set_name(self, name):
         py_name = name_to_pyname(name)
         if py_name != name:
             self.field.kwargs['api_name'] = name
         self.__dict__['name'] = py_name
 
-    @property
-    def type(self):
+    name = property(get_name, set_name)
+
+    def get_type(self):
         try:
             return self.__dict__['type']
         except KeyError:
             raise AttributeError('type')
 
-    @type.setter
-    def type(self, val):
+    def set_type(self, val):
         self.__dict__['type'] = val
         self.field.type = val
+
+    type = property(get_type, set_type)
 
     def render_docstring(self):
         val = self.docString
@@ -631,29 +633,29 @@ class ActionEndpoint(Property):
         super(ActionEndpoint, self).__init__(data)
         self.field.field_type = 'fields.ActionEndpoint'
 
-    @property
-    def postType(self):
+    def get_post_type(self):
         return self.__dict__['postType']
 
-    @postType.setter
-    def postType(self, val):
+    def set_post_type(self, val):
         cls_name = '_%sPost' % pyname_to_classname(self.name)
         self.field.kwargs['post_type'] = ClassRef({'type': cls_name})
 
         post_type = ObjectType({'name': cls_name, 'properties': val, 'parentType': 'TypePadObject', 'squashed': True})
         self.__dict__['postType'] = post_type
 
-    @property
-    def responseType(self):
+    postType = property(get_post_type, set_post_type)
+
+    def get_response_type(self):
         return self.__dict__['responseType']
 
-    @responseType.setter
-    def responseType(self, val):
+    def set_response_type(self, val):
         cls_name = '_%sResponse' % pyname_to_classname(self.name)
         self.field.kwargs['response_type'] = ClassRef({'type': cls_name})
 
         resp_type = ObjectType({'name': cls_name, 'properties': val, 'parentType': 'TypePadObject', 'squashed': True})
         self.__dict__['responseType'] = resp_type
+
+    responseType = property(get_response_type, set_response_type)
 
     def __str__(self):
         me = StringIO()
@@ -673,22 +675,20 @@ class ObjectType(lazy):
 
     types_by_name = dict()
 
-    @property
-    def name(self):
+    def get_name(self):
         return self.__dict__['name']
 
-    @name.setter
-    def name(self, val):
+    def set_name(self, val):
         assert 'name' not in self.__dict__
         self.__dict__['name'] = val
         self.types_by_name[val] = self
 
-    @property
-    def properties(self):
+    name = property(get_name, set_name)
+
+    def get_properties(self):
         return self.__dict__['properties']
 
-    @properties.setter
-    def properties(self, val):
+    def set_properties(self, val):
         # Keep a clean copy safe for referring to later.
         self.__dict__['property_data'] = dict((prop['name'], dict(prop)) for prop in val)
         # Now make val a dict for working with now.
@@ -721,6 +721,8 @@ class ObjectType(lazy):
         props = dict((prop.name, prop) for prop in props)
         self.__dict__['properties'] = props
 
+    properties = property(get_properties, set_properties)
+
     @property
     def parents(self):
         parents = [self.parentType]
@@ -736,8 +738,7 @@ class ObjectType(lazy):
             return False
         return self.types_by_name[self.parentType].has_get_by_url_id
 
-    @property
-    def docString(self):
+    def get_doc_string(self):
         try:
             return self.__dict__['docString']
         except KeyError:
@@ -748,9 +749,10 @@ class ObjectType(lazy):
         except KeyError:
             raise AttributeError('docString')
 
-    @docString.setter
-    def docString(self, val):
+    def set_doc_string(self, val):
         self.__dict__['docString'] = val
+
+    docString = property(get_doc_string, set_doc_string)
 
     @property
     def synopsis(self):
@@ -760,12 +762,10 @@ class ObjectType(lazy):
         logging.debug('    First line of that docstring is %r', first_line)
         return first_line.rstrip('.')
 
-    @property
-    def endpoint(self):
+    def get_endpoint(self):
         return self.__dict__['endpoint']
 
-    @endpoint.setter
-    def endpoint(self, val):
+    def set_endpoint(self, val):
         self.__dict__['endpoint'] = val
         self.endpoint_name = val['name']
 
@@ -777,6 +777,8 @@ class ObjectType(lazy):
 
         for endp in val['actionEndpoints']:
             self.add_action_endpoint(endp)
+
+    endpoint = property(get_endpoint, set_endpoint)
 
     def add_action_endpoint(self, endp):
         name = endp['name']
