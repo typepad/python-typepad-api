@@ -900,18 +900,18 @@ class ObjectType(lazy):
             body, '' if squash else '\n')
 
 
-def generate_types(types_fn=None, nouns_fn=None):
+def generate_types(types_fn=None, resourcemap_fn=None):
     if types_fn is None:
-        types = json.load(urllib2.urlopen('http://api.typepad.com/object-types.json'))
+        types = json.load(urllib2.urlopen('http://api.typepad.com/client-library-helpers/object-types.json'))
     else:
         with open(types_fn) as f:
             types = json.load(f)
 
-    if nouns_fn is None:
-        nouns = json.load(urllib2.urlopen('http://api.typepad.com/nouns.json'))
+    if resourcemap_fn is None:
+        rmap = json.load(urllib2.urlopen('http://api.typepad.com/client-library-helpers/resource-mappings.json'))
     else:
-        with open(nouns_fn) as f:
-            nouns = json.load(f)
+        with open(resourcemap_fn) as f:
+            rmap = json.load(f)
 
     objtypes = set()
     objtypes_by_name = dict()
@@ -947,27 +947,19 @@ def generate_types(types_fn=None, nouns_fn=None):
             objtypes_by_name[objtype.name] = objtype
 
     # Annotate the types with endpoint info.
-    for endpoint in nouns['entries']:
-        # Fix up blogs.comments to have a resource type.
-        if endpoint['name'] == 'blogs':
-            for propendp in endpoint['propertyEndpoints']:
-                if propendp.get('name') == 'comments':
-                    propendp['resourceObjectType'] = {
-                        'name': 'List<Comment>',
-                    }
-                    break
-        # Fix up relationships to have a correct object type.
-        elif endpoint['name'] == 'relationships':
-            endpoint['resourceObjectType']['name'] = 'Relationship'
-
+    for (name, mapping) in rmap.items():
+        # There used to be a few nouns.json fixups here, for the resourceObjectType of 
+        # /blogs/<id>/comments and the resourceObjectType of /relationships/<id>, but 
+        # both appear correct in resource-mappings.json, so that code has been removed.
+        
         try:
-            resource_name = endpoint['resourceObjectType']['name']
-            logging.debug('Finding object for type %s so it can have endpoint %r', resource_name, objtypes_by_name.get(resource_name))
+            resource_name = mapping['objectType']
             objtype = objtypes_by_name[resource_name]
+            logging.debug('Finding object for type %s so it can have endpoint %r', resource_name, objtypes_by_name.get(resource_name))
         except KeyError:
             pass
         else:
-            objtype.endpoint = endpoint
+            objtype.resources = mapping
 
     return objtypes
 
@@ -1053,7 +1045,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(
         description='generate a TypePad client library from json endpoints')
     parser.add_argument('--types', metavar='file', help='parse file for object type info', default=None)
-    parser.add_argument('--nouns', metavar='file', help='parse file for noun endpoint info', default=None)
+    parser.add_argument('--resourcemap', metavar='file', help='parse file for resource mapping info', default=None)
     parser.add_argument('-v', action=Add, nargs=0, dest='verbose', default=2, help='be more verbose')
     parser.add_argument('-q', action=Subt, nargs=0, dest='verbose', help='be less verbose')
     parser.add_argument('outfile', help='file to write library to')
@@ -1069,7 +1061,7 @@ def main(argv=None):
     logging.basicConfig(level=log_level)
     logging.info('Log level set to %s', logging.getLevelName(log_level))
 
-    objtypes = generate_types(ohyeah.types, ohyeah.nouns)
+    objtypes = generate_types(ohyeah.types, ohyeah.resourcemap)
     if ohyeah.docstrings:
         fn = write_docstrings
     elif ohyeah.docs:
