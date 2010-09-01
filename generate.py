@@ -107,7 +107,7 @@ PROPERTY_FIXUPS = {
         'published': {'type': 'datetime'},
     },
     'Event': {
-        'published': {'type': 'datetime', 'name': 'published'}, # can revert this change
+        'published': {'type': 'datetime'},
         'verb': {'type': 'string'},
     },
     'Favorite': {
