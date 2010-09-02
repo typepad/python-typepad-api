@@ -801,7 +801,7 @@ class ObjectType(lazy):
             value_type = LINK_PROPERTY_FIXUPS[self.name][name]['type']
         except KeyError:
             try:
-                value_type = endp['resourceObjectType']['name']
+                value_type = endp['resourceObjectType']
             except KeyError:
                 logging.info('Skipping endpoint %s.%s since it has no resourceObjectType', self.endpoint_name, name)
                 return
