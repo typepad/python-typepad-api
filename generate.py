@@ -772,6 +772,8 @@ class ObjectType(lazy):
                 'SubResource': self.add_property_endpoint,
                 'Action': self.add_action_endpoint,
                 'Item': lambda x: None,
+                # TODO: implement bare noun endpoints
+                'BareNoun': lambda x: None,
             }
             endp_typename = endpoint['endpointType']
             try:
