@@ -762,38 +762,35 @@ class ObjectType(lazy):
         logging.debug('    First line of that docstring is %r', first_line)
         return first_line.rstrip('.')
 
-    def get_endpoint(self):
-        return self.__dict__['endpoint']
+    def get_endpoints(self):
+        return self.__dict__['endpoints']
 
-    def set_endpoint(self, val):
-        self.__dict__['endpoint'] = val
-        self.endpoint_name = val['name']
+    def set_endpoints(self, val):
+        self.__dict__['endpoints'] = dict()
+        for endpoint in val:
+            endp_types = {
+                'SubResource': self.add_property_endpoint,
+                'Action': self.add_action_endpoint,
+            }
+            endp_typename = endpoint['endpointType']
+            try:
+                add_endpoint = endp_types[endp_typename]
+            except KeyError:
+                raise ValueError('Unknown endpoint type %r for %s endpoint named %r' % (endp_typename, self.name, endpoint.get('name')))
 
-        assert 'properties' in self.__dict__
-        logging.debug('Object %s has properties %r', self.name, self.__dict__['properties'].keys())
+            add_endpoint(endpoint)
 
-        for endp in val['propertyEndpoints']:
-            self.add_property_endpoint(endp)
-
-        for endp in val['actionEndpoints']:
-            self.add_action_endpoint(endp)
-
-    endpoint = property(get_endpoint, set_endpoint)
+    endpoints = property(get_endpoints, set_endpoints)
 
     def add_action_endpoint(self, endp):
         name = endp['name']
-
-        try:
-            endpoints = self.action_endpoints
-        except AttributeError:
-            endpoints = self.action_endpoints = {}
 
         endp_obj = ActionEndpoint({'name': name})
         endp_obj.postType = endp['postObjectType']['properties']
         if 'responseObjectType' in endp:
             endp_obj.responseType = endp['responseObjectType']['properties']
 
-        endpoints[endp_obj.name] = endp_obj
+        self.endpoints[endp_obj.name] = endp_obj
 
     def add_property_endpoint(self, endp):
         name = endp['name']
@@ -856,8 +853,8 @@ class ObjectType(lazy):
         if self.properties:
             me.write('\n')
 
-        action_endpoints = getattr(self, 'action_endpoints', {})
-        for name, endpoint in sorted(action_endpoints.items(), key=lambda x: x[0]):
+        endpoints = getattr(self, 'endpoints', {})
+        for name, endpoint in sorted(endpoints.items(), key=lambda x: x[0]):
             endp_text = str(endpoint)
             endp_text = indent(endp_text)
             endp_text = endp_text.rstrip('\n') + '\n\n'
@@ -953,9 +950,9 @@ def generate_types(types_fn=None, resourcemap_fn=None):
             objtype = objtypes_by_name[resource_name]
             logging.debug('Finding object for type %s so it can have endpoint %r', resource_name, objtypes_by_name.get(resource_name))
         except KeyError:
-            pass
+            logging.warn('No known object type %r; skipping some endpoints', resource_name)
         else:
-            objtype.resources = mapping
+            objtype.endpoints = mapping['endpoints']
 
     return objtypes
 
