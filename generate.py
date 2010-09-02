@@ -763,7 +763,10 @@ class ObjectType(lazy):
         return first_line.rstrip('.')
 
     def get_endpoints(self):
-        return self.__dict__['endpoints']
+        try:
+            return self.__dict__['endpoints']
+        except KeyError:
+            return {}
 
     def set_endpoints(self, val):
         self.__dict__['endpoints'] = dict()
