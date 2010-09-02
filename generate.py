@@ -787,9 +787,10 @@ class ObjectType(lazy):
         name = endp['name']
 
         endp_obj = ActionEndpoint({'name': name})
-        endp_obj.postType = endp['postObjectType']['properties']
-        if 'responseObjectType' in endp:
-            endp_obj.responseType = endp['responseObjectType']['properties']
+        endp_obj.postType = endp['requestObjectType']['properties']
+        resp_type = endp.get('responseObjectType')
+        if resp_type:
+            endp_obj.responseType = resp_type['properties']
 
         self.endpoints[endp_obj.name] = endp_obj
 
