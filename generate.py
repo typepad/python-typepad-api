@@ -947,11 +947,7 @@ def generate_types(types_fn=None, resourcemap_fn=None):
             objtypes_by_name[objtype.name] = objtype
 
     # Annotate the types with endpoint info.
-    for (name, mapping) in rmap.items():
-        # There used to be a few nouns.json fixups here, for the resourceObjectType of 
-        # /blogs/<id>/comments and the resourceObjectType of /relationships/<id>, but 
-        # both appear correct in resource-mappings.json, so that code has been removed.
-        
+    for name, mapping in rmap.iteritems():
         try:
             resource_name = mapping['objectType']
             objtype = objtypes_by_name[resource_name]
