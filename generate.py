@@ -771,6 +771,7 @@ class ObjectType(lazy):
             endp_types = {
                 'SubResource': self.add_property_endpoint,
                 'Action': self.add_action_endpoint,
+                'Item': lambda x: None,
             }
             endp_typename = endpoint['endpointType']
             try:
