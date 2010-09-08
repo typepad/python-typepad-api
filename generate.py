@@ -617,14 +617,13 @@ class Property(lazy):
         return val
 
     def set_path(self, chunks=[], params={}):
-        self.path_chunks = chunks
-        self.path_params = params
-
-    @property
-    def url(self):
-        for param, position in self.path_params.items():
-            self.path_chunks[position] = '%%(%s)s' % param
-        return '/' + '/'.join(self.path_chunks) + '.json'
+        for param, position in params.items():
+            chunks[position] = '%%(%s)s' % param
+        self.field.kwargs['api_url'] = '/' + '/'.join(chunks) + '.json'
+        try:
+            del self.field.kwargs['api_name']
+        except KeyError:
+            pass
 
     def __str__(self):
         me = StringIO()
@@ -686,7 +685,7 @@ class ItemEndpoint(Property):
         me = StringIO()
         me.write("""
     def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '%(url)s' %% {'id': self.url_id})
+        return urljoin(typepad.client.endpoint, '%(api_url)s' %% {'id': self.url_id})
 
     @property
     def xid(self):
@@ -701,12 +700,12 @@ class ItemEndpoint(Property):
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
             raise ValueError("An url_id is required")
-        obj = cls.get('%(url)s' %% {'id': url_id}, **kwargs)
+        obj = cls.get('%(api_url)s' %% {'id': url_id}, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%%s' %% url_id
         return obj
 
-        """.lstrip('\n') % {'url': self.url})
+        """.lstrip('\n') % {'api_url': self.field.kwargs['api_url']})
         me.write('\n')
         return me.getvalue()
         
@@ -834,6 +833,8 @@ class ObjectType(lazy):
 
         endp_obj = ActionEndpoint({'name': name})
         endp_obj.postType = endp['requestObjectType']['properties']
+        endp_obj.set_path(chunks=endp["pathChunks"], params=endp["pathParams"])
+        
         resp_type = endp.get('responseObjectType')
         if resp_type:
             endp_obj.responseType = resp_type['properties']
@@ -873,9 +874,9 @@ class ObjectType(lazy):
                     "named that (%r)" % (prop.name, self.name, str(self.properties[prop.name])))
 
             logging.info("Used property name override to rename %s.%s as %r", self.name, endp['name'], name)
-            if 'api_name' not in prop.field.kwargs:
-                prop.field.kwargs['api_name'] = prop.name
             prop.name = new_name
+
+        prop.set_path(chunks=endp["pathChunks"], params=endp["pathParams"])
 
         logging.debug('Adding Link property %s.%s', self.name, prop.name)
         self.properties[prop.name] = prop

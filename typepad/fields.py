@@ -49,6 +49,9 @@ class Link(remoteobjects.fields.Link):
 
     """
 
+    def __init__(self, cls, api_url, **kwargs):
+        self.api_name = self.api_url = api_url
+
     def __get__(self, instance, type=None, **kwargs):
         """Generates the `TypePadObject` representing the target of this
         `Link` object.
@@ -61,14 +64,10 @@ class Link(remoteobjects.fields.Link):
             return self
 
         try:
-            if instance._location is None:
-                raise AttributeError('Cannot find URL of %s relative to URL-less %s' % (type(self).__name__, owner.__name__))
-
-            assert instance._location.endswith('.json')
-            newurl = instance._location[:-5]
-            newurl += '/' + self.api_name
-            newurl += '.json'
-
+            params = kwargs.copy()
+            params['id'] = instance.url_id
+            newurl = self.api_url % params
+            
             cls = self.cls
             if isinstance(cls, basestring):
                 cls = remoteobjects.dataobject.find_by_name(cls)
@@ -81,8 +80,8 @@ class Link(remoteobjects.fields.Link):
 
 class ActionEndpoint(remoteobjects.fields.Property):
 
-    def __init__(self, api_name, post_type, response_type=None, **kwargs):
-        self.api_name = api_name
+    def __init__(self, api_url, post_type, response_type=None, **kwargs):
+        self.api_name = self.api_url = api_url
         self.post_type = post_type
         self.response_type = response_type
         super(ActionEndpoint, self).__init__(**kwargs)
@@ -94,16 +93,12 @@ class ActionEndpoint(remoteobjects.fields.Property):
             self.api_name = attrname
 
     def __get__(self, instance, owner):
-        if instance._location is None:
-            raise AttributeError('Cannot find URL of %s relative to URL-less %s' % (self.cls.__name__, owner.__name__))
-
-        assert instance._location.endswith('.json')
-        newurl = instance._location[:-5]
-        newurl += '/' + self.api_name
-        newurl += '.json'
-
         def post(**kwargs):
             post_obj = self.post_type(**kwargs)
+
+            params = kwargs.copy()
+            params['id'] = instance.url_id
+            newurl = self.api_url % params
 
             body = json.dumps(post_obj.to_dict(), default=remoteobjects.http.omit_nulls)
             headers = {'content-type': post_obj.content_types[0]}
