@@ -616,6 +616,16 @@ class Property(lazy):
         val = '\n'.join(lines)
         return val
 
+    def set_path(self, chunks=[], params={}):
+        self.path_chunks = chunks
+        self.path_params = params
+
+    @property
+    def url(self):
+        for param, position in self.path_params.items():
+            self.path_chunks[position] = '%%(%s)s' % param
+        return '/' + '/'.join(self.path_chunks) + '.json'
+
     def __str__(self):
         me = StringIO()
         me.write(self.name)
@@ -669,6 +679,37 @@ class ActionEndpoint(Property):
 
         me.write('\n')
         return me.getvalue()
+
+
+class ItemEndpoint(Property):
+    def __str__(self):
+        me = StringIO()
+        me.write("""
+    def make_self_link(self):
+        return urljoin(typepad.client.endpoint, '%(url)s' %% {'id': self.url_id})
+
+    @property
+    def xid(self):
+        return self.url_id
+
+    @classmethod
+    def get_by_id(cls, id, **kwargs):
+        url_id = id.rsplit(':', 1)[-1]
+        return cls.get_by_url_id(url_id, **kwargs)
+
+    @classmethod
+    def get_by_url_id(cls, url_id, **kwargs):
+        if url_id == '':
+            raise ValueError("An url_id is required")
+        obj = cls.get('%(url)s' %% {'id': url_id}, **kwargs)
+        obj.__dict__['url_id'] = url_id
+        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%%s' %% url_id
+        return obj
+
+        """.lstrip('\n') % {'url': self.url})
+        me.write('\n')
+        return me.getvalue()
+        
 
 
 class ObjectType(lazy):
@@ -774,7 +815,7 @@ class ObjectType(lazy):
             endp_types = {
                 'SubResource': self.add_property_endpoint,
                 'Action': self.add_action_endpoint,
-                'Item': lambda x: None,
+                'Item': self.add_item_endpoint,
                 # TODO: implement bare noun endpoints
                 'BareNoun': lambda x: None,
             }
@@ -839,6 +880,11 @@ class ObjectType(lazy):
         logging.debug('Adding Link property %s.%s', self.name, prop.name)
         self.properties[prop.name] = prop
 
+    def add_item_endpoint(self, endp):
+        item_endp = ItemEndpoint({})
+        item_endp.set_path(chunks=endp["pathChunks"], params=endp["pathParams"])
+        self.item_endpoint = item_endp
+
     def __repr__(self):
         return "<%s %s>" % (type(self).__name__, self.name)
 
@@ -867,30 +913,8 @@ class ObjectType(lazy):
             endp_text = endp_text.rstrip('\n') + '\n\n'
             me.write(endp_text)
 
-        if hasattr(self, 'endpoint_name') and self.has_get_by_url_id:
-            me.write("""
-    def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/%(endpoint_name)s/%%s.json' %% self.url_id)
-
-    @property
-    def xid(self):
-        return self.url_id
-
-    @classmethod
-    def get_by_id(cls, id, **kwargs):
-        url_id = id.rsplit(':', 1)[-1]
-        return cls.get_by_url_id(url_id, **kwargs)
-
-    @classmethod
-    def get_by_url_id(cls, url_id, **kwargs):
-        if url_id == '':
-            raise ValueError("An url_id is required")
-        obj = cls.get('/%(endpoint_name)s/%%s.json' %% url_id, **kwargs)
-        obj.__dict__['url_id'] = url_id
-        obj.__dict__['id'] = 'tag:api.typepad.com,2009:%%s' %% url_id
-        return obj
-
-""".lstrip('\n') % {'endpoint_name': self.endpoint_name})
+        if hasattr(self, 'item_endpoint') and self.has_get_by_url_id:
+            me.write(str(self.item_endpoint))
 
         if self.name in CLASS_EXTRAS:
             me.write(CLASS_EXTRAS[self.name].lstrip('\n'))
