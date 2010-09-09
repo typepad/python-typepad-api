@@ -64,9 +64,23 @@ class Link(remoteobjects.fields.Link):
             return self
 
         try:
+            # Build a param list for format specifier replacement. We just grab from kwargs and also add in
+            # 'id' automatically (since it is known).  If an api_url_names dict is provided (mapping pynames to 
+            # api_names), use it to convert whatever params it specifies to api_names.
             params = kwargs.copy()
             params['id'] = instance.url_id
+            if 'api_url_names' in kwargs:
+                for pyname, api_name in kwargs['api_url_names']:
+                    if pyname in params and api_name not in params:
+                        params[api_name] = params[pyname]
+                        del params[pyname]
+                        del kwargs[pyname] # delete this now too since the cleanup step below won't find it.
             newurl = self.api_url % params
+            
+            # Now we have to clean up and remove the kwargs we consumed in the URL path
+            for kwarg in kwargs.keys():
+                if '%%(%s)s'%kwarg in api_url:
+                    del kwargs[kwarg]
             
             cls = self.cls
             if isinstance(cls, basestring):
@@ -96,10 +110,24 @@ class ActionEndpoint(remoteobjects.fields.Property):
         def post(**kwargs):
             post_obj = self.post_type(**kwargs)
 
+            # Build a param list for format specifier replacement. We just grab from kwargs and also add in
+            # 'id' automatically (since it is known).  If an api_url_names dict is provided (mapping pynames to 
+            # api_names), use it to convert whatever params it specifies to api_names.
             params = kwargs.copy()
             params['id'] = instance.url_id
+            if 'api_url_names' in kwargs:
+                for pyname, api_name in kwargs['api_url_names']:
+                    if pyname in params and api_name not in params:
+                        params[api_name] = params[pyname]
+                        del params[pyname]
+                        del kwargs[pyname] # delete this now too since the cleanup step below won't find it.
             newurl = self.api_url % params
-
+            
+            # Now we have to clean up and remove the kwargs we consumed in the URL path
+            for kwarg in kwargs.keys():
+                if '%%(%s)s'%kwarg in api_url:
+                    del kwargs[kwarg]
+            
             body = json.dumps(post_obj.to_dict(), default=remoteobjects.http.omit_nulls)
             headers = {'content-type': post_obj.content_types[0]}
             request = post_obj.get_request(url=newurl, method='POST',
