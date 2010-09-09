@@ -30,13 +30,13 @@
 import logging
 
 import simplejson as json
+import urlparse
 
 import remoteobjects.dataobject
 import remoteobjects.fields
 from remoteobjects.fields import *
 import remoteobjects.http
 import typepad.tpobject
-
 
 class Link(remoteobjects.fields.Link):
 
@@ -76,7 +76,9 @@ class Link(remoteobjects.fields.Link):
                     params[api_name] = params[pyname]
                     del params[pyname]
                     del kwargs[pyname] # delete this now too since the cleanup step below won't find it.
-            newurl = self.api_url % params
+            
+            endpoint = _get_endpoint_from_instance(instance)
+            newurl = endpoint + (self.api_url % params)
             
             # Now we have to clean up and remove the kwargs we consumed in the URL path
             for kwarg in kwargs.keys():
@@ -122,7 +124,9 @@ class ActionEndpoint(remoteobjects.fields.Property):
                     params[api_name] = params[pyname]
                     del params[pyname]
                     del kwargs[pyname] # delete this now too since the cleanup step below won't find it.
-            newurl = self.api_url % params
+            
+            endpoint = _get_endpoint_from_instance(instance, default=typepad.client.endpoint)
+            newurl = endpoint + (self.api_url % params)
             
             # Now we have to clean up and remove the kwargs we consumed in the URL path
             for kwarg in kwargs.keys():
@@ -146,3 +150,18 @@ class ActionEndpoint(remoteobjects.fields.Property):
             return resp_obj
 
         return post
+
+
+def _get_endpoint_from_instance(instance, default=''):
+    """
+    Given an instance of a TypePadObject, return its client endpoint.
+    """
+    if hasattr(instance, '_http') and instance._http and instance._http.endpoint:
+        return instance._http.endpoint
+    elif hasattr(instance, '_location') and instance._location:
+        parts = urlparse.urlparse(instance._location)
+        if parts[0] and parts[1]:
+            return '%s://%s' % (parts[0], parts[1])
+    else:
+        return default
+    
