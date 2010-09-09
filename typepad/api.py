@@ -819,27 +819,27 @@ class Blog(TypePadObject):
     :attrtype:`list of Post`
 
     """
-    post_assets_by_category = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@by-category/%(category)s.json')
+    post_assets_by_category = fields.Link(ListOf('Post'), is_callable=True, api_url='/blogs/%(id)s/post-assets/@by-category/%(category)s.json')
     """Get all visibile posts in the selected blog that have been assigned to the
     given category.
 
     :attrtype:`list of Post`
 
     """
-    post_assets_by_filename = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@by-filename/%(fileRef)s.json', api_url_names={'file_ref': 'fileRef'})
+    post_assets_by_filename = fields.Link(ListOf('Post'), is_callable=True, api_url='/blogs/%(id)s/post-assets/@by-filename/%(fileRef)s.json', api_url_names={'file_ref': 'fileRef'})
     """Get zero or one posts matching the given year, month and filename.
 
     :attrtype:`list of Post`
 
     """
-    post_assets_by_month = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@by-month/%(month)s.json')
+    post_assets_by_month = fields.Link(ListOf('Post'), is_callable=True, api_url='/blogs/%(id)s/post-assets/@by-month/%(month)s.json')
     """Get all visible posts in the selected blog that have a publication date
     within the selected month, specified as a string of the form "YYYY-MM".
 
     :attrtype:`list of Post`
 
     """
-    post_by_email_settings_by_user = fields.Link('PostByEmailAddress', api_url='/blogs/%(id)s/post-by-email-settings/@by-user/%(userId)s.json', api_url_names={'user_id': 'userId'})
+    post_by_email_settings_by_user = fields.Link('PostByEmailAddress', is_callable=True, api_url='/blogs/%(id)s/post-by-email-settings/@by-user/%(userId)s.json', api_url_names={'user_id': 'userId'})
     """Get the selected user's post-by-email address
 
     :attrtype:`PostByEmailAddress`
@@ -852,14 +852,14 @@ class Blog(TypePadObject):
     :attrtype:`list of Comment`
 
     """
-    published_post_assets_by_category = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@published/@by-category/%(category)s.json')
+    published_post_assets_by_category = fields.Link(ListOf('Post'), is_callable=True, api_url='/blogs/%(id)s/post-assets/@published/@by-category/%(category)s.json')
     """Get the published posts in the selected blog that have been assigned to the
     given category.
 
     :attrtype:`list of Post`
 
     """
-    published_post_assets_by_month = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@published/@by-month/%(month)s.json')
+    published_post_assets_by_month = fields.Link(ListOf('Post'), is_callable=True, api_url='/blogs/%(id)s/post-assets/@published/@by-month/%(month)s.json')
     """Get the posts that were published within the selected month (YYYY-MM) from
     the selected blog.
 
@@ -2210,7 +2210,7 @@ class User(Entity):
     :attrtype:`list of Event`
 
     """
-    events_by_group = fields.Link(ListOf('Event'), api_url='/users/%(id)s/events/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    events_by_group = fields.Link(ListOf('Event'), is_callable=True, api_url='/users/%(id)s/events/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
     """Get a list of events describing actions that the selected user performed in
     a particular group.
 
@@ -2233,7 +2233,7 @@ class User(Entity):
     :attrtype:`list of Relationship`
 
     """
-    follower_relationships_by_group = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/relationships/@follower/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    follower_relationships_by_group = fields.Link(ListOf('Relationship'), is_callable=True, api_url='/users/%(id)s/relationships/@follower/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
     """Get a list of relationships that have the Contact type that the selected
     user has with other users, constrained to members of a particular group.
 
@@ -2247,7 +2247,7 @@ class User(Entity):
     :attrtype:`list of Relationship`
 
     """
-    following_relationships_by_group = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/relationships/@following/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    following_relationships_by_group = fields.Link(ListOf('Relationship'), is_callable=True, api_url='/users/%(id)s/relationships/@following/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
     """Get a list of relationships that have the Contact type that other users
     have with the selected user, constrained to members of a particular group.
 
@@ -2301,7 +2301,7 @@ class User(Entity):
     :attrtype:`list of Relationship`
 
     """
-    memberships_by_group = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/memberships/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    memberships_by_group = fields.Link(ListOf('Relationship'), is_callable=True, api_url='/users/%(id)s/memberships/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
     """Get a list containing only the relationship between the selected user and a
     particular group, or an empty list if the user has no relationship with the
     group.
@@ -2316,7 +2316,7 @@ class User(Entity):
     :attrtype:`list of Event`
 
     """
-    notifications_by_group = fields.Link(ListOf('Event'), api_url='/users/%(id)s/notifications/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    notifications_by_group = fields.Link(ListOf('Event'), is_callable=True, api_url='/users/%(id)s/notifications/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
     """Get a list of events describing actions in a particular group by users that
     the selected user is following.
 
@@ -2365,7 +2365,7 @@ class User(Entity):
     :attrtype:`list of Relationship`
 
     """
-    relationships_by_group = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/relationships/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    relationships_by_group = fields.Link(ListOf('Relationship'), is_callable=True, api_url='/users/%(id)s/relationships/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
     """Get a list of relationships that the selected user has with other users,
     and that other users have with the selected user, constrained to members of a
     particular group.
@@ -2373,7 +2373,7 @@ class User(Entity):
     :attrtype:`list of Relationship`
 
     """
-    relationships_by_user = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/relationships/@by-user/%(userId)s.json', api_url_names={'user_id': 'userId'})
+    relationships_by_user = fields.Link(ListOf('Relationship'), is_callable=True, api_url='/users/%(id)s/relationships/@by-user/%(userId)s.json', api_url_names={'user_id': 'userId'})
     """Get a list of relationships that the selected user has with a single other
     user.
 

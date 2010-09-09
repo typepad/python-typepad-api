@@ -50,10 +50,11 @@ class Link(remoteobjects.fields.Link):
 
     """
 
-    def __init__(self, cls, api_url, api_url_names={}, **kwargs):
+    def __init__(self, cls, api_url, api_url_names={}, is_callable=False, **kwargs):
         super(Link, self).__init__(cls, **kwargs)
         self.api_name = self.api_url = api_url
         self.api_url_names = api_url_names
+        self.is_callable = is_callable
 
     def __get__(self, instance, type=None, **kwargs):
         """Generates the `TypePadObject` representing the target of this
@@ -66,11 +67,24 @@ class Link(remoteobjects.fields.Link):
         if instance is None:
             return self
 
+        if self.is_callable:
+            self._bound_instance = instance
+            return self
+        else:
+            return self._result(instance, **kwargs)
+
+    def __call__(self, **kwargs):
+        """Subresources that require parameters other than just "id" result in callables, instead of
+        properties.  The caller then passes in the additional params as kwargs in a method call.
+        """
+        return self._result(self._bound_instance, **kwargs)
+
+    def _result(self, instance, **kwargs):
         try:
             endpoint = _get_endpoint_from_instance(instance)
             params = _get_params_from_kwargs(prop=self, instance=instance, kwargs_dict=kwargs)
             newurl = endpoint + (self.api_url % params)
-
+            
             cls = self.cls
             if isinstance(cls, basestring):
                 cls = remoteobjects.dataobject.find_by_name(cls)

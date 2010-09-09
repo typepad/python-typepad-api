@@ -629,9 +629,12 @@ class Property(lazy):
             pyname = name_to_pyname(param)
             if param != pyname:
                 api_url_names[pyname] = param
+            if param != 'id':
+                self.field.kwargs['is_callable'] = True
         self.field.kwargs['api_url'] = '/' + '/'.join(chunks) + '.json'
         if api_url_names:
             self.field.kwargs['api_url_names'] = api_url_names
+        
         try:
             del self.field.kwargs['api_name']
         except KeyError:
