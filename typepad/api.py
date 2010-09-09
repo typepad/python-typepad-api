@@ -125,13 +125,19 @@ class Application(TypePadObject):
 
     _class_object_type = "Application"
 
-    external_feed_subscriptions = fields.Link(ListOf('ExternalFeedSubscription'), api_name='external-feed-subscriptions')
+    badges = fields.Link(ListOf('Badge'), api_url='/applications/%(id)s/badges.json')
+    """Get a list of badges defined by this application.
+
+    :attrtype:`list of Badge`
+
+    """
+    external_feed_subscriptions = fields.Link(ListOf('ExternalFeedSubscription'), api_url='/applications/%(id)s/external-feed-subscriptions.json')
     """Get a list of the application's active external feed subscriptions.
 
     :attrtype:`list of ExternalFeedSubscription`
 
     """
-    groups = fields.Link(ListOf('Group'))
+    groups = fields.Link(ListOf('Group'), api_url='/applications/%(id)s/groups.json')
     """Get a list of groups in which a client using a ``app_full`` access auth
     token from this application can act.
 
@@ -141,6 +147,12 @@ class Application(TypePadObject):
     id = fields.Field()
     """A string containing the canonical identifier that can be used to identify
     this application in URLs."""
+    learning_badges = fields.Link(ListOf('Badge'), api_url='/applications/%(id)s/badges/@learning.json')
+    """Get a list of all learning badges defined by this application.
+
+    :attrtype:`list of Badge`
+
+    """
     name = fields.Field()
     """The name of the application as provided by its developer."""
     oauth_access_token_url = fields.Field(api_name='oauthAccessTokenUrl')
@@ -166,6 +178,12 @@ class Application(TypePadObject):
 
 
     :attrtype:`list`
+
+    """
+    public_badges = fields.Link(ListOf('Badge'), api_url='/applications/%(id)s/badges/@public.json')
+    """Get a list of all public badges defined by this application.
+
+    :attrtype:`list of Badge`
 
     """
     session_sync_script_url = fields.Field(api_name='sessionSyncScriptUrl')
@@ -207,7 +225,7 @@ class Application(TypePadObject):
         :attrtype:`ExternalFeedSubscription`
 
         """
-    create_external_feed_subscription = fields.ActionEndpoint(api_name='create-external-feed-subscription', post_type=_CreateExternalFeedSubscriptionPost, response_type=_CreateExternalFeedSubscriptionResponse)
+    create_external_feed_subscription = fields.ActionEndpoint(post_type=_CreateExternalFeedSubscriptionPost, api_url='/applications/%(id)s/create-external-feed-subscription.json', response_type=_CreateExternalFeedSubscriptionResponse)
 
     def make_self_link(self):
         return urljoin(typepad.client.endpoint, '/applications/%s.json' % self.id)
@@ -252,7 +270,7 @@ class Asset(TypePadObject):
     :attrtype:`User`
 
     """
-    categories = fields.Link(ListObject)
+    categories = fields.Link(ListObject, api_url='/assets/%(id)s/categories.json')
     """Get a list of categories into which this asset has been placed within its
     blog.
 
@@ -269,14 +287,14 @@ class Asset(TypePadObject):
     comments.
 
     """
-    comment_tree = fields.Link(ListOf('CommentTreeItem'), api_name='comment-tree')
+    comment_tree = fields.Link(ListOf('CommentTreeItem'), api_url='/assets/%(id)s/comment-tree.json')
     """Get a list of assets that were posted in response to the selected asset and
     their depth in the response tree
 
     :attrtype:`list of CommentTreeItem`
 
     """
-    comments = fields.Link(ListOf('Comment'))
+    comments = fields.Link(ListOf('Comment'), api_url='/assets/%(id)s/comments.json')
     """Get a list of assets that were posted in response to the selected asset.
 
     POST: Create a new Comment asset as a response to the selected asset.
@@ -318,7 +336,7 @@ class Asset(TypePadObject):
     This is currently available only for `Post` assets.
 
     """
-    extended_content = fields.Link('AssetExtendedContent', api_name='extended-content')
+    extended_content = fields.Link('AssetExtendedContent', api_url='/assets/%(id)s/extended-content.json')
     """Get the extended content for the asset, if any.
 
     Currently supported only for `Post` assets that are posted within a blog.
@@ -329,15 +347,17 @@ class Asset(TypePadObject):
     """
     favorite_count = fields.Field(api_name='favoriteCount')
     """The number of distinct users who have added this asset as a favorite."""
-    favorites = fields.Link(ListOf('Favorite'))
+    favorites = fields.Link(ListOf('Favorite'), api_url='/assets/%(id)s/favorites.json')
     """Get a list of favorites that have been created for the selected asset.
 
     :attrtype:`list of Favorite`
 
     """
-    feedback_status = fields.Link('FeedbackStatus', api_name='feedback-status')
-    """Get the feedback status of selected asset  PUT: Set the feedback status of
-    selected asset
+    feedback_status = fields.Link('FeedbackStatus', api_url='/assets/%(id)s/feedback-status.json')
+    """Get the feedback status of the selected asset.
+
+    PUT: Set the feedback status of the selected asset.
+
 
     :attrtype:`FeedbackStatus`
 
@@ -354,6 +374,14 @@ class Asset(TypePadObject):
     """
     id = fields.Field()
     """A URI that serves as a globally unique identifier for the user."""
+    is_conversations_answer = fields.Field(api_name='isConversationsAnswer')
+    """**Deprecated.** `True` if this asset is an answer to a TypePad
+    Conversations question, or absent otherwise.
+
+    This property is deprecated and will be replaced with something more useful in
+    future.
+
+    """
     is_favorite_for_current_user = fields.Field(api_name='isFavoriteForCurrentUser')
     """`True` if this asset is a favorite for the currently authenticated user, or
     `False` otherwise.
@@ -361,7 +389,7 @@ class Asset(TypePadObject):
     This property is omitted from responses to anonymous requests.
 
     """
-    media_assets = fields.Link(ListOf('Asset'), api_name='media-assets')
+    media_assets = fields.Link(ListOf('Asset'), api_url='/assets/%(id)s/media-assets.json')
     """Get a list of media assets that are embedded in the content of the selected
     asset.
 
@@ -399,9 +427,11 @@ class Asset(TypePadObject):
     :attrtype:`PublicationStatus`
 
     """
-    publication_status_obj = fields.Link('PublicationStatus', api_name='publication-status')
-    """Get the publication status of selected asset  PUT: Set the publication
-    status of selected asset
+    publication_status_obj = fields.Link('PublicationStatus', api_url='/assets/%(id)s/publication-status.json')
+    """Get the publication status of the selected asset.
+
+    PUT: Set the publication status of the selected asset.
+
 
     :attrtype:`PublicationStatus`
 
@@ -412,7 +442,18 @@ class Asset(TypePadObject):
     :attrtype:`datetime`
 
     """
-    reblogs = fields.Link(ListOf('Post'))
+    reblog_of = fields.Object('AssetRef', api_name='reblogOf')
+    """**Deprecated.** If this asset was created by 'reblogging' another asset,
+    this property describes the original asset.
+
+    :attrtype:`AssetRef`
+
+    """
+    reblog_of_url = fields.Field(api_name='reblogOfUrl')
+    """**Deprecated.** If this asset was created by 'reblogging' another asset or
+    some other arbitrary web page, this property contains the URL of the item that
+    was reblogged."""
+    reblogs = fields.Link(ListOf('Post'), api_url='/assets/%(id)s/reblogs.json')
     """Get a list of posts that were posted as reblogs of the selected asset.
 
     :attrtype:`list of Post`
@@ -458,7 +499,7 @@ class Asset(TypePadObject):
     class _AddCategoryPost(TypePadObject):
         category = fields.Field()
         """The category to add"""
-    add_category = fields.ActionEndpoint(api_name='add-category', post_type=_AddCategoryPost)
+    add_category = fields.ActionEndpoint(post_type=_AddCategoryPost, api_url='/assets/%(id)s/add-category.json')
 
     class _MakeCommentPreviewPost(TypePadObject):
         content = fields.Field()
@@ -470,12 +511,12 @@ class Asset(TypePadObject):
         :attrtype:`Asset`
 
         """
-    make_comment_preview = fields.ActionEndpoint(api_name='make-comment-preview', post_type=_MakeCommentPreviewPost, response_type=_MakeCommentPreviewResponse)
+    make_comment_preview = fields.ActionEndpoint(post_type=_MakeCommentPreviewPost, api_url='/assets/%(id)s/make-comment-preview.json', response_type=_MakeCommentPreviewResponse)
 
     class _RemoveCategoryPost(TypePadObject):
         category = fields.Field()
         """The category to remove"""
-    remove_category = fields.ActionEndpoint(api_name='remove-category', post_type=_RemoveCategoryPost)
+    remove_category = fields.ActionEndpoint(post_type=_RemoveCategoryPost, api_url='/assets/%(id)s/remove-category.json')
 
     class _UpdatePublicationStatusPost(TypePadObject):
         draft = fields.Field()
@@ -484,10 +525,10 @@ class Asset(TypePadObject):
         """The publication date of the asset"""
         spam = fields.Field()
         """A boolean indicating whether the asset is spam; Comment only"""
-    update_publication_status = fields.ActionEndpoint(api_name='update-publication-status', post_type=_UpdatePublicationStatusPost)
+    update_publication_status = fields.ActionEndpoint(post_type=_UpdatePublicationStatusPost, api_url='/assets/%(id)s/update-publication-status.json')
 
     def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/assets/%s.json' % self.url_id)
+        return urljoin(typepad.client.endpoint, '/assets/%(id)s.json' % {'id': self.url_id})
 
     @property
     def xid(self):
@@ -502,11 +543,12 @@ class Asset(TypePadObject):
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
             raise ValueError("An url_id is required")
-        obj = cls.get('/assets/%s.json' % url_id, **kwargs)
+        obj = cls.get('/assets/%(id)s.json' % {'id': url_id}, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return obj
 
+        
     actor = renamed_property(old='actor', new='author')
 
     def primary_object_type(self):
@@ -554,6 +596,12 @@ class AssetRef(TypePadObject):
     :attrtype:`User`
 
     """
+    excerpt = fields.Field()
+    """A short, plain-text excerpt of the referenced asset's content.
+
+    This is currently available only for `Post` assets.
+
+    """
     href = fields.Field()
     """The URL of a representation of the referenced asset."""
     id = fields.Field()
@@ -571,6 +619,16 @@ class AssetRef(TypePadObject):
     :attrtype:`list`
 
     """
+    permalink_url = fields.Field(api_name='permalinkUrl')
+    """The URL that is the referenced asset's permalink.
+
+    This will be omitted if the asset does not have a permalink of its own (for
+    example, if it's embedded in another asset) or if TypePad does not know its
+    permalink.
+
+    """
+    title = fields.Field()
+    """The title of the referenced asset, if it has one."""
     type = fields.Field()
     """The MIME type of the representation at the URL given in the `href`
     property."""
@@ -680,24 +738,30 @@ class Badge(TypePadObject):
     :attrtype:`ImageLink`
 
     """
+    is_learning = fields.Field(api_name='isLearning')
+    """A learning badge is given for a special achievement a user accomplishes
+    while filling out a new account.
+
+    `True` if this is a learning badge, or `False` if this is a normal badge.
+
+    """
 
 
 class Blog(TypePadObject):
 
-    categories = fields.Link(ListObject)
+    categories = fields.Link(ListObject, api_url='/blogs/%(id)s/categories.json')
     """Get a list of categories which are defined for the selected blog.
 
     :attrtype:`list`
 
     """
-    commenting_settings = fields.Link('BlogCommentingSettings', api_name='commenting-settings')
+    commenting_settings = fields.Link('BlogCommentingSettings', api_url='/blogs/%(id)s/commenting-settings.json')
     """Get the commenting-related settings for this blog.
 
     :attrtype:`BlogCommentingSettings`
 
     """
-    comments = fields.Link(ListOf('Comment'))
-    crosspost_accounts = fields.Link(ListOf('Account'), api_name='crosspost-accounts')
+    crosspost_accounts = fields.Link(ListOf('Account'), api_url='/blogs/%(id)s/crosspost-accounts.json')
     """Get  a list of accounts that can be used for crossposting with this blog.
 
     :attrtype:`list of Account`
@@ -709,7 +773,7 @@ class Blog(TypePadObject):
     """The URL of the blog's home page."""
     id = fields.Field()
     """A URI that serves as a globally unique identifier for the object."""
-    media_assets = fields.Link(ListOf('Asset'), api_name='media-assets')
+    media_assets = fields.Link(ListOf('Asset'), api_url='/blogs/%(id)s/media-assets.json')
     """POST: Add a new media asset to the account that owns this blog.
 
     :attrtype:`list of Asset`
@@ -737,7 +801,7 @@ class Blog(TypePadObject):
     :attrtype:`User`
 
     """
-    page_assets = fields.Link(ListOf('Page'), api_name='page-assets')
+    page_assets = fields.Link(ListOf('Page'), api_url='/blogs/%(id)s/page-assets.json')
     """Get a list of pages associated with the selected blog.
 
     POST: Add a new page to a blog
@@ -746,7 +810,7 @@ class Blog(TypePadObject):
     :attrtype:`list of Page`
 
     """
-    post_assets = fields.Link(ListOf('Post'), api_name='post-assets')
+    post_assets = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets.json')
     """Get a list of posts associated with the selected blog.
 
     POST: Add a new post to a blog
@@ -755,8 +819,74 @@ class Blog(TypePadObject):
     :attrtype:`list of Post`
 
     """
-    post_by_email_settings = fields.Link('PostByEmailAddress', api_name='post-by-email-settings')
-    stats = fields.Link('BlogStats')
+    post_assets_by_category = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@by-category/%(category)s.json')
+    """Get all visibile posts in the selected blog that have been assigned to the
+    given category.
+
+    :attrtype:`list of Post`
+
+    """
+    post_assets_by_filename = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@by-filename/%(fileRef)s.json', api_url_names={'file_ref': 'fileRef'})
+    """Get zero or one posts matching the given year, month and filename.
+
+    :attrtype:`list of Post`
+
+    """
+    post_assets_by_month = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@by-month/%(month)s.json')
+    """Get all visible posts in the selected blog that have a publication date
+    within the selected month, specified as a string of the form "YYYY-MM".
+
+    :attrtype:`list of Post`
+
+    """
+    post_by_email_settings_by_user = fields.Link('PostByEmailAddress', api_url='/blogs/%(id)s/post-by-email-settings/@by-user/%(userId)s.json', api_url_names={'user_id': 'userId'})
+    """Get the selected user's post-by-email address
+
+    :attrtype:`PostByEmailAddress`
+
+    """
+    published_comments = fields.Link(ListOf('Comment'), api_url='/blogs/%(id)s/comments/@published.json')
+    """Return a pageable list of published comments associated with the selected
+    blog
+
+    :attrtype:`list of Comment`
+
+    """
+    published_post_assets_by_category = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@published/@by-category/%(category)s.json')
+    """Get the published posts in the selected blog that have been assigned to the
+    given category.
+
+    :attrtype:`list of Post`
+
+    """
+    published_post_assets_by_month = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@published/@by-month/%(month)s.json')
+    """Get the posts that were published within the selected month (YYYY-MM) from
+    the selected blog.
+
+    :attrtype:`list of Post`
+
+    """
+    published_recent_comments = fields.Link(ListOf('Comment'), api_url='/blogs/%(id)s/comments/@published/@recent.json')
+    """Return the fifty most recent published comments associated with the
+    selected blog
+
+    :attrtype:`list of Comment`
+
+    """
+    published_recent_post_assets = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@published/@recent.json')
+    """Get the most recent 50 published posts in the selected blog.
+
+    :attrtype:`list of Post`
+
+    """
+    recent_post_assets = fields.Link(ListOf('Post'), api_url='/blogs/%(id)s/post-assets/@recent.json')
+    """Get the most recent 50 posts in the selected blog, including draft and
+    scheduled posts.
+
+    :attrtype:`list of Post`
+
+    """
+    stats = fields.Link('BlogStats', api_url='/blogs/%(id)s/stats.json')
     """Get data about the pageviews for the selected blog.
 
     :attrtype:`BlogStats`
@@ -777,7 +907,29 @@ class Blog(TypePadObject):
     class _AddCategoryPost(TypePadObject):
         category = fields.Field()
         """The category to add"""
-    add_category = fields.ActionEndpoint(api_name='add-category', post_type=_AddCategoryPost)
+    add_category = fields.ActionEndpoint(post_type=_AddCategoryPost, api_url='/blogs/%(id)s/add-category.json')
+
+    class _BeginImportPost(TypePadObject):
+        create_users = fields.Field(api_name='createUsers')
+        """Attempt to create new users based on ones found in the imported data.
+
+        This is not yet supported.
+
+        """
+        match_users = fields.Field(api_name='matchUsers')
+        """Attempt to create new users based on ones found in the imported data.
+
+        This is not yet supported.
+
+        """
+    class _BeginImportResponse(TypePadObject):
+        job = fields.Object('ImporterJob')
+        """The `ImporterJob` object representing the job that was created.
+
+        :attrtype:`ImporterJob`
+
+        """
+    begin_import = fields.ActionEndpoint(post_type=_BeginImportPost, api_url='/blogs/%(id)s/begin-import.json', response_type=_BeginImportResponse)
 
     class _DiscoverExternalPostAssetPost(TypePadObject):
         permalink_url = fields.Field(api_name='permalinkUrl')
@@ -789,15 +941,15 @@ class Blog(TypePadObject):
         :attrtype:`Asset`
 
         """
-    discover_external_post_asset = fields.ActionEndpoint(api_name='discover-external-post-asset', post_type=_DiscoverExternalPostAssetPost, response_type=_DiscoverExternalPostAssetResponse)
+    discover_external_post_asset = fields.ActionEndpoint(post_type=_DiscoverExternalPostAssetPost, api_url='/blogs/%(id)s/discover-external-post-asset.json', response_type=_DiscoverExternalPostAssetResponse)
 
     class _RemoveCategoryPost(TypePadObject):
         category = fields.Field()
         """The category to remove"""
-    remove_category = fields.ActionEndpoint(api_name='remove-category', post_type=_RemoveCategoryPost)
+    remove_category = fields.ActionEndpoint(post_type=_RemoveCategoryPost, api_url='/blogs/%(id)s/remove-category.json')
 
     def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/blogs/%s.json' % self.url_id)
+        return urljoin(typepad.client.endpoint, '/blogs/%(id)s.json' % {'id': self.url_id})
 
     @property
     def xid(self):
@@ -812,11 +964,12 @@ class Blog(TypePadObject):
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
             raise ValueError("An url_id is required")
-        obj = cls.get('/blogs/%s.json' % url_id, **kwargs)
+        obj = cls.get('/blogs/%(id)s.json' % {'id': url_id}, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return obj
 
+        
 
 class BlogCommentingSettings(TypePadObject):
 
@@ -899,86 +1052,6 @@ class ContainerRef(TypePadObject):
     or group."""
 
 
-class Endpoint(TypePadObject):
-
-    action_endpoints = fields.List(fields.Object('Endpoint'), api_name='actionEndpoints')
-    """For noun endpoints, an array of action endpoints that it supports.
-
-    :attrtype:`list of Endpoint`
-
-    """
-    can_have_id = fields.Field(api_name='canHaveId')
-    """For noun endpoints, `True` if an id part is accepted, or `False` if the
-    noun may only be used alone."""
-    can_omit_id = fields.Field(api_name='canOmitId')
-    """For noun endpoints, `True` if the id part can be ommitted, or `False` if it
-    is always required."""
-    filter_endpoints = fields.List(fields.Object('Endpoint'), api_name='filterEndpoints')
-    """For endpoints that return lists, an array of filters that can be appended
-    to the endpoint.
-
-    :attrtype:`list of Endpoint`
-
-    """
-    format_sensitive = fields.Field(api_name='formatSensitive')
-    """`True` if this endpoint requires a format suffix, or `False` otherwise."""
-    name = fields.Field()
-    """The name of the endpoint, as it appears in URLs."""
-    parameterized = fields.Field()
-    """For filter endpoints, `True` if a parameter is required on the filter, or
-    `False` if it's a boolean filter."""
-    post_object_type = fields.Object('ObjectType', api_name='postObjectType')
-    """The type of object that this endpoint accepts for ``POST`` operations.
-
-    This property is omitted if this endpoint does not accept ``POST`` requests.
-
-
-    :attrtype:`ObjectType`
-
-    """
-    property_endpoints = fields.List(fields.Object('Endpoint'), api_name='propertyEndpoints')
-    """For noun endpoints, an array of property endpoints that it supports.
-
-    :attrtype:`list of Endpoint`
-
-    """
-    resource_object_type = fields.Object('ObjectType', api_name='resourceObjectType')
-    """The type of object that this endpoint represents for ``GET``, ``PUT`` and
-    ``DELETE`` operations.
-
-    This property is omitted for action endpoints, as they do not represent
-    resources.
-
-
-    :attrtype:`ObjectType`
-
-    """
-    response_object_type = fields.Object('ObjectType', api_name='responseObjectType')
-    """For action endpoints, the type of object that this endpoint returns on
-    success.
-
-    If the endpoint returns no payload on success, or if this is not an action
-    endpoint, this property is omitted.
-
-
-    :attrtype:`ObjectType`
-
-    """
-    supported_methods = fields.Dict(fields.Field(), api_name='supportedMethods')
-    """A mapping of the HTTP methods that this endpoint accepts to the docstrings
-    describing the result of each method.
-
-    :attrtype:`dict`
-
-    """
-    supported_query_arguments = fields.List(fields.Field(), api_name='supportedQueryArguments')
-    """The names of the query string arguments that this endpoint accepts.
-
-    :attrtype:`list`
-
-    """
-
-
 class Entity(TypePadObject):
 
     id = fields.Field()
@@ -1013,7 +1086,7 @@ class Event(TypePadObject):
 
     """
     id = fields.Field()
-    """A URI that serves as a globally unique identifier for the user."""
+    """A URI that serves as a globally unique identifier for the event."""
     object = fields.Object('TypePadObject')
     """The object to which the action described by this event was performed.
 
@@ -1030,7 +1103,7 @@ class Event(TypePadObject):
     """A string containing the canonical identifier that can be used to identify
     this object in URLs.
 
-    This can be used to recognise where the same user is returned in response to
+    This can be used to recognise where the same event is returned in response to
     different requests, and as a mapping key for an application's local data
     store.
 
@@ -1048,7 +1121,7 @@ class Event(TypePadObject):
     """
 
     def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/events/%s.json' % self.url_id)
+        return urljoin(typepad.client.endpoint, '/events/%(id)s.json' % {'id': self.url_id})
 
     @property
     def xid(self):
@@ -1063,11 +1136,12 @@ class Event(TypePadObject):
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
             raise ValueError("An url_id is required")
-        obj = cls.get('/events/%s.json' % url_id, **kwargs)
+        obj = cls.get('/events/%(id)s.json' % {'id': url_id}, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return obj
 
+        
     def __unicode__(self):
         return unicode(self.object)
 
@@ -1080,7 +1154,7 @@ class ExternalFeedSubscription(TypePadObject):
     callback_url = fields.Field(api_name='callbackUrl')
     """The URL to which to send notifications of new items in this subscription's
     feeds."""
-    feeds = fields.Link(ListObject)
+    feeds = fields.Link(ListObject, api_url='/external-feed-subscriptions/%(id)s/feeds.json')
     """Get a list of strings containing the identifiers of the feeds to which this
     subscription is subscribed.
 
@@ -1121,7 +1195,7 @@ class ExternalFeedSubscription(TypePadObject):
         :attrtype:`list`
 
         """
-    add_feeds = fields.ActionEndpoint(api_name='add-feeds', post_type=_AddFeedsPost)
+    add_feeds = fields.ActionEndpoint(post_type=_AddFeedsPost, api_url='/external-feed-subscriptions/%(id)s/add-feeds.json')
 
     class _RemoveFeedsPost(TypePadObject):
         feed_idents = fields.List(fields.Field(), api_name='feedIdents')
@@ -1130,7 +1204,7 @@ class ExternalFeedSubscription(TypePadObject):
         :attrtype:`list`
 
         """
-    remove_feeds = fields.ActionEndpoint(api_name='remove-feeds', post_type=_RemoveFeedsPost)
+    remove_feeds = fields.ActionEndpoint(post_type=_RemoveFeedsPost, api_url='/external-feed-subscriptions/%(id)s/remove-feeds.json')
 
     class _UpdateFiltersPost(TypePadObject):
         filter_rules = fields.List(fields.Field(), api_name='filterRules')
@@ -1140,7 +1214,7 @@ class ExternalFeedSubscription(TypePadObject):
         :attrtype:`list`
 
         """
-    update_filters = fields.ActionEndpoint(api_name='update-filters', post_type=_UpdateFiltersPost)
+    update_filters = fields.ActionEndpoint(post_type=_UpdateFiltersPost, api_url='/external-feed-subscriptions/%(id)s/update-filters.json')
 
     class _UpdateNotificationSettingsPost(TypePadObject):
         callback_url = fields.Field(api_name='callbackUrl')
@@ -1157,7 +1231,7 @@ class ExternalFeedSubscription(TypePadObject):
         Required, if the `callback_url` is being modified with this endpoint.
 
         """
-    update_notification_settings = fields.ActionEndpoint(api_name='update-notification-settings', post_type=_UpdateNotificationSettingsPost)
+    update_notification_settings = fields.ActionEndpoint(post_type=_UpdateNotificationSettingsPost, api_url='/external-feed-subscriptions/%(id)s/update-notification-settings.json')
 
     class _UpdateUserPost(TypePadObject):
         post_as_user_id = fields.Field(api_name='postAsUserId')
@@ -1167,10 +1241,10 @@ class ExternalFeedSubscription(TypePadObject):
         The user must be an administrator of the group.
 
         """
-    update_user = fields.ActionEndpoint(api_name='update-user', post_type=_UpdateUserPost)
+    update_user = fields.ActionEndpoint(post_type=_UpdateUserPost, api_url='/external-feed-subscriptions/%(id)s/update-user.json')
 
     def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/external-feed-subscriptions/%s.json' % self.url_id)
+        return urljoin(typepad.client.endpoint, '/external-feed-subscriptions/%(id)s.json' % {'id': self.url_id})
 
     @property
     def xid(self):
@@ -1185,11 +1259,12 @@ class ExternalFeedSubscription(TypePadObject):
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
             raise ValueError("An url_id is required")
-        obj = cls.get('/external-feed-subscriptions/%s.json' % url_id, **kwargs)
+        obj = cls.get('/external-feed-subscriptions/%(id)s.json' % {'id': url_id}, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return obj
 
+        
 
 class Favorite(TypePadObject):
 
@@ -1234,7 +1309,7 @@ class Favorite(TypePadObject):
     """
 
     def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/favorites/%s.json' % self.url_id)
+        return urljoin(typepad.client.endpoint, '/favorites/%(id)s.json' % {'id': self.url_id})
 
     @property
     def xid(self):
@@ -1249,11 +1324,12 @@ class Favorite(TypePadObject):
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
             raise ValueError("An url_id is required")
-        obj = cls.get('/favorites/%s.json' % url_id, **kwargs)
+        obj = cls.get('/favorites/%(id)s.json' % {'id': url_id}, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return obj
 
+        
     @classmethod
     def get_by_user_asset(cls, user_id, asset_id, **kwargs):
         assert re.match('^\w+$', user_id), "invalid user_id parameter given"
@@ -1318,6 +1394,59 @@ class ImageLink(TypePadObject, _ImageResizer):
     href = renamed_property(old='url', new='href')
 
 
+class ImportAsset(TypePadObject):
+
+    author = fields.Object('ImportAuthor')
+    """Object representing as much detail as available about the author of the
+    imported asset
+
+    :attrtype:`ImportAuthor`
+
+    """
+    content = fields.Field()
+    """Body or content of the imported asset"""
+    foreign_id = fields.Field(api_name='foreignId')
+    """Foreign site ID for the asset"""
+    object_type = fields.Field(api_name='objectType')
+    """The type of the imported asset"""
+    published = fields.Field()
+    """The time at which the asset was published, as a W3CDTF timestamp"""
+    title = fields.Field()
+    """Title of the imported asset"""
+
+
+class ImportAuthor(TypePadObject):
+
+    display_name = fields.Field(api_name='displayName')
+    """Foreign author's displayed name"""
+    email = fields.Field()
+    """Foreign author's email address"""
+    homepage_url = fields.Field(api_name='homepageUrl')
+    """URL for foreign author's homepage"""
+    openid_identifier = fields.Field(api_name='openidIdentifier')
+    """Foreign author's OpenID identifier"""
+    typepad_user_id = fields.Field(api_name='typepadUserId')
+    """Known TypePad user id for foreign author"""
+
+
+class ImporterJob(TypePadObject):
+
+    assets_imported = fields.Field(api_name='assetsImported')
+    """Number of assets imported by this job"""
+    create_users = fields.Field(api_name='createUsers')
+    """`True` if TypePad will create new users for the auther information given in
+    the submitted payloads."""
+    last_foreign_id = fields.Field(api_name='lastForeignId')
+    """The foreign ID of the last asset importered"""
+    last_submit_time = fields.Field(api_name='lastSubmitTime')
+    """The time the last asset was submitted, as a W3CDTF timestamp."""
+    match_users = fields.Field(api_name='matchUsers')
+    """`True` if TypePad will attempt to find matching users for the author
+    information given in the submitted payloads."""
+    url_id = fields.Field(api_name='urlId')
+    """ID of the import job"""
+
+
 class ObjectProperty(TypePadObject):
 
     doc_string = fields.Field(api_name='docString')
@@ -1326,29 +1455,6 @@ class ObjectProperty(TypePadObject):
     """The name of the property."""
     type = fields.Field()
     """The name of the type of this property."""
-
-
-class ObjectType(TypePadObject):
-
-    name = fields.Field()
-    """The name of this object type.
-
-    If this is an anonymous type representing the request or response of an action
-    endpoint, this property is omitted.
-
-    """
-    parent_type = fields.Field(api_name='parentType')
-    """The name of the parent type.
-
-    This property is omitted if this object type has no parent type.
-
-    """
-    properties = fields.List(fields.Object('ObjectProperty'))
-    """The properties belonging to objects of this object type.
-
-    :attrtype:`list of ObjectProperty`
-
-    """
 
 
 class PostByEmailAddress(TypePadObject):
@@ -1420,7 +1526,7 @@ class Relationship(TypePadObject):
     :attrtype:`RelationshipStatus`
 
     """
-    status_obj = fields.Link('RelationshipStatus', api_name='status')
+    status_obj = fields.Link('RelationshipStatus', api_url='/relationships/%(id)s/status.json')
     """Get the status information for the selected relationship, including its
     types.
 
@@ -1448,7 +1554,7 @@ class Relationship(TypePadObject):
     """
 
     def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/relationships/%s.json' % self.url_id)
+        return urljoin(typepad.client.endpoint, '/relationships/%(id)s.json' % {'id': self.url_id})
 
     @property
     def xid(self):
@@ -1463,11 +1569,12 @@ class Relationship(TypePadObject):
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
             raise ValueError("An url_id is required")
-        obj = cls.get('/relationships/%s.json' % url_id, **kwargs)
+        obj = cls.get('/relationships/%(id)s.json' % {'id': url_id}, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return obj
 
+        
     def _rel_type_updater(uri):
         def update(self):
             rel_status = RelationshipStatus.get(self.status_obj._location, batch=False)
@@ -1505,6 +1612,10 @@ class RelationshipStatus(TypePadObject):
 
     """
 
+
+class TrendingAssets(TypePadObject):
+
+    pass
 
 class UserBadge(TypePadObject):
 
@@ -1668,6 +1779,13 @@ class Audio(Asset):
     :attrtype:`AudioLink`
 
     """
+    suppress_events = fields.Field(api_name='suppressEvents')
+    """**Editable.** An optional, write-only flag indicating that asset creation
+    should not trigger notification events such as emails or dashboard entries.
+
+    Not available to all applications.
+
+    """
 
 
 class Comment(Asset):
@@ -1682,6 +1800,23 @@ class Comment(Asset):
     :attrtype:`AssetRef`
 
     """
+    root = fields.Object('AssetRef')
+    """A reference to the root asset that this comment is descended from.
+
+    This will be the same as `in_reply_to` unless this comment is a reply to
+    another comment.
+
+
+    :attrtype:`AssetRef`
+
+    """
+    suppress_events = fields.Field(api_name='suppressEvents')
+    """**Editable.** An optional, write-only flag indicating that asset creation
+    should not trigger notification events such as emails or dashboard entries.
+
+    Not available to all applications.
+
+    """
 
 
 class Group(Entity):
@@ -1694,8 +1829,18 @@ class Group(Entity):
 
     _class_object_type = "Group"
 
-    audio_assets = fields.Link(ListOf('Audio'), api_name='audio-assets')
-    """POST: Create a new Audio asset within the selected group.
+    admin_memberships = fields.Link(ListOf('Relationship'), api_url='/groups/%(id)s/memberships/@admin.json')
+    """Get a list of relationships that have the Admin type between users and the
+    selected group.
+
+    :attrtype:`list of Relationship`
+
+    """
+    audio_assets = fields.Link(ListOf('Audio'), api_url='/groups/%(id)s/audio-assets.json')
+    """Get a list of recently created Audio assets from the selected group.
+
+    POST: Create a new Audio asset within the selected group.
+
 
     :attrtype:`list of Audio`
 
@@ -1706,27 +1851,47 @@ class Group(Entity):
     :attrtype:`ImageLink`
 
     """
+    blocked_memberships = fields.Link(ListOf('Relationship'), api_url='/groups/%(id)s/memberships/@blocked.json')
+    """Get a list of relationships that have the Blocked type between users and
+    the selected groups.
+
+    (Restricted to group admin.)
+
+
+    :attrtype:`list of Relationship`
+
+    """
     display_name = fields.Field(api_name='displayName')
     """The display name set by the group's owner."""
-    events = fields.Link(ListOf('Event'))
+    events = fields.Link(ListOf('Event'), api_url='/groups/%(id)s/events.json')
     """Get a list of events describing actions performed in the selected group.
 
     :attrtype:`list of Event`
 
     """
-    external_feed_subscriptions = fields.Link(ListOf('ExternalFeedSubscription'), api_name='external-feed-subscriptions')
+    external_feed_subscriptions = fields.Link(ListOf('ExternalFeedSubscription'), api_url='/groups/%(id)s/external-feed-subscriptions.json')
     """Get a list of the group's active external feed subscriptions.
 
     :attrtype:`list of ExternalFeedSubscription`
 
     """
-    link_assets = fields.Link(ListOf('Link'), api_name='link-assets')
-    """POST: Create a new Link asset within the selected group.
+    link_assets = fields.Link(ListOf('Link'), api_url='/groups/%(id)s/link-assets.json')
+    """Returns a list of recently created Link assets from the selected group.
+
+    POST: Create a new Link asset within the selected group.
+
 
     :attrtype:`list of Link`
 
     """
-    memberships = fields.Link(ListOf('Relationship'))
+    member_memberships = fields.Link(ListOf('Relationship'), api_url='/groups/%(id)s/memberships/@member.json')
+    """Get a list of relationships that have the Member type between users and the
+    selected group.
+
+    :attrtype:`list of Relationship`
+
+    """
+    memberships = fields.Link(ListOf('Relationship'), api_url='/groups/%(id)s/memberships.json')
     """Get a list of relationships between users and the selected group.
 
     :attrtype:`list of Relationship`
@@ -1744,14 +1909,20 @@ class Group(Entity):
     :attrtype:`list`
 
     """
-    photo_assets = fields.Link(ListOf('Photo'), api_name='photo-assets')
-    """POST: Create a new Photo asset within the selected group.
+    photo_assets = fields.Link(ListOf('Photo'), api_url='/groups/%(id)s/photo-assets.json')
+    """Get a list of recently created Photo assets from the selected group.
+
+    POST: Create a new Photo asset within the selected group.
+
 
     :attrtype:`list of Photo`
 
     """
-    post_assets = fields.Link(ListOf('Post'), api_name='post-assets')
-    """POST: Create a new Post asset within the selected group.
+    post_assets = fields.Link(ListOf('Post'), api_url='/groups/%(id)s/post-assets.json')
+    """Get a list of recently created Post assets from the selected group.
+
+    POST: Create a new Post asset within the selected group.
+
 
     :attrtype:`list of Post`
 
@@ -1760,8 +1931,11 @@ class Group(Entity):
     """The URL to the front page of the group website."""
     tagline = fields.Field()
     """A tagline describing the group, as set by the group's owner."""
-    video_assets = fields.Link(ListOf('Video'), api_name='video-assets')
-    """POST: Create a new Video asset within the selected group.
+    video_assets = fields.Link(ListOf('Video'), api_url='/groups/%(id)s/video-assets.json')
+    """Get a list of recently created Video assets from the selected group.
+
+    POST: Create a new Video asset within the selected group.
+
 
     :attrtype:`list of Video`
 
@@ -1769,13 +1943,13 @@ class Group(Entity):
 
     class _AddMemberPost(TypePadObject):
         user_id = fields.Field(api_name='userId')
-        """The urlId of the user who is being added."""
-    add_member = fields.ActionEndpoint(api_name='add-member', post_type=_AddMemberPost)
+        """The `url_id` of the user who is being added."""
+    add_member = fields.ActionEndpoint(post_type=_AddMemberPost, api_url='/groups/%(id)s/add-member.json')
 
     class _BlockUserPost(TypePadObject):
         user_id = fields.Field(api_name='userId')
-        """The urlId of the user who is being blocked."""
-    block_user = fields.ActionEndpoint(api_name='block-user', post_type=_BlockUserPost)
+        """The `url_id` of the user who is being blocked."""
+    block_user = fields.ActionEndpoint(post_type=_BlockUserPost, api_url='/groups/%(id)s/block-user.json')
 
     class _CreateExternalFeedSubscriptionPost(TypePadObject):
         feed_idents = fields.List(fields.Field(), api_name='feedIdents')
@@ -1792,7 +1966,7 @@ class Group(Entity):
 
         """
         post_as_user_id = fields.Field(api_name='postAsUserId')
-        """the urlId of the user who will own the assets and events posted into the
+        """The `url_id` of the user who will own the assets and events posted into the
         group's stream by this subscription.
 
         The user must be an administrator of the group.
@@ -1805,20 +1979,20 @@ class Group(Entity):
         :attrtype:`ExternalFeedSubscription`
 
         """
-    create_external_feed_subscription = fields.ActionEndpoint(api_name='create-external-feed-subscription', post_type=_CreateExternalFeedSubscriptionPost, response_type=_CreateExternalFeedSubscriptionResponse)
+    create_external_feed_subscription = fields.ActionEndpoint(post_type=_CreateExternalFeedSubscriptionPost, api_url='/groups/%(id)s/create-external-feed-subscription.json', response_type=_CreateExternalFeedSubscriptionResponse)
 
     class _RemoveMemberPost(TypePadObject):
         user_id = fields.Field(api_name='userId')
-        """The urlId of the user who is being removed."""
-    remove_member = fields.ActionEndpoint(api_name='remove-member', post_type=_RemoveMemberPost)
+        """The `url_id` of the user who is being removed."""
+    remove_member = fields.ActionEndpoint(post_type=_RemoveMemberPost, api_url='/groups/%(id)s/remove-member.json')
 
     class _UnblockUserPost(TypePadObject):
         user_id = fields.Field(api_name='userId')
-        """The urlId of the user who is being unblocked."""
-    unblock_user = fields.ActionEndpoint(api_name='unblock-user', post_type=_UnblockUserPost)
+        """The `url_id` of the user who is being unblocked."""
+    unblock_user = fields.ActionEndpoint(post_type=_UnblockUserPost, api_url='/groups/%(id)s/unblock-user.json')
 
     def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/groups/%s.json' % self.url_id)
+        return urljoin(typepad.client.endpoint, '/groups/%(id)s.json' % {'id': self.url_id})
 
     @property
     def xid(self):
@@ -1833,11 +2007,28 @@ class Group(Entity):
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
             raise ValueError("An url_id is required")
-        obj = cls.get('/groups/%s.json' % url_id, **kwargs)
+        obj = cls.get('/groups/%(id)s.json' % {'id': url_id}, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return obj
 
+        
+
+class ImportComment(ImportAsset):
+
+    in_reply_to_foreign_id = fields.Field(api_name='inReplyToForeignId')
+    """Foreign site ID for the parent of this comment"""
+    status = fields.Field()
+    """Keyword indicating publication status of comment"""
+
+
+class ImportPage(ImportAsset):
+
+    pass
+
+class ImportPost(ImportAsset):
+
+    pass
 
 class Link(Asset):
 
@@ -1845,6 +2036,13 @@ class Link(Asset):
 
     _class_object_type = "Link"
 
+    suppress_events = fields.Field(api_name='suppressEvents')
+    """**Editable.** An optional, write-only flag indicating that asset creation
+    should not trigger notification events such as emails or dashboard entries.
+
+    Not available to all applications.
+
+    """
     target_url = fields.Field(api_name='targetUrl')
     """The URL that is the target of this link."""
 
@@ -1868,6 +2066,13 @@ class Page(Asset):
     filename = fields.Field()
     """**Editable.** The base name of the page, used to create the
     `permalink_url`."""
+    suppress_events = fields.Field(api_name='suppressEvents')
+    """**Editable.** An optional, write-only flag indicating that asset creation
+    should not trigger notification events such as emails or dashboard entries.
+
+    Not available to all applications.
+
+    """
 
 
 class Photo(Asset):
@@ -1880,6 +2085,13 @@ class Photo(Asset):
     """A link to the image that is this Photo asset's content.
 
     :attrtype:`ImageLink`
+
+    """
+    suppress_events = fields.Field(api_name='suppressEvents')
+    """**Editable.** An optional, write-only flag indicating that asset creation
+    should not trigger notification events such as emails or dashboard entries.
+
+    Not available to all applications.
 
     """
 
@@ -1929,10 +2141,11 @@ class Post(Asset):
     `permalink_url`."""
     reblog_count = fields.Field(api_name='reblogCount')
     """The number of times this post has been reblogged by other people."""
-    reblog_of = fields.Object('AssetRef', api_name='reblogOf')
-    """A reference to a post of which this post is a reblog.
+    suppress_events = fields.Field(api_name='suppressEvents')
+    """**Editable.** An optional, write-only flag indicating that asset creation
+    should not trigger notification events such as emails or dashboard entries.
 
-    :attrtype:`AssetRef`
+    Not available to all applications.
 
     """
 
@@ -1949,19 +2162,26 @@ class User(Entity):
 
     _class_object_type = "User"
 
+    admin_memberships = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/memberships/@admin.json')
+    """Get a list of relationships that have an Admin type that the selected user
+    has with groups.
+
+    :attrtype:`list of Relationship`
+
+    """
     avatar_link = fields.Object('ImageLink', api_name='avatarLink')
     """A link to an image representing this user.
 
     :attrtype:`ImageLink`
 
     """
-    badges = fields.Link(ListOf('UserBadge'))
+    badges = fields.Link(ListOf('UserBadge'), api_url='/users/%(id)s/badges.json')
     """Get a list of badges that the selected user has won.
 
     :attrtype:`list of UserBadge`
 
     """
-    blogs = fields.Link(ListOf('Blog'))
+    blogs = fields.Link(ListOf('Blog'), api_url='/users/%(id)s/blogs.json')
     """Get a list of blogs that the selected user has access to.
 
     :attrtype:`list of Blog`
@@ -1969,7 +2189,7 @@ class User(Entity):
     """
     display_name = fields.Field(api_name='displayName')
     """The user's chosen display name."""
-    elsewhere_accounts = fields.Link(ListOf('Account'), api_name='elsewhere-accounts')
+    elsewhere_accounts = fields.Link(ListOf('Account'), api_url='/users/%(id)s/elsewhere-accounts.json')
     """Get a list of elsewhere accounts for the selected user.
 
     :attrtype:`list of Account`
@@ -1984,19 +2204,54 @@ class User(Entity):
     all other cases, this property is omitted.
 
     """
-    events = fields.Link(StreamOf('Event'))
+    events = fields.Link(StreamOf('Event'), api_url='/users/%(id)s/events.json')
     """Get a list of events describing actions that the selected user performed.
 
     :attrtype:`list of Event`
 
     """
-    favorites = fields.Link(ListOf('Favorite'))
+    events_by_group = fields.Link(ListOf('Event'), api_url='/users/%(id)s/events/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    """Get a list of events describing actions that the selected user performed in
+    a particular group.
+
+    :attrtype:`list of Event`
+
+    """
+    favorites = fields.Link(ListOf('Favorite'), api_url='/users/%(id)s/favorites.json')
     """Get a list of favorites that were listed by the selected user.
 
     POST: Create a new favorite in the selected user's list of favorites.
 
 
     :attrtype:`list of Favorite`
+
+    """
+    follower_relationships = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/relationships/@follower.json')
+    """Get a list of relationships that have the Contact type that the selected
+    user has with other users.
+
+    :attrtype:`list of Relationship`
+
+    """
+    follower_relationships_by_group = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/relationships/@follower/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    """Get a list of relationships that have the Contact type that the selected
+    user has with other users, constrained to members of a particular group.
+
+    :attrtype:`list of Relationship`
+
+    """
+    following_relationships = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/relationships/@following.json')
+    """Get a list of relationships that have the Contact type that other users
+    have with the selected user.
+
+    :attrtype:`list of Relationship`
+
+    """
+    following_relationships_by_group = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/relationships/@following/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    """Get a list of relationships that have the Contact type that other users
+    have with the selected user, constrained to members of a particular group.
+
+    :attrtype:`list of Relationship`
 
     """
     gender = fields.Field()
@@ -2019,6 +2274,12 @@ class User(Entity):
     :attrtype:`list`
 
     """
+    learning_badges = fields.Link(ListOf('UserBadge'), api_url='/users/%(id)s/badges/@learning.json')
+    """Get a list of learning badges that the selected user has won.
+
+    :attrtype:`list of UserBadge`
+
+    """
     location = fields.Field()
     """**Deprecated.** The user's location, as a free-form string provided by
     them.
@@ -2027,15 +2288,37 @@ class User(Entity):
     be retrieved from the ``/users/{id}/profile`` endpoint.
 
     """
-    memberships = fields.Link(ListOf('Relationship'))
+    member_memberships = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/memberships/@member.json')
+    """Get a list of relationships that have a Member type that the selected user
+    has with groups.
+
+    :attrtype:`list of Relationship`
+
+    """
+    memberships = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/memberships.json')
     """Get a list of relationships that the selected user has with groups.
 
     :attrtype:`list of Relationship`
 
     """
-    notifications = fields.Link(ListOf('Event'))
+    memberships_by_group = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/memberships/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    """Get a list containing only the relationship between the selected user and a
+    particular group, or an empty list if the user has no relationship with the
+    group.
+
+    :attrtype:`list of Relationship`
+
+    """
+    notifications = fields.Link(ListOf('Event'), api_url='/users/%(id)s/notifications.json')
     """Get a list of events describing actions by users that the selected user is
     following.
+
+    :attrtype:`list of Event`
+
+    """
+    notifications_by_group = fields.Link(ListOf('Event'), api_url='/users/%(id)s/notifications/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    """Get a list of events describing actions in a particular group by users that
+    the selected user is following.
 
     :attrtype:`list of Event`
 
@@ -2060,7 +2343,7 @@ class User(Entity):
     persistent key, as the user can change it at any time.
 
     """
-    profile = fields.Link('UserProfile')
+    profile = fields.Link('UserProfile', api_url='/users/%(id)s/profile.json')
     """Get a more extensive set of user properties that can be used to build a
     user profile page.
 
@@ -2069,16 +2352,37 @@ class User(Entity):
     """
     profile_page_url = fields.Field(api_name='profilePageUrl')
     """The URL of the user's TypePad profile page."""
-    relationships = fields.Link(ListOf('Relationship'))
+    public_badges = fields.Link(ListOf('UserBadge'), api_url='/users/%(id)s/badges/@public.json')
+    """Get a list of public badges that the selected user has won.
+
+    :attrtype:`list of UserBadge`
+
+    """
+    relationships = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/relationships.json')
     """Get a list of relationships that the selected user has with other users,
     and that other users have with the selected user.
 
     :attrtype:`list of Relationship`
 
     """
+    relationships_by_group = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/relationships/@by-group/%(groupId)s.json', api_url_names={'group_id': 'groupId'})
+    """Get a list of relationships that the selected user has with other users,
+    and that other users have with the selected user, constrained to members of a
+    particular group.
+
+    :attrtype:`list of Relationship`
+
+    """
+    relationships_by_user = fields.Link(ListOf('Relationship'), api_url='/users/%(id)s/relationships/@by-user/%(userId)s.json', api_url_names={'user_id': 'userId'})
+    """Get a list of relationships that the selected user has with a single other
+    user.
+
+    :attrtype:`list of Relationship`
+
+    """
 
     def make_self_link(self):
-        return urljoin(typepad.client.endpoint, '/users/%s.json' % self.url_id)
+        return urljoin(typepad.client.endpoint, '/users/%(id)s.json' % {'id': self.url_id})
 
     @property
     def xid(self):
@@ -2093,11 +2397,12 @@ class User(Entity):
     def get_by_url_id(cls, url_id, **kwargs):
         if url_id == '':
             raise ValueError("An url_id is required")
-        obj = cls.get('/users/%s.json' % url_id, **kwargs)
+        obj = cls.get('/users/%(id)s.json' % {'id': url_id}, **kwargs)
         obj.__dict__['url_id'] = url_id
         obj.__dict__['id'] = 'tag:api.typepad.com,2009:%s' % url_id
         return obj
 
+        
     @classmethod
     def get_self(cls, **kwargs):
         """Returns a `User` instance representing the account as whom the
@@ -2118,6 +2423,13 @@ class Video(Asset):
 
 
     :attrtype:`ImageLink`
+
+    """
+    suppress_events = fields.Field(api_name='suppressEvents')
+    """**Editable.** An optional, write-only flag indicating that asset creation
+    should not trigger notification events such  as emails or dashboard entries.
+
+    Not available to all applications.
 
     """
     video_link = fields.Object('VideoLink', api_name='videoLink')
