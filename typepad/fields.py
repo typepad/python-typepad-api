@@ -49,8 +49,10 @@ class Link(remoteobjects.fields.Link):
 
     """
 
-    def __init__(self, cls, api_url, **kwargs):
+    def __init__(self, cls, api_url, api_url_names={}, **kwargs):
+        super(Link, self).__init__(cls, **kwargs)
         self.api_name = self.api_url = api_url
+        self.api_url_names = api_url_names
 
     def __get__(self, instance, type=None, **kwargs):
         """Generates the `TypePadObject` representing the target of this
@@ -69,17 +71,16 @@ class Link(remoteobjects.fields.Link):
             # api_names), use it to convert whatever params it specifies to api_names.
             params = kwargs.copy()
             params['id'] = instance.url_id
-            if 'api_url_names' in kwargs:
-                for pyname, api_name in kwargs['api_url_names']:
-                    if pyname in params and api_name not in params:
-                        params[api_name] = params[pyname]
-                        del params[pyname]
-                        del kwargs[pyname] # delete this now too since the cleanup step below won't find it.
+            for pyname, api_name in self.api_url_names:
+                if pyname in params and api_name not in params:
+                    params[api_name] = params[pyname]
+                    del params[pyname]
+                    del kwargs[pyname] # delete this now too since the cleanup step below won't find it.
             newurl = self.api_url % params
             
             # Now we have to clean up and remove the kwargs we consumed in the URL path
             for kwarg in kwargs.keys():
-                if '%%(%s)s'%kwarg in api_url:
+                if '%%(%s)s'%kwarg in self.api_url:
                     del kwargs[kwarg]
             
             cls = self.cls
@@ -94,8 +95,9 @@ class Link(remoteobjects.fields.Link):
 
 class ActionEndpoint(remoteobjects.fields.Property):
 
-    def __init__(self, api_url, post_type, response_type=None, **kwargs):
+    def __init__(self, api_url, post_type, response_type=None, api_url_names={}, **kwargs):
         self.api_name = self.api_url = api_url
+        self.api_url_names = api_url_names
         self.post_type = post_type
         self.response_type = response_type
         super(ActionEndpoint, self).__init__(**kwargs)
@@ -115,17 +117,16 @@ class ActionEndpoint(remoteobjects.fields.Property):
             # api_names), use it to convert whatever params it specifies to api_names.
             params = kwargs.copy()
             params['id'] = instance.url_id
-            if 'api_url_names' in kwargs:
-                for pyname, api_name in kwargs['api_url_names']:
-                    if pyname in params and api_name not in params:
-                        params[api_name] = params[pyname]
-                        del params[pyname]
-                        del kwargs[pyname] # delete this now too since the cleanup step below won't find it.
+            for pyname, api_name in self.api_url_names:
+                if pyname in params and api_name not in params:
+                    params[api_name] = params[pyname]
+                    del params[pyname]
+                    del kwargs[pyname] # delete this now too since the cleanup step below won't find it.
             newurl = self.api_url % params
             
             # Now we have to clean up and remove the kwargs we consumed in the URL path
             for kwarg in kwargs.keys():
-                if '%%(%s)s'%kwarg in api_url:
+                if '%%(%s)s'%kwarg in self.api_url:
                     del kwargs[kwarg]
             
             body = json.dumps(post_obj.to_dict(), default=remoteobjects.http.omit_nulls)
