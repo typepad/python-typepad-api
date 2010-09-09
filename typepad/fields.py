@@ -66,24 +66,9 @@ class Link(remoteobjects.fields.Link):
             return self
 
         try:
-            # Build a param list for format specifier replacement. We just grab from kwargs and also add in
-            # 'id' automatically (since it is known).  If an api_url_names dict is provided (mapping pynames to 
-            # api_names), use it to convert whatever params it specifies to api_names.
-            params = kwargs.copy()
-            params['id'] = instance.url_id
-            for pyname, api_name in self.api_url_names:
-                if pyname in params and api_name not in params:
-                    params[api_name] = params[pyname]
-                    del params[pyname]
-                    del kwargs[pyname] # delete this now too since the cleanup step below won't find it.
-            
             endpoint = _get_endpoint_from_instance(instance)
+            params = _get_params_from_kwargs(prop=self, instance=instance, kwargs_dict=kwargs)
             newurl = endpoint + (self.api_url % params)
-            
-            # Now we have to clean up and remove the kwargs we consumed in the URL path
-            for kwarg in kwargs.keys():
-                if '%%(%s)s'%kwarg in self.api_url:
-                    del kwargs[kwarg]
             
             cls = self.cls
             if isinstance(cls, basestring):
@@ -114,25 +99,10 @@ class ActionEndpoint(remoteobjects.fields.Property):
         def post(**kwargs):
             post_obj = self.post_type(**kwargs)
 
-            # Build a param list for format specifier replacement. We just grab from kwargs and also add in
-            # 'id' automatically (since it is known).  If an api_url_names dict is provided (mapping pynames to 
-            # api_names), use it to convert whatever params it specifies to api_names.
-            params = kwargs.copy()
-            params['id'] = instance.url_id
-            for pyname, api_name in self.api_url_names:
-                if pyname in params and api_name not in params:
-                    params[api_name] = params[pyname]
-                    del params[pyname]
-                    del kwargs[pyname] # delete this now too since the cleanup step below won't find it.
-            
             endpoint = _get_endpoint_from_instance(instance, default=typepad.client.endpoint)
+            params = _get_params_from_kwargs(prop=self, instance=instance, kwargs_dict=kwargs)
             newurl = endpoint + (self.api_url % params)
-            
-            # Now we have to clean up and remove the kwargs we consumed in the URL path
-            for kwarg in kwargs.keys():
-                if '%%(%s)s'%kwarg in self.api_url:
-                    del kwargs[kwarg]
-            
+
             body = json.dumps(post_obj.to_dict(), default=remoteobjects.http.omit_nulls)
             headers = {'content-type': post_obj.content_types[0]}
             request = post_obj.get_request(url=newurl, method='POST',
@@ -153,8 +123,7 @@ class ActionEndpoint(remoteobjects.fields.Property):
 
 
 def _get_endpoint_from_instance(instance, default=''):
-    """
-    Given an instance of a TypePadObject, return its client endpoint.
+    """Given an instance of a TypePadObject, return its client endpoint.
     """
     if hasattr(instance, '_http') and instance._http and instance._http.endpoint:
         return instance._http.endpoint
@@ -164,4 +133,27 @@ def _get_endpoint_from_instance(instance, default=''):
             return '%s://%s' % (parts[0], parts[1])
     else:
         return default
+
+def _get_params_from_kwargs(prop, instance, kwargs_dict):
+    """Given a TypePadObject instance, a Link or ActionEndpoint property, and a kwargs dictionary,
+    returns a param list dict intended for URL format specifier replacement.  Relevant params are
+    consumed from kwargs_dict, and the instance's ID is added in automatically too. 
     
+    If the property has an api_url_names dict (mapping pynames to api_names), use it to convert
+    whatever params it specifies to api_names.
+    """
+    params = kwargs_dict.copy()
+    params['id'] = instance.url_id
+    for pyname, api_name in prop.api_url_names:
+        if pyname in params and api_name not in params:
+            params[api_name] = params[pyname]
+            del params[pyname]
+            del kwargs_dict[pyname] # delete this now too since the cleanup step below won't find it.
+    
+    # Now we have to clean up and remove the kwargs we consumed in the URL path
+    for kwarg in kwargs_dict.keys():
+        if '%%(%s)s'%kwarg in prop.api_url:
+            del kwargs_dict[kwarg]
+            
+    return params
+
