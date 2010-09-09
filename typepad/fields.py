@@ -38,6 +38,7 @@ from remoteobjects.fields import *
 import remoteobjects.http
 import typepad.tpobject
 
+
 class Link(remoteobjects.fields.Link):
 
     """A `TypePadObject` property representing a link from one TypePad API
@@ -69,7 +70,7 @@ class Link(remoteobjects.fields.Link):
             endpoint = _get_endpoint_from_instance(instance)
             params = _get_params_from_kwargs(prop=self, instance=instance, kwargs_dict=kwargs)
             newurl = endpoint + (self.api_url % params)
-            
+
             cls = self.cls
             if isinstance(cls, basestring):
                 cls = remoteobjects.dataobject.find_by_name(cls)
@@ -134,11 +135,12 @@ def _get_endpoint_from_instance(instance, default=''):
     else:
         return default
 
+
 def _get_params_from_kwargs(prop, instance, kwargs_dict):
     """Given a TypePadObject instance, a Link or ActionEndpoint property, and a kwargs dictionary,
     returns a param list dict intended for URL format specifier replacement.  Relevant params are
-    consumed from kwargs_dict, and the instance's ID is added in automatically too. 
-    
+    consumed from kwargs_dict, and the instance's ID is added in automatically too.
+
     If the property has an api_url_names dict (mapping pynames to api_names), use it to convert
     whatever params it specifies to api_names.
     """
@@ -149,11 +151,10 @@ def _get_params_from_kwargs(prop, instance, kwargs_dict):
             params[api_name] = params[pyname]
             del params[pyname]
             del kwargs_dict[pyname] # delete this now too since the cleanup step below won't find it.
-    
+
     # Now we have to clean up and remove the kwargs we consumed in the URL path
     for kwarg in kwargs_dict.keys():
         if '%%(%s)s'%kwarg in prop.api_url:
             del kwargs_dict[kwarg]
-            
-    return params
 
+    return params

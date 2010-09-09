@@ -498,7 +498,7 @@ class ObjectRef(Field):
             raise ValueError('Unknown container type %r' % container)
 
         self.field_type = val
-    
+
     type = property(get_type, set_type)
 
     @property
@@ -618,7 +618,7 @@ class Property(lazy):
 
     def set_path(self, chunks=[], params={}):
         """
-        Receives the pathChunks and pathParams values for a property or endpoint, and builds an api_url kwarg with 
+        Receives the pathChunks and pathParams values for a property or endpoint, and builds an api_url kwarg with
         Python format specifiers in place of variables.  Also builds a api_url_names kwarg mapping pynames to api_names,
         for whenever the naming conventions differ.
         Also un-sets api_name kwarg, since properties/endpoints using api_url should not use api_name.
@@ -720,7 +720,6 @@ class ItemEndpoint(Property):
         """.lstrip('\n') % {'api_url': self.field.kwargs['api_url']})
         me.write('\n')
         return me.getvalue()
-        
 
 
 class ObjectType(lazy):
@@ -846,7 +845,7 @@ class ObjectType(lazy):
         endp_obj = ActionEndpoint({'name': name})
         endp_obj.postType = endp['requestObjectType']['properties']
         endp_obj.set_path(chunks=endp["pathChunks"], params=endp["pathParams"])
-        
+
         resp_type = endp.get('responseObjectType')
         if resp_type:
             endp_obj.responseType = resp_type['properties']
