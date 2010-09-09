@@ -988,13 +988,19 @@ def generate_types(types_fn=None, resourcemap_fn=None):
 
     # Annotate the types with endpoint info.
     for name, mapping in rmap.iteritems():
+        if 'objectType' not in mapping:
+            first_endpoint = mapping['endpoints'][0]
+            logging.warn('Mapping containing %s endpoint at /%s has no object type; skipping them',
+                first_endpoint['endpointType'], '/'.join(str(x) for x in first_endpoint['pathChunks']))
+            continue
+
+        resource_name = mapping['objectType']
         try:
-            resource_name = mapping['objectType']
             objtype = objtypes_by_name[resource_name]
-            logging.debug('Finding object for type %s so it can have endpoint %r', resource_name, objtypes_by_name.get(resource_name))
         except KeyError:
-            logging.warn('No known object type %r; skipping some endpoints', resource_name)
+            logging.warn('Mapping uses unknown object type %r; skipping some endpoints', resource_name)
         else:
+            logging.debug('Finding object for type %s so it can have endpoint %r', resource_name, objtypes_by_name.get(resource_name))
             objtype.endpoints = mapping['endpoints']
 
     return objtypes
