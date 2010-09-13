@@ -50,10 +50,9 @@ class Link(remoteobjects.fields.Link):
 
     """
 
-    def __init__(self, cls, api_url, api_url_names={}, is_callable=False, **kwargs):
+    def __init__(self, cls, api_url, is_callable=False, **kwargs):
         super(Link, self).__init__(cls, **kwargs)
         self.api_name = self.api_url = api_url
-        self.api_url_names = api_url_names
         self.is_callable = is_callable
 
     def __get__(self, instance, type=None, **kwargs):
@@ -83,7 +82,11 @@ class Link(remoteobjects.fields.Link):
         try:
             endpoint = _get_endpoint_from_instance(instance)
             params = _get_params_from_kwargs(prop=self, instance=instance, kwargs_dict=kwargs)
-            newurl = endpoint + (self.api_url % params)
+            try:
+                newurl = endpoint + (self.api_url % params)
+            except KeyError, k:
+                logging.error('This method requires a keyword arg param %s that was not supplied.' % k)
+                raise
             
             cls = self.cls
             if isinstance(cls, basestring):
@@ -97,9 +100,8 @@ class Link(remoteobjects.fields.Link):
 
 class ActionEndpoint(remoteobjects.fields.Property):
 
-    def __init__(self, api_url, post_type, response_type=None, api_url_names={}, **kwargs):
+    def __init__(self, api_url, post_type, response_type=None, **kwargs):
         self.api_name = self.api_url = api_url
-        self.api_url_names = api_url_names
         self.post_type = post_type
         self.response_type = response_type
         super(ActionEndpoint, self).__init__(**kwargs)
@@ -116,7 +118,11 @@ class ActionEndpoint(remoteobjects.fields.Property):
 
             endpoint = _get_endpoint_from_instance(instance, default=typepad.client.endpoint)
             params = _get_params_from_kwargs(prop=self, instance=instance, kwargs_dict=kwargs)
-            newurl = endpoint + (self.api_url % params)
+            try:
+                newurl = endpoint + (self.api_url % params)
+            except KeyError, k:
+                logging.error('This method requires a keyword arg param %s that was not supplied.' % k)
+                raise
 
             body = json.dumps(post_obj.to_dict(), default=remoteobjects.http.omit_nulls)
             headers = {'content-type': post_obj.content_types[0]}
@@ -154,19 +160,11 @@ def _get_params_from_kwargs(prop, instance, kwargs_dict):
     """Given a TypePadObject instance, a Link or ActionEndpoint property, and a kwargs dictionary,
     returns a param list dict intended for URL format specifier replacement.  Relevant params are
     consumed from kwargs_dict, and the instance's ID is added in automatically too.
-
-    If the property has an api_url_names dict (mapping pynames to api_names), use it to convert
-    whatever params it specifies to api_names.
     """
     params = kwargs_dict.copy()
     params['id'] = instance.url_id
-    for pyname, api_name in prop.api_url_names:
-        if pyname in params and api_name not in params:
-            params[api_name] = params[pyname]
-            del params[pyname]
-            del kwargs_dict[pyname] # delete this now too since the cleanup step below won't find it.
 
-    # Now we have to clean up and remove the kwargs we consumed in the URL path
+    # Clean up, by removing the kwargs we consumed in the URL path
     for kwarg in kwargs_dict.keys():
         if '%%(%s)s'%kwarg in prop.api_url:
             del kwargs_dict[kwarg]

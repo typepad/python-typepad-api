@@ -619,21 +619,14 @@ class Property(lazy):
     def set_path(self, chunks=[], params={}):
         """
         Receives the pathChunks and pathParams values for a property or endpoint, and builds an api_url kwarg with
-        Python format specifiers in place of variables.  Also builds a api_url_names kwarg mapping pynames to api_names,
-        for whenever the naming conventions differ.
+        Python format specifiers in place of variables.  
         Also un-sets api_name kwarg, since properties/endpoints using api_url should not use api_name.
         """
-        api_url_names = {}
         for param, position in params.items():
-            chunks[position] = '%%(%s)s' % param
-            pyname = name_to_pyname(param)
-            if param != pyname:
-                api_url_names[pyname] = param
+            chunks[position] = '%%(%s)s' % name_to_pyname(param)
             if param != 'id':
                 self.field.kwargs['is_callable'] = True
         self.field.kwargs['api_url'] = '/' + '/'.join(chunks) + '.json'
-        if api_url_names:
-            self.field.kwargs['api_url_names'] = api_url_names
         
         try:
             del self.field.kwargs['api_name']
